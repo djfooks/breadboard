@@ -6,6 +6,19 @@ function Wire(p0, p1)
     this.value = 0;
 }
 
+Wire.prototype.getConnection = function getConnection(from)
+{
+    if (from === this.p0)
+    {
+        return this.p1;
+    }
+    else if (from === this.p1)
+    {
+        return this.p0;
+    }
+    return -1;
+}
+
 function Breadboard(stage, top, left, cols, rows, spacing)
 {
     this.graphics = new PIXI.Graphics();
@@ -71,18 +84,55 @@ Breadboard.state = {
 
 Breadboard.prototype.update = function update()
 {
+    this.simulate();
     if (this.dirty)
     {
         this.dirty = false;
         this.draw();
     }
-}
+};
+
+Breadboard.prototype.simulate = function simulate()
+{
+    var i;
+    var connections = this.connections;
+    var wires = this.wires;
+    var wiresLength = wires.length;
+    for (i = 0; i < wiresLength; i += 1)
+    {
+        wires[i].value = 0;
+    }
+
+    var edges = [];
+    edges.push(0);
+
+    while (edges.length > 0)
+    {
+        var id = edges.pop();
+        var connectionComponents = connections[id];
+        for (i = 0; i < connectionComponents.length; i += 1)
+        {
+            var component = connectionComponents[i];
+            if (component.value === 0)
+            {
+                component.value = 1;
+                this.dirty = true;
+                var newId = component.getConnection(id);
+                if (newId !== -1)
+                {
+                    edges.push(newId);
+                }
+            }
+        }
+    }
+};
 
 Breadboard.prototype.draw = function draw()
 {
     var graphics = this.graphics;
     graphics.clear();
     graphics.lineStyle(2, 0x000000, 1);
+    var value = 0;
     var i;
 
     var left = this.left;
@@ -91,6 +141,18 @@ Breadboard.prototype.draw = function draw()
     for (i = 0; i < this.wires.length; i += 1)
     {
         var wire = this.wires[i];
+        if (wire.value !== value)
+        {
+            value = wire.value;
+            if (value)
+            {
+                graphics.lineStyle(2, 0xFF0000, 1);
+            }
+            else
+            {
+                graphics.lineStyle(2, 0x000000, 1);
+            }
+        }
 
         var p0 = this.getPositionFromIndex(wire.p0);
         var p1 = this.getPositionFromIndex(wire.p1);
@@ -152,7 +214,11 @@ Breadboard.prototype.click = function click(p)
     }
     else if (this.state === Breadboard.state.PLACING_WIRE)
     {
-        this.addWire(p[0], p[1], this.wireStart[0], this.wireStart[1]);
+        if (p[0] !== this.wireStart[0] ||
+            p[1] !== this.wireStart[1])
+        {
+            this.addWire(p[0], p[1], this.wireStart[0], this.wireStart[1]);
+        }
         this.state = Breadboard.state.NONE;
     }
 };
