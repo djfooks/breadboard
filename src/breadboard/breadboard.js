@@ -21,7 +21,8 @@ Wire.prototype.getConnection = function getConnection(from)
 
 function Breadboard(stage, top, left, cols, rows, spacing)
 {
-    this.graphics = new PIXI.Graphics();
+    this.fgGraphics = new PIXI.Graphics();
+    this.bgGraphics = new PIXI.Graphics();
     this.stage = stage;
 
     this.top = top;
@@ -36,12 +37,14 @@ function Breadboard(stage, top, left, cols, rows, spacing)
         this.connections[i] = [];
     }
     this.wires = [];
+    this.virtualWires = [];
     this.dirty = false;
     this.state = Breadboard.state.NONE;
     this.wireStart = [-1, -1];
 
     this.drawGrid();
-    stage.addChild(this.graphics);
+    stage.addChild(this.bgGraphics);
+    stage.addChild(this.fgGraphics);
 }
 
 Breadboard.prototype.drawGrid = function drawGrid()
@@ -84,11 +87,11 @@ Breadboard.state = {
 
 Breadboard.prototype.update = function update()
 {
-    this.simulate();
     if (this.dirty)
     {
-        this.dirty = false;
+        this.simulate();
         this.draw();
+        this.dirty = false;
     }
 };
 
@@ -129,36 +132,64 @@ Breadboard.prototype.simulate = function simulate()
 
 Breadboard.prototype.draw = function draw()
 {
-    var graphics = this.graphics;
-    graphics.clear();
-    graphics.lineStyle(2, 0x000000, 1);
-    var value = 0;
+    this.fgGraphics.clear();
+    this.bgGraphics.clear();
+
+    this.drawWires(this.wires);
+    this.drawWires(this.virtualWires);
+};
+
+Breadboard.prototype.drawWires = function drawWires(wires)
+{
+    var fgGraphics = this.fgGraphics;
+    var bgGraphics = this.bgGraphics;
+
     var i;
 
     var left = this.left;
     var top = this.top;
     var spacing = this.spacing;
-    for (i = 0; i < this.wires.length; i += 1)
+    var circlesDrawn = {};
+    bgGraphics.lineStyle(6, 0x000000, 1);
+    for (i = 0; i < wires.length; i += 1)
     {
-        var wire = this.wires[i];
-        if (wire.value !== value)
+        var wire = wires[i];
+        var p0 = this.getPositionFromIndex(wire.p0);
+        var p1 = this.getPositionFromIndex(wire.p1);
+        if (!circlesDrawn[wire.p0])
         {
-            value = wire.value;
-            if (value)
-            {
-                graphics.lineStyle(2, 0xFF0000, 1);
-            }
-            else
-            {
-                graphics.lineStyle(2, 0x000000, 1);
-            }
+            circlesDrawn[wire.p0] = true;
+            bgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 1.5);
         }
+        if (!circlesDrawn[wire.p1])
+        {
+            circlesDrawn[wire.p1] = true;
+            bgGraphics.drawCircle(left + p1[0] * spacing, top + p1[1] * spacing, 1.5);
+        }
+        bgGraphics.lineStyle(6, 0x000000, 1);
+        bgGraphics.moveTo(left + p0[0] * spacing, top + p0[1] * spacing);
+        bgGraphics.lineTo(left + p1[0] * spacing, top + p1[1] * spacing);
+    }
 
+    for (i = 0; i < wires.length; i += 1)
+    {
+        var wire = wires[i];
         var p0 = this.getPositionFromIndex(wire.p0);
         var p1 = this.getPositionFromIndex(wire.p1);
 
-        graphics.moveTo(left + p0[0] * spacing, top + p0[1] * spacing);
-        graphics.lineTo(left + p1[0] * spacing, top + p1[1] * spacing);
+        if (wire.value)
+        {
+            fgGraphics.lineStyle(3, 0xFF0000, 1);
+        }
+        else
+        {
+            fgGraphics.lineStyle(3, 0xFFFFFF, 1);
+        }
+
+        fgGraphics.moveTo(left + p0[0] * spacing, top + p0[1] * spacing);
+        fgGraphics.lineTo(left + p1[0] * spacing, top + p1[1] * spacing);
+        fgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 1);
+        fgGraphics.drawCircle(left + p1[0] * spacing, top + p1[1] * spacing, 1);
     }
 };
 
@@ -181,44 +212,93 @@ Breadboard.prototype.getPosition = function getPosition(p)
     return [x, y];
 };
 
-Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1)
+Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
 {
     this.dirty = true;
 
     var p0 = this.getIndex(x0, y0);
     var p1 = this.getIndex(x1, y1);
 
-    var wires = this.wires;
     var newWire = new Wire(p0, p1);
-    wires.push(newWire);
-
-    this.connections[p0].push(newWire);
-    this.connections[p1].push(newWire);
+    if (virtual)
+    {
+        this.virtualWires.push(newWire);
+    }
+    else
+    {
+        this.wires.push(newWire);
+        this.connections[p0].push(newWire);
+        this.connections[p1].push(newWire);
+    }
 };
 
-Breadboard.prototype.click = function click(p)
+Breadboard.prototype.validPosition = function validPosition(p)
 {
-    console.log(p[0] + " " + p[1]);
+    return p[0] >= 0 && p[1] >= 0 && p[0] <= this.cols && p[1] <= this.rows;
+};
+
+Breadboard.prototype.mouseUpdate = function mouseUpdate(p, virtual)
+{
+    if (this.state === Breadboard.state.NONE)
+    {
+        return;
+    }
     p = this.getPosition(p);
-    console.log(p[0] + " " + p[1]);
-    if (p[0] < 0 || p[1] < 0 || p[0] > this.cols || p[1] > this.rows)
+    if (!this.validPosition(p))
     {
         this.state = Breadboard.state.NONE;
         return;
     }
-
-    if (this.state === Breadboard.state.NONE)
+    if (this.state === Breadboard.state.PLACING_WIRE)
     {
-        this.wireStart = p;
-        this.state = Breadboard.state.PLACING_WIRE;
-    }
-    else if (this.state === Breadboard.state.PLACING_WIRE)
-    {
-        if (p[0] !== this.wireStart[0] ||
-            p[1] !== this.wireStart[1])
+        this.virtualWires = [];
+        var wireStart = this.wireStart;
+        if (p[0] !== wireStart[0] ||
+            p[1] !== wireStart[1])
         {
-            this.addWire(p[0], p[1], this.wireStart[0], this.wireStart[1]);
+            if (p[0] == wireStart[0] ||
+                p[1] == wireStart[1])
+            {
+                this.addWire(p[0], p[1], wireStart[0], wireStart[1], virtual);
+            }
+            else
+            {
+                var x = p[0] - wireStart[0];
+                var y = p[1] - wireStart[1];
+                if (Math.abs(x) < Math.abs(y))
+                {
+                    y = ((y > 0 && x > 0) || (y < 0 && x < 0)) ? x : -x;
+                    this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
+                    this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
+                }
+                else
+                {
+                    x = ((x > 0 && y > 0) || (x < 0 && y < 0)) ? y : -y;
+                    this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
+                    this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
+                }
+            }
         }
-        this.state = Breadboard.state.NONE;
     }
+};
+
+Breadboard.prototype.mousedown = function mousedown(p)
+{
+    p = this.getPosition(p);
+    if (this.validPosition(p))
+    {
+        this.state = Breadboard.state.PLACING_WIRE;
+        this.wireStart = p;
+    }
+};
+
+Breadboard.prototype.mouseup = function mouseup(p)
+{
+    this.mouseUpdate(p, false);
+    this.state = Breadboard.state.NONE;
+};
+
+Breadboard.prototype.mousemove = function mousemove(p)
+{
+    this.mouseUpdate(p, true);
 };

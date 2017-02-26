@@ -36,13 +36,27 @@ var App = function ()
 
     stage.interactive = true;
     stage.hitArea = new PIXI.Rectangle(0, 0, 1000, 1000);
-    stage.click = this.click.bind(this);
+    stage.mousedown = this.mousedown.bind(this);
+    stage.mouseup = this.mouseup.bind(this);
+    stage.mousemove = this.mousemove.bind(this);
 };
 
-App.prototype.click = function click(e)
+App.prototype.mousedown = function mousedown(e)
 {
     var event = e.data.originalEvent;
-    this.breadboard.click([event.layerX, event.layerY]);
+    this.breadboard.mousedown([event.layerX, event.layerY]);
+};
+
+App.prototype.mouseup = function mouseup(e)
+{
+    var event = e.data.originalEvent;
+    this.breadboard.mouseup([event.layerX, event.layerY]);
+};
+
+App.prototype.mousemove = function mousemove(e)
+{
+    var event = e.data.originalEvent;
+    this.breadboard.mousemove([event.layerX, event.layerY]);
 };
 
 App.prototype.update = function update()
