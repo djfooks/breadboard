@@ -1,23 +1,38 @@
 
-function Wire(p0, p1)
+function Wire(x0, y0, x1, y1, id0, id1)
 {
-    this.p0 = p0;
-    this.p1 = p1;
-    this.value = 0;
+    this.x0 = x0;
+    this.y0 = y0;
+    this.x1 = x1;
+    this.y1 = y1;
+
+    this.id0 = id0;
+    this.id1 = id1;
+
+    var dx = x1 - x0;
+    this.dx = dx < 0 ? -1 : (dx > 0 ? 1 : 0);
+    var dy = y1 - y0;
+    this.dy = dy < 0 ? -1 : (dy > 0 ? 1 : 0);
+
+    this.bit0 = Connection.getDirectionFlag( this.dx,  this.dy);
+    this.bit1 = Connection.getDirectionFlag(-this.dx, -this.dy);
 }
 
-Wire.prototype.getConnection = function getConnection(from)
+Wire.prototype.iterate = function iterate(fn)
 {
-    if (from === this.p0)
+    var x = this.x0;
+    var y = this.y0;
+    var x1 = this.x1;
+    var y1 = this.y1;
+    var dx = this.dx;
+    var dy = this.dy;
+    while (x !== x1 || y !== y1)
     {
-        return this.p1;
+        fn(x, y);
+        x += dx;
+        y += dy;
     }
-    else if (from === this.p1)
-    {
-        return this.p0;
-    }
-    return -1;
-}
+};
 
 function Breadboard(stage, top, left, cols, rows, spacing)
 {
@@ -34,13 +49,16 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     var i;
     for (i = 0; i < this.connections.length; i += 1)
     {
-        this.connections[i] = [];
+        this.connections[i] = new Connection();
     }
     this.wires = [];
     this.virtualWires = [];
     this.dirty = false;
     this.state = Breadboard.state.NONE;
     this.wireStart = [-1, -1];
+    this.updateCounter = 0;
+
+    this.simulateSteps = 0;
 
     this.drawGrid();
     stage.addChild(this.bgGraphics);
@@ -87,7 +105,7 @@ Breadboard.state = {
 
 Breadboard.prototype.update = function update()
 {
-    if (this.dirty)
+    if (true)//this.dirty)
     {
         this.simulate();
         this.draw();
@@ -98,35 +116,52 @@ Breadboard.prototype.update = function update()
 Breadboard.prototype.simulate = function simulate()
 {
     var i;
+    var j;
     var connections = this.connections;
-    var wires = this.wires;
-    var wiresLength = wires.length;
-    for (i = 0; i < wiresLength; i += 1)
-    {
-        wires[i].value = 0;
-    }
+    this.updateCounter += 1;
+    var updateCounter = this.updateCounter;
 
     var edges = [];
+    connections[0].setValue(updateCounter, 1);
     edges.push(0);
 
-    while (edges.length > 0)
+    var steps = 0;
+    this.simulateSteps += 1;
+
+    if (this.simulateSteps > 150)
     {
-        var id = edges.pop();
-        var connectionComponents = connections[id];
-        for (i = 0; i < connectionComponents.length; i += 1)
+        this.simulateSteps = 0;
+    }
+
+    var newEdges;
+    while (edges.length > 0 && steps < this.simulateSteps)
+    {
+        newEdges = [];
+        for (i = 0; i < edges.length; i += 1)
         {
-            var component = connectionComponents[i];
-            if (component.value === 0)
+            var id = edges[i];
+            var connection = connections[id];
+            var dirBit = 1;
+            for (j = 0; j < 8; j += 1)
             {
-                component.value = 1;
-                this.dirty = true;
-                var newId = component.getConnection(id);
-                if (newId !== -1)
+                if ((connection.wires & dirBit) > 0)
                 {
-                    edges.push(newId);
+                    var delta = Connection.directionVector[j];
+                    var p = this.getPositionFromIndex(id);
+                    var x = p[0] + delta[0];
+                    var y = p[1] + delta[1];
+                    var newId = this.getIndex(x, y);
+                    if (connections[newId].getValue(updateCounter) === 0)
+                    {
+                        connections[newId].setValue(updateCounter, 1);
+                        newEdges.push(newId);
+                    }
                 }
+                dirBit = dirBit << 1;
             }
         }
+        steps += 1;
+        edges = newEdges;
     }
 };
 
@@ -146,50 +181,78 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
     var i;
 
+    var that = this;
+    var connections = this.connections;
     var left = this.left;
     var top = this.top;
     var spacing = this.spacing;
+    var updateCounter = this.updateCounter;
     var circlesDrawn = {};
     bgGraphics.lineStyle(6, 0x000000, 1);
     for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
-        var p0 = this.getPositionFromIndex(wire.p0);
-        var p1 = this.getPositionFromIndex(wire.p1);
-        if (!circlesDrawn[wire.p0])
+        var x0 = wire.x0;
+        var y0 = wire.y0;
+        var x1 = wire.x1;
+        var y1 = wire.y1;
+        if (!circlesDrawn[wire.id0])
         {
-            circlesDrawn[wire.p0] = true;
-            bgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 1.5);
+            circlesDrawn[wire.id0] = true;
+            bgGraphics.drawCircle(left + x0 * spacing, top + y0 * spacing, 1.5);
         }
-        if (!circlesDrawn[wire.p1])
+        if (!circlesDrawn[wire.id1])
         {
-            circlesDrawn[wire.p1] = true;
-            bgGraphics.drawCircle(left + p1[0] * spacing, top + p1[1] * spacing, 1.5);
+            circlesDrawn[wire.id1] = true;
+            bgGraphics.drawCircle(left + x1 * spacing, top + y1 * spacing, 1.5);
         }
         bgGraphics.lineStyle(6, 0x000000, 1);
-        bgGraphics.moveTo(left + p0[0] * spacing, top + p0[1] * spacing);
-        bgGraphics.lineTo(left + p1[0] * spacing, top + p1[1] * spacing);
+        bgGraphics.moveTo(left + x0 * spacing, top + y0 * spacing);
+        bgGraphics.lineTo(left + x1 * spacing, top + y1 * spacing);
+        // TODO only update bgGraphics when a wire/component is added
     }
 
     for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
-        var p0 = this.getPositionFromIndex(wire.p0);
-        var p1 = this.getPositionFromIndex(wire.p1);
-
-        if (wire.value)
+        var start = [wire.x0, wire.y0];
+        var on = connections[wire.id0].getValue(updateCounter) > 0;
+        wire.iterate(function wireIterateCurrent(x, y)
         {
-            fgGraphics.lineStyle(3, 0xFF0000, 1);
-        }
-        else
-        {
-            fgGraphics.lineStyle(3, 0xFFFFFF, 1);
-        }
+            var id = that.getIndex(x, y);
+            var connectionOn = connections[id].getValue(updateCounter) > 0;
+            if ((connectionOn && !on) ||
+                (!connectionOn && on))
+            {
+                if (on)
+                {
+                    fgGraphics.lineStyle(3, 0xFF0000, 1);
+                }
+                else
+                {
+                    fgGraphics.lineStyle(3, 0xFFFFFF, 1);
+                }
+                on = connectionOn;
+                fgGraphics.moveTo(left + start[0] * spacing, top + start[1] * spacing);
+                fgGraphics.lineTo(left + x * spacing, top + y * spacing);
+                start[0] = x;
+                start[1] = y;
+            }
+        });
 
-        fgGraphics.moveTo(left + p0[0] * spacing, top + p0[1] * spacing);
-        fgGraphics.lineTo(left + p1[0] * spacing, top + p1[1] * spacing);
-        fgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 1);
-        fgGraphics.drawCircle(left + p1[0] * spacing, top + p1[1] * spacing, 1);
+        if (start[0] !== wire.x1 || start[1] !== wire.y1)
+        {
+            if (on)
+            {
+                fgGraphics.lineStyle(3, 0xFF0000, 1);
+            }
+            else
+            {
+                fgGraphics.lineStyle(3, 0xFFFFFF, 1);
+            }
+            fgGraphics.moveTo(left + start[0] * spacing, top + start[1] * spacing);
+            fgGraphics.lineTo(left + wire.x1 * spacing, top + wire.y1 * spacing);
+        }
     }
 };
 
@@ -216,10 +279,10 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
 {
     this.dirty = true;
 
-    var p0 = this.getIndex(x0, y0);
-    var p1 = this.getIndex(x1, y1);
+    var id0 = this.getIndex(x0, y0);
+    var id1 = this.getIndex(x1, y1);
 
-    var newWire = new Wire(p0, p1);
+    newWire = new Wire(x0, y0, x1, y1, id0, id1);
     if (virtual)
     {
         this.virtualWires.push(newWire);
@@ -227,8 +290,26 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
     else
     {
         this.wires.push(newWire);
-        this.connections[p0].push(newWire);
-        this.connections[p1].push(newWire);
+        var connections = this.connections;
+        connections[id0].addComponent(newWire);
+        connections[id1].addComponent(newWire);
+
+        var dx = newWire.dx;
+        var dy = newWire.dy;
+        var bit0 = newWire.bit0;
+        var bit1 = newWire.bit1;
+        var x = x0;
+        var y = y0;
+        var id;
+        while (x !== x1 || y !== y1)
+        {
+            id = this.getIndex(x, y);
+            connections[id].addWire(bit0);
+            x += dx;
+            y += dy;
+            id = this.getIndex(x, y);
+            connections[id].addWire(bit1);
+        }
     }
 };
 
@@ -253,30 +334,32 @@ Breadboard.prototype.mouseUpdate = function mouseUpdate(p, virtual)
     {
         this.virtualWires = [];
         var wireStart = this.wireStart;
-        if (p[0] !== wireStart[0] ||
-            p[1] !== wireStart[1])
+        if (p[0] === wireStart[0] &&
+            p[1] === wireStart[1])
         {
-            if (p[0] == wireStart[0] ||
-                p[1] == wireStart[1])
+            return;
+        }
+
+        if (p[0] === wireStart[0] ||
+            p[1] === wireStart[1])
+        {
+            this.addWire(p[0], p[1], wireStart[0], wireStart[1], virtual);
+        }
+        else
+        {
+            var x = p[0] - wireStart[0];
+            var y = p[1] - wireStart[1];
+            if (Math.abs(x) < Math.abs(y))
             {
-                this.addWire(p[0], p[1], wireStart[0], wireStart[1], virtual);
+                y = ((y > 0 && x > 0) || (y < 0 && x < 0)) ? x : -x;
+                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
+                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
             }
             else
             {
-                var x = p[0] - wireStart[0];
-                var y = p[1] - wireStart[1];
-                if (Math.abs(x) < Math.abs(y))
-                {
-                    y = ((y > 0 && x > 0) || (y < 0 && x < 0)) ? x : -x;
-                    this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
-                    this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
-                }
-                else
-                {
-                    x = ((x > 0 && y > 0) || (x < 0 && y < 0)) ? y : -y;
-                    this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
-                    this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
-                }
+                x = ((x > 0 && y > 0) || (x < 0 && y < 0)) ? y : -y;
+                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
+                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
             }
         }
     }
