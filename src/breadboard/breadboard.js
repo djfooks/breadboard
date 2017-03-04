@@ -34,6 +34,11 @@ Wire.prototype.iterate = function iterate(fn)
     }
 };
 
+Wire.prototype.toJson = function toJson()
+{
+    return [this.x0, this.y0, this.x1, this.y1];
+};
+
 function Breadboard(stage, top, left, cols, rows, spacing)
 {
     this.fgGraphics = new PIXI.Graphics();
@@ -64,6 +69,37 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     stage.addChild(this.bgGraphics);
     stage.addChild(this.fgGraphics);
 }
+
+Breadboard.prototype.toJson = function toJson()
+{
+    var out = {
+        cols: this.cols,
+        rows: this.rows,
+        wires: []
+    };
+    var i;
+    var wires = this.wires;
+    var wiresLength = wires.length;
+    for (i = 0; i < wiresLength; i += 1)
+    {
+        out.wires.append(wires[i].toJson());
+    }
+};
+
+Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, json)
+{
+    var breadboard = new Breadboard(stage, top, left, json.cols, json.rows, spacing);
+
+    var wires = json.wires;
+    var wiresLength = wires.length;
+    var i;
+    for (i = 0; i < wiresLength; i += 1)
+    {
+        var w = wires[i];
+        breadboard.addWire(w[0], w[1], w[2], w[3], false);
+    }
+    return breadboard;
+};
 
 Breadboard.prototype.drawGrid = function drawGrid()
 {

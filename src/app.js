@@ -1,6 +1,8 @@
 
 var App = function ()
 {
+    window.onerror = this.onError.bind(this);
+    this.debugText = "";
     this.pixiApp = new PIXI.Application(800, 600, { antialias: true });
 
     this.pixiApp.renderer.backgroundColor = 0xFFFFFF;
@@ -13,10 +15,18 @@ var App = function ()
 
     var top = 30;
     var left = 30;
-    var rows = 20;
-    var cols = 20;
     var spacing = 20;
-    this.breadboard = new Breadboard(stage, top, left, cols, rows, spacing);
+    var json = {
+        cols: 20,
+        rows: 20,
+        wires: [
+            [0,0,10,0],
+            [10,0,10,10],
+            [10,10,0,10],
+            [0,10,10,0]
+        ]
+    };
+    this.breadboard = Breadboard.createFromJson(stage, top, left, spacing, json);
 
     this.moneyText = new PIXI.Text('$');
     this.moneyText.x = 0;
@@ -79,5 +89,16 @@ App.prototype.updateGame = function updateGame()
     this.moneyText.text = "$" + this.money;
     this.wiresText.text = "Wires: " + this.wires;
 };
+
+App.prototype.debugInfo = function debugInfo(str)
+{
+    this.debugMsg += str + "<br>";
+    document.getElementById("debugText").innerHTML = this.debugMsg;
+}
+
+App.prototype.onError = function onError(message, source, lineno, colno, error)
+{
+    this.debugInfo("Error: " + source + ":" + lineno + " " + message);
+}
 
 new App();
