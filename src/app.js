@@ -15,18 +15,28 @@ var App = function ()
 
     var top = 30;
     var left = 30;
-    var spacing = 20;
-    var json = {
-        cols: 20,
-        rows: 20,
-        wires: [
-            [0,0,10,0],
-            [10,0,10,10],
-            [10,10,0,10],
-            [0,10,10,0]
-        ]
-    };
-    this.breadboard = Breadboard.createFromJson(stage, top, left, spacing, json);
+    var spacing = 30;
+    var json;
+    var jsonStr = window.localStorage.getItem("breadboard");
+    if (jsonStr)
+    {
+        try
+        {
+            json = JSON.parse(jsonStr);
+        }
+        catch (e)
+        {}
+    }
+    if (json)
+    {
+        this.breadboard = Breadboard.createFromJson(stage, top, left, spacing, json);
+    }
+    else
+    {
+        var rows = 20;
+        var cols = 20;
+        this.breadboard = new Breadboard(stage, top, left, cols, rows, spacing);
+    }
 
     this.moneyText = new PIXI.Text('$');
     this.moneyText.x = 0;
@@ -82,6 +92,7 @@ App.prototype.update = function update()
         this.nextTick = 30;
     }
 
+    this.save();
     this.breadboard.update();
 };
 
@@ -102,6 +113,16 @@ App.prototype.debugInfo = function debugInfo(str)
 App.prototype.onError = function onError(message, source, lineno, colno, error)
 {
     this.debugInfo("Error: " + source + ":" + lineno + " " + message);
+}
+
+App.prototype.save = function save()
+{
+    if (this.breadboard && this.breadboard.dirty)
+    {
+        var json = this.breadboard.toJson();
+        var jsonStr = JSON.stringify(json);
+        window.localStorage.setItem("breadboard", jsonStr);
+    }
 }
 
 new App();

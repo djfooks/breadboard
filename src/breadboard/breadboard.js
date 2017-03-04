@@ -82,8 +82,9 @@ Breadboard.prototype.toJson = function toJson()
     var wiresLength = wires.length;
     for (i = 0; i < wiresLength; i += 1)
     {
-        out.wires.append(wires[i].toJson());
+        out.wires.push(wires[i].toJson());
     }
+    return out;
 };
 
 Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, json)
