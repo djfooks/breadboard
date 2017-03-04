@@ -49,6 +49,9 @@ var App = function ()
     stage.mousedown = this.mousedown.bind(this);
     stage.mouseup = this.mouseup.bind(this);
     stage.mousemove = this.mousemove.bind(this);
+    stage.touchstart = this.mousedown.bind(this);
+    stage.touchend = this.mouseup.bind(this);
+    stage.touchmove = this.mousemove.bind(this);
 };
 
 App.prototype.mousedown = function mousedown(e)
