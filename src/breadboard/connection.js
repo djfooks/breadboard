@@ -55,3 +55,28 @@ Connection.prototype.addComponent = function addComponent(component)
 {
     this.components.push(component);
 };
+
+Connection.prototype.hasDot = function hasDot(component)
+{
+    var i;
+    var lastWire = -1;
+    var numWires = 0;
+    for (i = 0; i < 8; i += 1)
+    {
+        if (this.wires & (1 << i))
+        {
+            numWires += 1;
+            if (lastWire !== -1)
+            {
+                if ((lastWire % 4) === (i % 4))
+                {
+                    // wire in and out are in the same direction
+                    continue;
+                }
+                return true;
+            }
+            lastWire = i;
+        }
+    }
+    return (numWires == 1);
+};

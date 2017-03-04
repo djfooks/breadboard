@@ -32,6 +32,7 @@ Wire.prototype.iterate = function iterate(fn)
         x += dx;
         y += dy;
     }
+    fn(x, y);
 };
 
 Wire.prototype.toJson = function toJson()
@@ -233,31 +234,45 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         var y0 = wire.y0;
         var x1 = wire.x1;
         var y1 = wire.y1;
-        if (!circlesDrawn[wire.id0])
-        {
-            circlesDrawn[wire.id0] = true;
-            bgGraphics.drawCircle(left + x0 * spacing, top + y0 * spacing, 1.5);
-        }
-        if (!circlesDrawn[wire.id1])
-        {
-            circlesDrawn[wire.id1] = true;
-            bgGraphics.drawCircle(left + x1 * spacing, top + y1 * spacing, 1.5);
-        }
         bgGraphics.lineStyle(6, 0x000000, 1);
+        wire.iterate(function wireIterate(x, y)
+        {
+            var id = that.getIndex(x, y);
+            var connection = connections[id];
+            if (circlesDrawn[id] || !connection.hasDot())
+            {
+                return;
+            }
+            circlesDrawn[id] = true;
+            bgGraphics.drawCircle(left + x * spacing, top + y * spacing, 2);
+        });
         bgGraphics.moveTo(left + x0 * spacing, top + y0 * spacing);
         bgGraphics.lineTo(left + x1 * spacing, top + y1 * spacing);
         // TODO only update bgGraphics when a wire/component is added
     }
 
+    var circlesDrawn = {};
     for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
         var start = [wire.x0, wire.y0];
-        var on = connections[wire.id0].getValue(updateCounter) > 0;
+        var connection = connections[wire.id0];
+        if (!connection)
+        {
+            continue;
+        }
+        var on = connection.getValue(updateCounter) > 0;
         wire.iterate(function wireIterateCurrent(x, y)
         {
             var id = that.getIndex(x, y);
-            var connectionOn = connections[id].getValue(updateCounter) > 0;
+            var connection = connections[id];
+            var connectionOn = connection.getValue(updateCounter) > 0;
+            if (circlesDrawn[id] || connection.hasDot())
+            {
+                circlesDrawn[id] = true;
+                bgGraphics.lineStyle(6, connectionOn ? 0xFF0000 : 0xFFFFFF, 1);
+                bgGraphics.drawCircle(left + x * spacing, top + y * spacing, 1);
+            }
             if ((connectionOn && !on) ||
                 (!connectionOn && on))
             {
@@ -364,6 +379,7 @@ Breadboard.prototype.mouseUpdate = function mouseUpdate(p, virtual)
     p = this.getPosition(p);
     if (!this.validPosition(p))
     {
+        this.virtualWires = [];
         this.state = Breadboard.state.NONE;
         return;
     }
