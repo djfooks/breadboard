@@ -51,9 +51,20 @@ Connection.prototype.addWire = function addWire(direction)
     this.wires |= direction;
 };
 
+Connection.prototype.removeWire = function removeWire(direction)
+{
+    this.wires &= ~direction;
+};
+
 Connection.prototype.addComponent = function addComponent(component)
 {
     this.components.push(component);
+};
+
+Connection.prototype.removeComponent = function removeComponent(component)
+{
+    var index = this.components.indexOf(component);
+    this.components.splice(index, 1);
 };
 
 Connection.prototype.hasDot = function hasDot(component)
