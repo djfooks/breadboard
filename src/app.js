@@ -10,10 +10,34 @@ var App = function ()
 
     document.body.appendChild(this.pixiApp.view);
 
+    var cancel = PIXI.Sprite.fromImage('/cancel.png');
+
+    cancel.x = 300;
+    cancel.y = 0;
+    cancel.width = 30;
+    cancel.height = 30;
+
+    var colorMatrix = new PIXI.filters.ColorMatrixFilter();
+    colorMatrix.matrix = [1, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0,
+                          0, 0, 0, 1, 0];
+
+    cancel.filters = [colorMatrix];
+
+    cancel.interactive = true;
+    cancel.on("pointerdown", function ()
+    {
+        colorMatrix.matrix[6] = 1;
+        colorMatrix.matrix[12] = 1;
+    });
+
+    stage.addChild(cancel);
+
     this.fps = 30;
     this.intervalId = setInterval(this.update.bind(this), 1000 / this.fps);
 
-    var top = 30;
+    var top = 40;
     var left = 30;
     var spacing = 30;
     var json;
