@@ -28,6 +28,23 @@ SwitchComponent.prototype.toggle = function toggle()
 {
     this.connected = !this.connected;
     this.sprite.texture = this.connected ? this.onTexture : this.offTexture;
+
+    var i;
+    for (i = 0; i < this.pulsePaths.length; i += 1)
+    {
+        var child = this.pulsePaths[i];
+        if (this.connected)
+        {
+            var parent = child.parent;
+            var parentOutputId = this.getOutput(child.inputId);
+            var parentStep = parent.idToStep[parentOutputId];
+            child.createPulse(parent.values[parentStep]);
+        }
+        else
+        {
+            child.createPulse(0);
+        }
+    }
 };
 
 SwitchComponent.prototype.getOutput = function getOutput(id)

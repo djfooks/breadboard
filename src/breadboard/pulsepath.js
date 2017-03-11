@@ -22,23 +22,23 @@ PulsePath.prototype.reset = function reset()
     this.onPulses = [];
     this.offPulses = [];
     this.children = [];
-    this.parent = null;
     this.idToChild = {};
+    this.idToStep = {};
 }
 
 PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
 {
     var connections = breadboard.connections;
     var edges;
-    var visited = {};
 
     this.reset();
 
     var pathPower = this.pathPower;
     var stepToEdges = this.stepToEdges;
+    var idToStep = this.idToStep;
     var i;
 
-    visited[this.inputId] = true;
+    idToStep[this.inputId] = 0;
     stepToEdges[0].push(this.inputId);
     edges = stepToEdges[0];
 
@@ -64,10 +64,10 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
                     var x = p[0] + delta[0];
                     var y = p[1] + delta[1];
                     var newId = breadboard.getIndex(x, y);
-                    if (!visited[newId])
+                    if (!idToStep.hasOwnProperty(newId))
                     {
-                        visited[newId] = true;
                         stepToEdges[index].push(newId);
+                        idToStep[newId] = index;
                         var switchComponent = connections[newId].components.switch;
                         if (switchComponent)
                         {
