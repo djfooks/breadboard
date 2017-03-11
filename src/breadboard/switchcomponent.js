@@ -20,10 +20,42 @@ function SwitchComponent(breadboard, id0, id1)
     breadboard.componentsContainer.addChild(this.sprite);
 
     this.connected = false;
+
+    this.pulsePaths = [];
 }
 
 SwitchComponent.prototype.toggle = function toggle()
 {
     this.connected = !this.connected;
     this.sprite.texture = this.connected ? this.onTexture : this.offTexture;
-}
+};
+
+SwitchComponent.prototype.getOutput = function getOutput(id)
+{
+    if (id === this.id0)
+    {
+        return this.id1;
+    }
+    else if (id === this.id1)
+    {
+        return this.id0;
+    }
+    throw new Error();
+};
+
+SwitchComponent.prototype.getConnectedOutput = function getConnectedOutput(id)
+{
+    if (!this.connected)
+    {
+        return -1;
+    }
+    if (id === this.id0)
+    {
+        return this.id1;
+    }
+    else if (id === this.id1)
+    {
+        return this.id0;
+    }
+    throw new Error();
+};

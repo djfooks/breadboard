@@ -1,41 +1,52 @@
 
-function PulsePath(id, pathPower)
+function PulsePath(id, pathPower, inputId)
 {
     this.id = id;
+    this.inputId = inputId;
     this.pathPower = pathPower;
     this.values = new Uint8Array(pathPower);
 
-    this.powerToEdges = new Array(pathPower);
-
-    this.onPulses = [];
-    this.offPulses = [];
+    this.reset();
 }
 
-PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard, inputId0)
+PulsePath.prototype.reset = function reset()
 {
-    var connections = breadboard.connections;
-    var edges = [];
-    var switches = [];
-    var visited = {};
-    var path = this.path = {};
-
     var pathPower = this.pathPower;
-    var powerToEdges = this.powerToEdges = new Array(pathPower);
+    var stepToEdges = this.stepToEdges = new Array(pathPower);
     var i;
     for (i = 0; i < pathPower; i += 1)
     {
         this.values[i] = 0;
-        this.powerToEdges[i] = [];
+        stepToEdges[i] = [];
     }
     this.onPulses = [];
     this.offPulses = [];
+    this.children = [];
+    this.parent = null;
+    this.idToChild = {};
+}
 
-    visited[inputId0] = true;
-    edges.push(inputId0);
-    powerToEdges[0].push(inputId0);
+PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
+{
+    var connections = breadboard.connections;
+    var edges;
+    var visited = {};
+
+    this.reset();
+
+    var pathPower = this.pathPower;
+    var stepToEdges = this.stepToEdges;
+    var i;
+
+    visited[this.inputId] = true;
+    stepToEdges[0].push(this.inputId);
+    edges = stepToEdges[0];
 
     var index = 1;
     pathPower -= 1;
+
+    var nextId = this.id;
+    nextId += 1;
 
     while (edges.length > 0 && pathPower > 0)
     {
@@ -56,17 +67,36 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard, inputId0)
                     if (!visited[newId])
                     {
                         visited[newId] = true;
-                        powerToEdges[index].push(newId);
-                        //var switches = connections[newId].components.switches;
+                        stepToEdges[index].push(newId);
+                        var switchComponent = connections[newId].components.switch;
+                        if (switchComponent)
+                        {
+                            var outputId = switchComponent.getOutput(newId);
+                            if (outputId !== -1)
+                            {
+                                var child = new PulsePath(nextId, pathPower, outputId);
+                                child.parent = this;
+                                this.children.push(child);
+                                this.idToChild[outputId] = child;
+                                switchComponent.pulsePaths.push(child);
+                                nextId += 1;
+
+                            }
+                        }
                         breadboard.pulseReset(newId);
                     }
                 }
                 dirBit = dirBit << 1;
             }
         }
-        edges = powerToEdges[index];
+        edges = stepToEdges[index];
         index += 1;
         pathPower -= 1;
+    }
+
+    for (i = 0; i < this.children.length; i += 1)
+    {
+        this.children[i].rebuildPaths(breadboard);
     }
 };
 
@@ -74,7 +104,7 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
 {
     var values = this.values;
     var pathPower = this.pathPower;
-    var powerToEdges = this.powerToEdges;
+    var stepToEdges = this.stepToEdges;
     var i;
     var j;
     for (i = 0; i < pulses.length;)
@@ -82,10 +112,26 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
         // move pulse 1 step down the wire setting the values
         var index = pulses[i];
         values[index] = value;
-        var edges = powerToEdges[index]
+        var edges = stepToEdges[index];
         for (j = 0; j < edges.length; j += 1)
         {
-            breadboard.pulseValue(edges[j], value);
+            var id = edges[j];
+            var connection = breadboard.connections[id]
+            connection.setPulseValue(this.id, value);
+
+            // don't flow backwards through switches
+            if (index !== 0)
+            {
+                var switchComponent = connection.components.switch;
+                if (switchComponent)
+                {
+                    var switchOutputId = switchComponent.getConnectedOutput(id);
+                    if (switchOutputId !== -1)
+                    {
+                        this.idToChild[switchOutputId].createPulse(value);
+                    }
+                }
+            }
         }
 
         index += 1;
@@ -106,6 +152,11 @@ PulsePath.prototype.updatePulses = function updatePulses(breadboard)
 {
     this.updatePulsesType(breadboard, this.onPulses, 1);
     this.updatePulsesType(breadboard, this.offPulses, 0);
+
+    for (i = 0; i < this.children.length; i += 1)
+    {
+        this.children[i].updatePulses(breadboard);
+    }
 };
 
 PulsePath.prototype.createPulse = function createPulse(value)

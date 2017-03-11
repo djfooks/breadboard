@@ -6,7 +6,7 @@ function Connection()
         wires: [],
         switch: null
     };
-    this.value = 0;
+    this.values = new Uint32Array(8);
 }
 
 Connection.directionVector = [
@@ -31,6 +31,42 @@ Connection.getDirectionFlag = function getDirectionFlag(dx, dy)
         }
     }
     return -1;
+};
+
+Connection.prototype.isOn = function isOn()
+{
+    var i;
+    for (i = 0; i < this.values.length; i += 1)
+    {
+        if (this.values[i] > 0)
+        {
+            return true;
+        }
+    }
+    return false;
+};
+
+Connection.prototype.setPulseValue = function setPulseValue(pulseId, value)
+{
+    var i = pulseId >> 5;
+    var bit = pulseId & 31;
+    if (value)
+    {
+        this.values[i] |= 1 << bit;
+    }
+    else
+    {
+        this.values[i] &= ~(1 << bit);
+    }
+};
+
+Connection.prototype.reset = function reset()
+{
+    var i;
+    for (i = 0; i < this.values.length; i += 1)
+    {
+        this.values[i] = 0;
+    }
 };
 
 Connection.prototype.addWire = function addWire(direction)

@@ -86,7 +86,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     var buttons = this.buttons = [];
     var that = this;
-    function addButton(texture, x, y, state)
+    function addButton(texture, x, y, state, first)
     {
         var button = PIXI.Sprite.fromImage(texture);
         button.x = x;
@@ -108,19 +108,20 @@ function Breadboard(stage, top, left, cols, rows, spacing)
         stage.addChild(button);
 
         buttons.push(button);
-        return button;
+        if (first)
+        {
+            onClick();
+        }
     }
 
-    var firstButton = addButton("/jack-plug.png", 300, 0, Breadboard.state.ADD_WIRE);
+    addButton("/jack-plug.png", 300, 0, Breadboard.state.ADD_WIRE, true);
     addButton("/cancel.png",    350, 0, Breadboard.state.REMOVE_WIRE);
     addButton("/lever.png",     400, 0, Breadboard.state.SWITCHES);
 
-    firstButton._events.pointerdown.fn();
-
-    this.pulsePath = new PulsePath(0, 100);
+    this.pulsePath = new PulsePath(0, 100, this.getIndex(0, 0));
     this.nextPulse = 1;
 
-    this.connections[0].components.switch = new SwitchComponent(this, this.getIndex(0, 0), this.getIndex(0, 1));
+    this.connections[this.getIndex(1, 0)].components.switch = new SwitchComponent(this, this.getIndex(1, 0), this.getIndex(1, 1));
 }
 
 Breadboard.state = {
@@ -235,15 +236,9 @@ Breadboard.prototype.update = function update()
     this.draw();
 };
 
-Breadboard.prototype.pulseValue = function pulseValue(id, value)
-{
-    var delta = value ? 1 : -1;
-    this.connections[id].value += delta;
-};
-
 Breadboard.prototype.pulseReset = function pulseReset(id)
 {
-    this.connections[id].value = 0;
+    this.connections[id].reset();
 };
 
 Breadboard.prototype.draw = function draw()
@@ -314,12 +309,12 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         {
             continue;
         }
-        var on = connection.value > 0;
+        var on = connection.isOn();
         wire.iterate(function wireIterateCurrent(x, y)
         {
             var id = that.getIndex(x, y);
             var connection = connections[id];
-            var connectionOn = connection.value > 0;
+            var connectionOn = connection.isOn();
             if (circlesDrawn[id] || connection.hasDot())
             {
                 circlesDrawn[id] = true;
@@ -383,7 +378,7 @@ Breadboard.prototype.getPosition = function getPosition(p)
 Breadboard.prototype.getLayerPosition = function getLayerPosition(p)
 {
     var x = p[0] * this.spacing + this.left;
-    var y = p[0] * this.spacing + this.top;
+    var y = p[1] * this.spacing + this.top;
     return [x, y];
 };
 
