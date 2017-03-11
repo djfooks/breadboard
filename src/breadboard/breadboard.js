@@ -62,57 +62,89 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.removeWireId = -1;
     this.dirty = false;
 
-    this.state = Breadboard.state.NONE;
+    this.state = Breadboard.state.ADD_WIRE;
     this.wireStart = [-1, -1];
 
     this.simulateSteps = 0;
 
     this.drawGrid();
+
+    this.componentsContainer = new PIXI.Container();
+
+    stage.addChild(this.componentsContainer);
     stage.addChild(this.bgGraphics);
     stage.addChild(this.fgGraphics);
 
-    this.removeWiresButton = PIXI.Sprite.fromImage('/cancel.png');
+    this.disabledMatrix = [1, 0, 0, 0, 0,
+                           0, 1, 0, 0, 0,
+                           0, 0, 1, 0, 0,
+                           0, 0, 0, 1, 0];
+    this.enabledMatrix = [0.1, 0, 0, 0, 0,
+                          0, 1, 0, 0, 0,
+                          0, 0, 0.1, 0, 0,
+                          0, 0, 0, 1, 0];
 
-    this.removeWiresButton.x = 300;
-    this.removeWiresButton.y = 0;
-    this.removeWiresButton.width = 30;
-    this.removeWiresButton.height = 30;
+    var buttons = this.buttons = [];
+    var that = this;
+    function addButton(texture, x, y, state)
+    {
+        var button = PIXI.Sprite.fromImage(texture);
+        button.x = x;
+        button.y = y;
+        button.width = 30;
+        button.height = 30;
+        button.filters = [new PIXI.filters.ColorMatrixFilter()];
+        button.interactive = true;
 
-    this.removeWireColorMatrix = new PIXI.filters.ColorMatrixFilter();
+        function onClick()
+        {
+            that.disableButtons();
+            that.state = state;
+            that.enableButton(button);
+        }
 
-    this.whiteMatrix = [1, 0, 0, 0, 0,
-                        0, 1, 0, 0, 0,
-                        0, 0, 1, 0, 0,
-                        0, 0, 0, 1, 0];
-    this.redMatrix = [1, 0, 0, 0, 0,
-                      0, 0, 0, 0, 0,
-                      0, 0, 0, 0, 0,
-                      0, 0, 0, 1, 0];
+        button.on("pointerdown", onClick);
 
-    this.removeWiresButton.filters = [this.removeWireColorMatrix];
+        stage.addChild(button);
 
-    this.removeWiresButton.interactive = true;
-    this.removeWiresButton.on("pointerdown", this.onRemoveWiresClick.bind(this));
+        buttons.push(button);
+        return button;
+    }
 
-    stage.addChild(this.removeWiresButton);
+    var firstButton = addButton("/jack-plug.png", 300, 0, Breadboard.state.ADD_WIRE);
+    addButton("/cancel.png",    350, 0, Breadboard.state.REMOVE_WIRE);
+    addButton("/lever.png",     400, 0, Breadboard.state.SWITCHES);
 
-    this.pulsePath = new PulsePath(0, 200);
+    firstButton._events.pointerdown.fn();
+
+    this.pulsePath = new PulsePath(0, 100);
     this.nextPulse = 1;
+
+    this.connections[0].components.switch = new SwitchComponent(this, this.getIndex(0, 0), this.getIndex(0, 1));
 }
 
-Breadboard.prototype.onRemoveWiresClick = function onRemoveWiresClick(e)
+Breadboard.state = {
+    ADD_WIRE: 1,
+    PLACING_WIRE: 2,
+    REMOVE_WIRE: 3,
+    SWITCHES: 4,
+};
+
+Breadboard.prototype.disableButtons = function disableButtons()
 {
-    if (this.state === Breadboard.state.NONE)
+    var i;
+    var buttons = this.buttons;
+    for (i = 0; i < buttons.length; i += 1)
     {
-        this.state = Breadboard.state.REMOVE_WIRE;
-        this.removeWireColorMatrix.matrix = this.redMatrix;
-    }
-    else
-    {
-        this.state = Breadboard.state.NONE;
-        this.removeWireColorMatrix.matrix = this.whiteMatrix;
+        buttons[i].filters[0].matrix = this.disabledMatrix;
     }
 };
+
+Breadboard.prototype.enableButton = function disableButtons(button)
+{
+    button.filters[0].matrix = this.enabledMatrix;
+};
+
 
 Breadboard.prototype.toJson = function toJson()
 {
@@ -177,12 +209,6 @@ Breadboard.prototype.drawGrid = function drawGrid()
     }
 
     this.stage.addChild(gridGraphics);
-};
-
-Breadboard.state = {
-    NONE: 1,
-    PLACING_WIRE: 2,
-    REMOVE_WIRE: 3
 };
 
 Breadboard.prototype.update = function update()
@@ -297,8 +323,8 @@ Breadboard.prototype.drawWires = function drawWires(wires)
             if (circlesDrawn[id] || connection.hasDot())
             {
                 circlesDrawn[id] = true;
-                bgGraphics.lineStyle(6, connectionOn ? 0xFF0000 : 0xFFFFFF, 1);
-                bgGraphics.drawCircle(left + x * spacing, top + y * spacing, 1);
+                fgGraphics.lineStyle(6, connectionOn ? 0xFF0000 : 0xFFFFFF, 1);
+                fgGraphics.drawCircle(left + x * spacing, top + y * spacing, 1);
             }
             if ((connectionOn && !on) ||
                 (!connectionOn && on))
@@ -351,6 +377,13 @@ Breadboard.prototype.getPosition = function getPosition(p)
 {
     var x = Math.round((p[0] - this.left) / this.spacing);
     var y = Math.round((p[1] - this.top) / this.spacing);
+    return [x, y];
+};
+
+Breadboard.prototype.getLayerPosition = function getLayerPosition(p)
+{
+    var x = p[0] * this.spacing + this.left;
+    var y = p[0] * this.spacing + this.top;
     return [x, y];
 };
 
@@ -498,10 +531,26 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
     }
 };
 
+Breadboard.prototype.toggleSwitch = function toggleSwitch(p)
+{
+    p = this.getPosition(p);
+    if (!this.validPosition(p))
+    {
+        return;
+    }
+
+    var id = this.getIndex(p[0], p[1]);
+    if (this.connections[id].components.switch)
+    {
+        this.connections[id].components.switch.toggle();
+    }
+};
+
+
 Breadboard.prototype.mousedown = function mousedown(p)
 {
     p = this.getPosition(p);
-    if (this.state !== Breadboard.state.NONE)
+    if (this.state !== Breadboard.state.ADD_WIRE)
     {
         return;
     }
@@ -518,11 +567,15 @@ Breadboard.prototype.mouseup = function mouseup(p)
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.wirePlaceUpdate(p, false);
-        this.state = Breadboard.state.NONE;
+        this.state = Breadboard.state.ADD_WIRE;
     }
     else if (this.state === Breadboard.state.REMOVE_WIRE)
     {
         this.wireRemoveUpdate(p, false);
+    }
+    else if (this.state === Breadboard.state.SWITCHES)
+    {
+        this.toggleSwitch(p);
     }
 };
 

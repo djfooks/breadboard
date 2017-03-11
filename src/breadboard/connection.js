@@ -4,7 +4,7 @@ function Connection()
     this.wires = 0;
     this.components = {
         wires: [],
-        switches: []
+        switch: null
     };
     this.value = 0;
 }

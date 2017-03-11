@@ -32,8 +32,10 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard, inputId0)
 
     visited[inputId0] = true;
     edges.push(inputId0);
+    powerToEdges[0].push(inputId0);
 
-    var index = 0;
+    var index = 1;
+    pathPower -= 1;
 
     while (edges.length > 0 && pathPower > 0)
     {
