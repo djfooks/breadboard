@@ -61,9 +61,9 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.virtualWires = [];
     this.removeWireId = -1;
     this.dirty = false;
+
     this.state = Breadboard.state.NONE;
     this.wireStart = [-1, -1];
-    this.updateCounter = 0;
 
     this.simulateSteps = 0;
 
@@ -95,6 +95,9 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.removeWiresButton.on("pointerdown", this.onRemoveWiresClick.bind(this));
 
     stage.addChild(this.removeWiresButton);
+
+    this.pulsePath = new PulsePath(0, 200);
+    this.nextPulse = 1;
 }
 
 Breadboard.prototype.onRemoveWiresClick = function onRemoveWiresClick(e)
@@ -184,64 +187,37 @@ Breadboard.state = {
 
 Breadboard.prototype.update = function update()
 {
-    if (true)//this.dirty)
+    if (this.dirty)
     {
-        this.simulate();
-        this.draw();
+        // TODO draw wires here too
+        this.pulsePath.rebuildPaths(this, 0);
         this.dirty = false;
+        this.simulateSteps = 9999;
+        this.nextPulse = 1;
     }
-};
-
-Breadboard.prototype.simulate = function simulate()
-{
-    var i;
-    var j;
-    var connections = this.connections;
-    this.updateCounter += 1;
-    var updateCounter = this.updateCounter;
-
-    var edges = [];
-    connections[0].setValue(updateCounter, 1);
-    edges.push(0);
 
     var steps = 0;
     this.simulateSteps += 1;
 
     if (this.simulateSteps > 150)
     {
+        this.pulsePath.createPulse(this.nextPulse);
+        this.nextPulse = this.nextPulse ? 0 : 1;
         this.simulateSteps = 0;
     }
+    this.pulsePath.updatePulses(this);
+    this.draw();
+};
 
-    var newEdges;
-    while (edges.length > 0 && steps < this.simulateSteps)
-    {
-        newEdges = [];
-        for (i = 0; i < edges.length; i += 1)
-        {
-            var id = edges[i];
-            var connection = connections[id];
-            var dirBit = 1;
-            for (j = 0; j < 8; j += 1)
-            {
-                if ((connection.wires & dirBit) > 0)
-                {
-                    var delta = Connection.directionVector[j];
-                    var p = this.getPositionFromIndex(id);
-                    var x = p[0] + delta[0];
-                    var y = p[1] + delta[1];
-                    var newId = this.getIndex(x, y);
-                    if (connections[newId].getValue(updateCounter) === 0)
-                    {
-                        connections[newId].setValue(updateCounter, 1);
-                        newEdges.push(newId);
-                    }
-                }
-                dirBit = dirBit << 1;
-            }
-        }
-        steps += 1;
-        edges = newEdges;
-    }
+Breadboard.prototype.pulseValue = function pulseValue(id, value)
+{
+    var delta = value ? 1 : -1;
+    this.connections[id].value += delta;
+};
+
+Breadboard.prototype.pulseReset = function pulseReset(id)
+{
+    this.connections[id].value = 0;
 };
 
 Breadboard.prototype.draw = function draw()
@@ -265,7 +241,6 @@ Breadboard.prototype.drawWires = function drawWires(wires)
     var left = this.left;
     var top = this.top;
     var spacing = this.spacing;
-    var updateCounter = this.updateCounter;
     var circlesDrawn = {};
     bgGraphics.lineStyle(6, 0x000000, 1);
     for (i = 0; i < wires.length; i += 1)
@@ -313,12 +288,12 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         {
             continue;
         }
-        var on = connection.getValue(updateCounter) > 0;
+        var on = connection.value > 0;
         wire.iterate(function wireIterateCurrent(x, y)
         {
             var id = that.getIndex(x, y);
             var connection = connections[id];
-            var connectionOn = connection.getValue(updateCounter) > 0;
+            var connectionOn = connection.value > 0;
             if (circlesDrawn[id] || connection.hasDot())
             {
                 circlesDrawn[id] = true;
@@ -401,13 +376,13 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     {
         id = this.getIndex(x, y);
         connections[id].removeWire(bit0);
-        connections[id].removeComponent(wire);
+        connections[id].removeWireComponent(wire);
         x += dx;
         y += dy;
         id = this.getIndex(x, y);
         connections[id].removeWire(bit1);
     }
-    connections[id].removeComponent(wire);
+    connections[id].removeWireComponent(wire);
 };
 
 Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
@@ -442,13 +417,13 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
         {
             id = this.getIndex(x, y);
             connections[id].addWire(bit0);
-            connections[id].addComponent(newWire);
+            connections[id].addWireComponent(newWire);
             x += dx;
             y += dy;
             id = this.getIndex(x, y);
             connections[id].addWire(bit1);
         }
-        connections[id].addComponent(newWire);
+        connections[id].addWireComponent(newWire);
     }
 };
 
@@ -472,10 +447,10 @@ Breadboard.prototype.wireRemoveUpdate = function wirePlaceUpdate(p, virtual)
     else
     {
         var id = this.getIndex(p[0], p[1]);
-        var components = this.connections[id].components;
-        while (components.length)
+        var wires = this.connections[id].components.wires;
+        while (wires.length)
         {
-            this.removeWire(components[0]);
+            this.removeWire(wires[0]);
         }
     }
 };

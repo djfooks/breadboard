@@ -1,9 +1,11 @@
 
 function Connection()
 {
-    this.updateCounter = 0;
     this.wires = 0;
-    this.components = [];
+    this.components = {
+        wires: [],
+        switches: []
+    };
     this.value = 0;
 }
 
@@ -31,21 +33,6 @@ Connection.getDirectionFlag = function getDirectionFlag(dx, dy)
     return -1;
 };
 
-Connection.prototype.getValue = function getValue(updateCounter)
-{
-    if (this.updateCounter === updateCounter)
-    {
-        return this.value;
-    }
-    return 0;
-};
-
-Connection.prototype.setValue = function setValue(updateCounter, value)
-{
-    this.updateCounter = updateCounter;
-    this.value = value;
-};
-
 Connection.prototype.addWire = function addWire(direction)
 {
     this.wires |= direction;
@@ -56,15 +43,15 @@ Connection.prototype.removeWire = function removeWire(direction)
     this.wires &= ~direction;
 };
 
-Connection.prototype.addComponent = function addComponent(component)
+Connection.prototype.addWireComponent = function addWireComponent(component)
 {
-    this.components.push(component);
+    this.components.wires.push(component);
 };
 
-Connection.prototype.removeComponent = function removeComponent(component)
+Connection.prototype.removeWireComponent = function removeWireComponent(component)
 {
-    var index = this.components.indexOf(component);
-    this.components.splice(index, 1);
+    var index = this.components.wires.indexOf(component);
+    this.components.wires.splice(index, 1);
 };
 
 Connection.prototype.hasDot = function hasDot(component)
