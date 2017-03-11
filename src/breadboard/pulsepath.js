@@ -85,20 +85,23 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
                         var switchComponent = connections[newId].components.switch;
                         if (switchComponent)
                         {
-                            var outputId = switchComponent.getOutput(newId);
-                            // don't allow the pulse to power itself!
-                            if (outputId !== -1 && !this.hasVisited(outputId))
+                            var outputIds = switchComponent.getOutputs(newId);
+                            for (k = 0; k < outputIds.length; k += 1)
                             {
-                                var child = new PulsePath(nextId, pathPower, outputId);
-                                child.parent = this;
-                                this.children.push(child);
-                                this.idToChild[outputId] = child;
-                                switchComponent.pulsePaths.push(child);
-                                nextId += 1;
+                                var outputId = outputIds[k];
+                                // don't allow the pulse to power itself!
+                                if (outputId !== -1 && !this.hasVisited(outputId))
+                                {
+                                    var child = new PulsePath(nextId, pathPower, outputId);
+                                    child.parent = this;
+                                    this.children.push(child);
+                                    this.idToChild[outputId] = child;
+                                    switchComponent.pulsePaths.push(child);
+                                    nextId += 1;
 
+                                }
                             }
                         }
-                        breadboard.pulseReset(newId);
                     }
                 }
                 dirBit = dirBit << 1;
@@ -170,11 +173,6 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
 
 PulsePath.prototype.updatePulses = function updatePulses(breadboard)
 {
-    PulsePath.counter += 1;
-    if (PulsePath.counter > 100)
-    {
-        throw new Error();
-    }
     this.updatePulsesType(breadboard, this.onPulses, 1);
     this.updatePulsesType(breadboard, this.offPulses, 0);
 

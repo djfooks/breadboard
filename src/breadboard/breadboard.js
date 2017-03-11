@@ -118,8 +118,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     addButton("/cancel.png",    350, 0, Breadboard.state.REMOVE_WIRE);
     addButton("/lever.png",     400, 0, Breadboard.state.SWITCHES);
 
-    this.pulsePath = new PulsePath(0, 100, this.getIndex(0, 0));
-    this.nextPulse = 1;
+    this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0));
 
     function addSwitch(x, y)
     {
@@ -228,27 +227,28 @@ Breadboard.prototype.update = function update()
         // TODO draw wires here too
         this.pulsePath.rebuildPaths(this, 0);
         this.dirty = false;
-        this.simulateSteps = 9999;
-        this.nextPulse = 1;
+        this.pulseReset();
+        this.pulsePath.createPulse(1);
     }
 
-    var steps = 0;
-    this.simulateSteps += 1;
-
-    if (this.simulateSteps > 150)
-    {
-        this.pulsePath.createPulse(this.nextPulse);
-        this.nextPulse = this.nextPulse ? 0 : 1;
-        this.simulateSteps = 0;
-    }
-    PulsePath.counter = 0;
     this.pulsePath.updatePulses(this);
     this.draw();
 };
 
-Breadboard.prototype.pulseReset = function pulseReset(id)
+Breadboard.prototype.pulseReset = function pulseReset()
 {
-    this.connections[id].reset();
+    var that = this;
+    function wireIterate(x, y)
+    {
+        that.connections[that.getIndex(x, y)].reset();
+    }
+
+    var i;
+    for (i = 0; i < this.wires.length; i += 1)
+    {
+        var wire = this.wires[i];
+        wire.iterate(wireIterate);
+    }
 };
 
 Breadboard.prototype.draw = function draw()

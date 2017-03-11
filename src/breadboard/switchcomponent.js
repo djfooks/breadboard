@@ -36,7 +36,7 @@ SwitchComponent.prototype.toggle = function toggle()
         if (this.connected)
         {
             var parent = child.parent;
-            var parentOutputId = this.getOutput(child.inputId);
+            var parentOutputId = this.getConnectedOutput(child.inputId);
             var parentStep = parent.idToStep[parentOutputId];
             child.createPulse(parent.values[parentStep]);
         }
@@ -47,15 +47,15 @@ SwitchComponent.prototype.toggle = function toggle()
     }
 };
 
-SwitchComponent.prototype.getOutput = function getOutput(id)
+SwitchComponent.prototype.getOutputs = function getOutputs(id)
 {
     if (id === this.id0)
     {
-        return this.id1;
+        return [this.id1];
     }
     else if (id === this.id1)
     {
-        return this.id0;
+        return [this.id0];
     }
     throw new Error();
 };
