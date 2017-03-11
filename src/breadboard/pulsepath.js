@@ -5,6 +5,7 @@ function PulsePath(id, pathPower, inputId)
     this.inputId = inputId;
     this.pathPower = pathPower;
     this.values = new Uint8Array(pathPower);
+    this.parent = null;
 
     this.reset();
 }
@@ -25,6 +26,19 @@ PulsePath.prototype.reset = function reset()
     this.idToChild = {};
     this.idToStep = {};
 }
+
+PulsePath.prototype.hasVisited = function hasVisited(id)
+{
+    if (this.idToStep.hasOwnProperty(id))
+    {
+        return true;
+    }
+    if (this.parent)
+    {
+        return this.parent.hasVisited(id);
+    }
+    return false;
+};
 
 PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
 {
@@ -64,7 +78,7 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
                     var x = p[0] + delta[0];
                     var y = p[1] + delta[1];
                     var newId = breadboard.getIndex(x, y);
-                    if (!idToStep.hasOwnProperty(newId))
+                    if (!this.hasVisited(newId))
                     {
                         stepToEdges[index].push(newId);
                         idToStep[newId] = index;
@@ -72,7 +86,8 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
                         if (switchComponent)
                         {
                             var outputId = switchComponent.getOutput(newId);
-                            if (outputId !== -1)
+                            // don't allow the pulse to power itself!
+                            if (outputId !== -1 && !this.hasVisited(outputId))
                             {
                                 var child = new PulsePath(nextId, pathPower, outputId);
                                 child.parent = this;
@@ -92,6 +107,11 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
         edges = stepToEdges[index];
         index += 1;
         pathPower -= 1;
+    }
+
+    if (nextId > 999)
+    {
+        throw new Error();
     }
 
     for (i = 0; i < this.children.length; i += 1)
@@ -126,7 +146,7 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
                 if (switchComponent)
                 {
                     var switchOutputId = switchComponent.getConnectedOutput(id);
-                    if (switchOutputId !== -1)
+                    if (switchOutputId !== -1 && this.idToChild[switchOutputId])
                     {
                         this.idToChild[switchOutputId].createPulse(value);
                     }
@@ -150,9 +170,15 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
 
 PulsePath.prototype.updatePulses = function updatePulses(breadboard)
 {
+    PulsePath.counter += 1;
+    if (PulsePath.counter > 100)
+    {
+        throw new Error();
+    }
     this.updatePulsesType(breadboard, this.onPulses, 1);
     this.updatePulsesType(breadboard, this.offPulses, 0);
 
+    var i;
     for (i = 0; i < this.children.length; i += 1)
     {
         this.children[i].updatePulses(breadboard);

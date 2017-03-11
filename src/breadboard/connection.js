@@ -46,6 +46,20 @@ Connection.prototype.isOn = function isOn()
     return false;
 };
 
+Connection.prototype.getValue = function getValue()
+{
+    var j;
+    var count = 0;
+    for (j = 0; j < this.values.length; j += 1)
+    {
+        var i = this.values[j];
+        i = i - ((i >> 1) & 0x55555555);
+        i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+        count += (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+    }
+    return count;
+}
+
 Connection.prototype.setPulseValue = function setPulseValue(pulseId, value)
 {
     var i = pulseId >> 5;

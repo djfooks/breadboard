@@ -121,7 +121,16 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.pulsePath = new PulsePath(0, 100, this.getIndex(0, 0));
     this.nextPulse = 1;
 
-    this.connections[this.getIndex(1, 0)].components.switch = new SwitchComponent(this, this.getIndex(1, 0), this.getIndex(1, 1));
+    function addSwitch(x, y)
+    {
+        var switchComponent = new SwitchComponent(that, that.getIndex(x, y), that.getIndex(x, y + 1));
+        that.connections[that.getIndex(x, y)].components.switch = switchComponent;
+        that.connections[that.getIndex(x, y + 1)].components.switch = switchComponent;
+    }
+
+    addSwitch(1, 0);
+    addSwitch(5, 6);
+    addSwitch(10, 6);
 }
 
 Breadboard.state = {
@@ -232,6 +241,7 @@ Breadboard.prototype.update = function update()
         this.nextPulse = this.nextPulse ? 0 : 1;
         this.simulateSteps = 0;
     }
+    PulsePath.counter = 0;
     this.pulsePath.updatePulses(this);
     this.draw();
 };
@@ -248,6 +258,22 @@ Breadboard.prototype.draw = function draw()
 
     this.drawWires(this.wires);
     this.drawWires(this.virtualWires);
+};
+
+Breadboard.prototype.getWireColor = function getWireColor(count)
+{
+    if (count > 1)
+    {
+        return 0xFF0000;
+    }
+    else if (count > 0)
+    {
+        return 0xFF8888;
+    }
+    else
+    {
+        return 0xFFFFFF;
+    }
 };
 
 Breadboard.prototype.drawWires = function drawWires(wires)
@@ -309,30 +335,22 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         {
             continue;
         }
-        var on = connection.isOn();
+        var value = connection.getValue();
         wire.iterate(function wireIterateCurrent(x, y)
         {
             var id = that.getIndex(x, y);
             var connection = connections[id];
-            var connectionOn = connection.isOn();
+            var connectionValue = connection.getValue();
             if (circlesDrawn[id] || connection.hasDot())
             {
                 circlesDrawn[id] = true;
-                fgGraphics.lineStyle(6, connectionOn ? 0xFF0000 : 0xFFFFFF, 1);
+                fgGraphics.lineStyle(6, that.getWireColor(connectionValue), 1);
                 fgGraphics.drawCircle(left + x * spacing, top + y * spacing, 1);
             }
-            if ((connectionOn && !on) ||
-                (!connectionOn && on))
+            if (value !== connectionValue)
             {
-                if (on)
-                {
-                    fgGraphics.lineStyle(3, 0xFF0000, 1);
-                }
-                else
-                {
-                    fgGraphics.lineStyle(3, 0xFFFFFF, 1);
-                }
-                on = connectionOn;
+                fgGraphics.lineStyle(3, that.getWireColor(value), 1);
+                value = connectionValue;
                 fgGraphics.moveTo(left + start[0] * spacing, top + start[1] * spacing);
                 fgGraphics.lineTo(left + x * spacing, top + y * spacing);
                 start[0] = x;
@@ -342,14 +360,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
         if (start[0] !== wire.x1 || start[1] !== wire.y1)
         {
-            if (on)
-            {
-                fgGraphics.lineStyle(3, 0xFF0000, 1);
-            }
-            else
-            {
-                fgGraphics.lineStyle(3, 0xFFFFFF, 1);
-            }
+            fgGraphics.lineStyle(3, that.getWireColor(value), 1);
             fgGraphics.moveTo(left + start[0] * spacing, top + start[1] * spacing);
             fgGraphics.lineTo(left + wire.x1 * spacing, top + wire.y1 * spacing);
         }
