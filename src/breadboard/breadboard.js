@@ -52,6 +52,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.rows = rows;
     this.spacing = spacing;
     this.connections = new Array(cols * rows);
+    this.componentsList = [];
     var i;
     for (i = 0; i < this.connections.length; i += 1)
     {
@@ -122,14 +123,14 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     function addSwitch(x, y)
     {
-        var switchComponent = new SwitchComponent(that, that.getIndex(x, y), that.getIndex(x, y + 1));
-        that.connections[that.getIndex(x, y)].components.switch = switchComponent;
-        that.connections[that.getIndex(x, y + 1)].components.switch = switchComponent;
+        that.addComponent(new SwitchComponent(that, that.getIndex(x, y), that.getIndex(x, y + 1)));
     }
 
     addSwitch(1, 0);
     addSwitch(5, 6);
+    addSwitch(10, 2);
     addSwitch(10, 6);
+    addSwitch(15, 6);
 }
 
 Breadboard.state = {
@@ -137,6 +138,13 @@ Breadboard.state = {
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
     SWITCHES: 4,
+};
+
+Breadboard.prototype.addComponent = function addComponent(switchComponent)
+{
+    this.componentsList.push(switchComponent);
+    this.connections[switchComponent.id0].components.switch = switchComponent;
+    this.connections[switchComponent.id1].components.switch = switchComponent;
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -249,6 +257,14 @@ Breadboard.prototype.pulseReset = function pulseReset()
         var wire = this.wires[i];
         wire.iterate(wireIterate);
     }
+
+    var componentsList = this.componentsList;
+    var i;
+    for (i = 0; i < componentsList.length; i += 1)
+    {
+        this.connections[componentsList[i].id0].reset();
+        this.connections[componentsList[i].id1].reset();
+    }
 };
 
 Breadboard.prototype.draw = function draw()
@@ -256,6 +272,7 @@ Breadboard.prototype.draw = function draw()
     this.fgGraphics.clear();
     this.bgGraphics.clear();
 
+    this.drawComponents();
     this.drawWires(this.wires);
     this.drawWires(this.virtualWires);
 };
@@ -273,6 +290,16 @@ Breadboard.prototype.getWireColor = function getWireColor(count)
     else
     {
         return 0xFFFFFF;
+    }
+};
+
+Breadboard.prototype.drawComponents = function drawComponents()
+{
+    var componentsList = this.componentsList;
+    var i;
+    for (i = 0; i < componentsList.length; i += 1)
+    {
+        componentsList[i].draw(this);
     }
 };
 
@@ -430,7 +457,6 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
     {
         return;
     }
-    this.dirty = true;
 
     var id0 = this.getIndex(x0, y0);
     var id1 = this.getIndex(x1, y1);
@@ -442,6 +468,7 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
     }
     else
     {
+        this.dirty = true;
         this.wires.push(newWire);
         var connections = this.connections;
 

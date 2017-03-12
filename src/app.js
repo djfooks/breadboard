@@ -13,7 +13,7 @@ var App = function ()
     this.fps = 30;
     this.intervalId = setInterval(this.update.bind(this), 1000 / this.fps);
 
-    var top = 40;
+    var top = 60;
     var left = 30;
     var spacing = 30;
     var json;
