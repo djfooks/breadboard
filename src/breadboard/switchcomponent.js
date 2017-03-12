@@ -37,7 +37,7 @@ SwitchComponent.prototype.draw = function draw(breadboard)
         bgGraphics.clear();
 
         bgGraphics.lineStyle(6, 0x000000, 1);
-        bgGraphics.beginFill(0x00000, 1);
+        bgGraphics.beginFill(0x000000, 1);
         bgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 6);
         bgGraphics.drawCircle(left + p1[0] * spacing, top + p1[1] * spacing, 6);
 
@@ -49,7 +49,7 @@ SwitchComponent.prototype.draw = function draw(breadboard)
         }
 
         bgGraphics.lineStyle(2, 0x000000, 1);
-        bgGraphics.beginFill(0x00000, 0);
+        bgGraphics.beginFill(0x000000, 0);
         bgGraphics.drawRect(left + p0[0] * spacing - boarder, top + p0[1] * spacing - boarder,
             boarder * 2, spacing + boarder * 2);
     }
@@ -78,6 +78,10 @@ SwitchComponent.prototype.draw = function draw(breadboard)
     }
 };
 
+SwitchComponent.prototype.update = function update()
+{
+};
+
 SwitchComponent.prototype.toggle = function toggle()
 {
     this.connected = !this.connected;
@@ -90,8 +94,7 @@ SwitchComponent.prototype.toggle = function toggle()
         if (this.connected)
         {
             var parent = child.parent;
-            var parentOutputId = this.getConnectedOutput(child.inputId);
-            var parentStep = parent.idToStep[parentOutputId];
+            var parentStep = parent.idToStep[child.sourceId];
             child.createPulse(parent.values[parentStep]);
         }
         else
@@ -99,6 +102,11 @@ SwitchComponent.prototype.toggle = function toggle()
             child.createPulse(0);
         }
     }
+};
+
+SwitchComponent.prototype.getConnections = function getConnections()
+{
+    return [this.id0, this.id1];
 };
 
 SwitchComponent.prototype.getOutputs = function getOutputs(id)
@@ -114,19 +122,19 @@ SwitchComponent.prototype.getOutputs = function getOutputs(id)
     throw new Error();
 };
 
-SwitchComponent.prototype.getConnectedOutput = function getConnectedOutput(id)
+SwitchComponent.prototype.isConnected = function isConnected(id0, id1)
 {
     if (!this.connected)
     {
-        return -1;
+        return false;
     }
-    if (id === this.id0)
+    if (id0 === this.id0 && id1 === this.id1)
     {
-        return this.id1;
+        return true;
     }
-    else if (id === this.id1)
+    else if (id0 === this.id1 && id1 === this.id0)
     {
-        return this.id0;
+        return true;
     }
     throw new Error();
 };

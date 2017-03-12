@@ -1,8 +1,9 @@
 
-function PulsePath(id, pathPower, inputId)
+function PulsePath(id, pathPower, inputId, sourceId)
 {
     this.id = id;
     this.inputId = inputId;
+    this.sourceId = sourceId;
     this.pathPower = pathPower;
     this.values = new Uint8Array(pathPower);
     this.parent = null;
@@ -137,11 +138,19 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                             var outputId = outputIds[k];
                             if (outputId !== -1 && !this.hasVisited(outputId))
                             {
-                                var child = new PulsePath(PulsePath.nextId, pathPower, outputId);
+                                var child = new PulsePath(PulsePath.nextId, pathPower, outputId, newId);
                                 child.parent = this;
                                 this.nextStepChildren.push(child);
                                 switchComponent.pulsePaths.push(child);
-                                idToChild[outputId] = child;
+                                if (idToChild.hasOwnProperty(newId))
+                                {
+                                    idToChild[newId].push(child);
+                                }
+                                else
+                                {
+                                    idToChild[newId] = [child];
+                                }
+
                                 PulsePath.nextId += 1;
                             }
                         }
@@ -161,6 +170,7 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
     var stepToEdges = this.stepToEdges;
     var i;
     var j;
+    var k;
     for (i = 0; i < pulses.length;)
     {
         // move pulse 1 step down the wire setting the values
@@ -173,16 +183,16 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
             var connection = breadboard.connections[id]
             connection.setPulseValue(this.id, value);
 
-            // don't flow backwards through switches
-            if (index !== 0)
+            var children = this.idToChild[id];
+            if (children)
             {
                 var switchComponent = connection.components.switch;
-                if (switchComponent)
+                for (k = 0; k < children.length; k += 1)
                 {
-                    var switchOutputId = switchComponent.getConnectedOutput(id);
-                    if (switchOutputId !== -1 && this.idToChild[switchOutputId])
+                    var child = children[k];
+                    if (switchComponent.isConnected(id, child.inputId))
                     {
-                        this.idToChild[switchOutputId].createPulse(value);
+                        child.createPulse(value);
                     }
                 }
             }
@@ -190,7 +200,7 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
 
         index += 1;
         pulses[i] = index;
-        if (index >= pathPower)
+        if (index >= pathPower || edges.length === 0)
         {
             pulses[i] = pulses[pulses.length - 1];
             pulses.pop();

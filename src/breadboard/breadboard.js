@@ -119,11 +119,16 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     addButton("/cancel.png",    350, 0, Breadboard.state.REMOVE_WIRE);
     addButton("/lever.png",     400, 0, Breadboard.state.SWITCHES);
 
-    this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0));
+    this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
 
     function addSwitch(x, y)
     {
         that.addComponent(new SwitchComponent(that, that.getIndex(x, y), that.getIndex(x, y + 1)));
+    }
+
+    function addRelay(x, y)
+    {
+        that.addComponent(new RelayComponent(that, that.getIndex(x, y), that.getIndex(x, y + 1), that.getIndex(x, y + 2), that.getIndex(x, y + 3)));
     }
 
     addSwitch(1, 0);
@@ -131,6 +136,8 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     addSwitch(10, 2);
     addSwitch(10, 6);
     addSwitch(15, 6);
+
+    addRelay(10, 10);
 }
 
 Breadboard.state = {
@@ -143,8 +150,12 @@ Breadboard.state = {
 Breadboard.prototype.addComponent = function addComponent(switchComponent)
 {
     this.componentsList.push(switchComponent);
-    this.connections[switchComponent.id0].components.switch = switchComponent;
-    this.connections[switchComponent.id1].components.switch = switchComponent;
+    var outputs = switchComponent.getConnections();
+    var i;
+    for (i = 0; i < outputs.length; i += 1)
+    {
+        this.connections[outputs[i]].components.switch = switchComponent;
+    }
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -240,7 +251,18 @@ Breadboard.prototype.update = function update()
     }
 
     this.pulsePath.updatePulses(this);
+    this.updateComponents();
     this.draw();
+};
+
+Breadboard.prototype.updateComponents = function updateComponents()
+{
+    var componentsList = this.componentsList;
+    var i;
+    for (i = 0; i < componentsList.length; i += 1)
+    {
+        componentsList[i].update(this);
+    }
 };
 
 Breadboard.prototype.pulseReset = function pulseReset()
@@ -262,8 +284,12 @@ Breadboard.prototype.pulseReset = function pulseReset()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        this.connections[componentsList[i].id0].reset();
-        this.connections[componentsList[i].id1].reset();
+        var outputs = componentsList[i].getConnections();
+        var j;
+        for (j = 0; j < outputs.length; j += 1)
+        {
+            this.connections[outputs[j]].reset();
+        }
     }
 };
 

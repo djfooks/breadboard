@@ -106,6 +106,10 @@ Connection.prototype.removeWireComponent = function removeWireComponent(componen
 
 Connection.prototype.hasDot = function hasDot(component)
 {
+    if (this.components.switch)
+    {
+        return true;
+    }
     var i;
     var lastWire = -1;
     var numWires = 0;
