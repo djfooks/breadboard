@@ -20,11 +20,16 @@ PulsePath.prototype.reset = function reset()
         this.values[i] = 0;
         stepToEdges[i] = [];
     }
-    this.onPulses = [];
-    this.offPulses = [];
     this.children = [];
+    this.nextStepChildren = [];
     this.idToChild = {};
     this.idToStep = {};
+
+    this.onPulses = [];
+    this.offPulses = [];
+
+    this.idToStep[this.inputId] = 0;
+    this.stepToEdges[0].push(this.inputId);
 }
 
 PulsePath.prototype.hasVisited = function hasVisited(id)
@@ -40,88 +45,114 @@ PulsePath.prototype.hasVisited = function hasVisited(id)
     return false;
 };
 
+PulsePath.nextId = 1;
 PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
 {
-    var connections = breadboard.connections;
-    var edges;
+    PulsePath.nextId = 1;
 
     this.reset();
 
-    var pathPower = this.pathPower;
-    var stepToEdges = this.stepToEdges;
-    var idToStep = this.idToStep;
     var i;
-
-    idToStep[this.inputId] = 0;
-    stepToEdges[0].push(this.inputId);
-    edges = stepToEdges[0];
-
-    var index = 1;
-    pathPower -= 1;
-
-    var nextId = this.id;
-    nextId += 1;
-
-    while (edges.length > 0 && pathPower > 0)
+    for (i = 1; i < this.pathPower; i += 1)
     {
-        for (i = 0; i < edges.length; i += 1)
+        if (!this.recursiveStepPath(breadboard, i))
         {
-            var id = edges[i];
-            var connection = connections[id];
-            var dirBit = 1;
-            for (j = 0; j < 8; j += 1)
-            {
-                if ((connection.wires & dirBit) > 0)
-                {
-                    var delta = Connection.directionVector[j];
-                    var p = breadboard.getPositionFromIndex(id);
-                    var x = p[0] + delta[0];
-                    var y = p[1] + delta[1];
-                    var newId = breadboard.getIndex(x, y);
-                    if (!this.hasVisited(newId))
-                    {
-                        stepToEdges[index].push(newId);
-                        idToStep[newId] = index;
-                        var switchComponent = connections[newId].components.switch;
-                        if (switchComponent)
-                        {
-                            var outputIds = switchComponent.getOutputs(newId);
-                            for (k = 0; k < outputIds.length; k += 1)
-                            {
-                                var outputId = outputIds[k];
-                                // don't allow the pulse to power itself!
-                                if (outputId !== -1 && !this.hasVisited(outputId))
-                                {
-                                    var child = new PulsePath(nextId, pathPower, outputId);
-                                    child.parent = this;
-                                    this.children.push(child);
-                                    this.idToChild[outputId] = child;
-                                    switchComponent.pulsePaths.push(child);
-                                    nextId += 1;
-
-                                }
-                            }
-                        }
-                    }
-                }
-                dirBit = dirBit << 1;
-            }
+            return;
         }
-        edges = stepToEdges[index];
-        index += 1;
-        pathPower -= 1;
     }
+};
 
-    if (nextId > 999)
+PulsePath.prototype.recursiveStepPath = function recursiveStepPath(breadboard, stepIndex)
+{
+    var updated = false;
+
+    this.children = this.children.concat(this.nextStepChildren);
+    this.nextStepChildren = [];
+
+    var stepUpdated;
+    stepUpdated = this.stepPath(breadboard, stepIndex);
+    updated = updated || stepUpdated;
+
+    var i;
+    for (i = 0; i < this.children.length; i += 1)
+    {
+        var child = this.children[i];
+        var power = this.pathPower - stepIndex;
+        var childStepIndex = child.pathPower - power;
+        stepUpdated = child.recursiveStepPath(breadboard, childStepIndex);
+        updated = updated || stepUpdated;
+    }
+    return updated;
+};
+
+PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
+{
+    var pathPower = this.pathPower - stepIndex;
+    if (pathPower == 0)
     {
         throw new Error();
     }
 
-    for (i = 0; i < this.children.length; i += 1)
+    var stepToEdges = this.stepToEdges;
+    var edges = stepToEdges[stepIndex - 1];
+    if (edges.length === 0)
     {
-        this.children[i].rebuildPaths(breadboard);
+        return false;
     }
-};
+
+    var idToStep = this.idToStep;
+    var idToChild = this.idToChild;
+    var connections = breadboard.connections;
+
+    var updated = false;
+
+    var i;
+    var j;
+    var k;
+    for (i = 0; i < edges.length; i += 1)
+    {
+        var id = edges[i];
+        var connection = connections[id];
+        var dirBit = 1;
+        for (j = 0; j < 8; j += 1)
+        {
+            if ((connection.wires & dirBit) > 0)
+            {
+                var delta = Connection.directionVector[j];
+                var p = breadboard.getPositionFromIndex(id);
+                var x = p[0] + delta[0];
+                var y = p[1] + delta[1];
+                var newId = breadboard.getIndex(x, y);
+                if (!this.hasVisited(newId))
+                {
+                    updated = true;
+                    stepToEdges[stepIndex].push(newId);
+                    idToStep[newId] = stepIndex;
+                    var switchComponent = connections[newId].components.switch;
+                    if (switchComponent)
+                    {
+                        var outputIds = switchComponent.getOutputs(newId);
+                        for (k = 0; k < outputIds.length; k += 1)
+                        {
+                            var outputId = outputIds[k];
+                            if (outputId !== -1 && !this.hasVisited(outputId))
+                            {
+                                var child = new PulsePath(PulsePath.nextId, pathPower, outputId);
+                                child.parent = this;
+                                this.nextStepChildren.push(child);
+                                switchComponent.pulsePaths.push(child);
+                                idToChild[outputId] = child;
+                                PulsePath.nextId += 1;
+                            }
+                        }
+                    }
+                }
+            }
+            dirBit = dirBit << 1;
+        }
+    }
+    return updated;
+}
 
 PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pulses, value)
 {
