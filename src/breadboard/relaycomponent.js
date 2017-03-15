@@ -13,22 +13,17 @@ function RelayComponent(breadboard, outId0, baseId, outId1, signalId)
     this.signalId = signalId;
     this.signalP = breadboard.getPositionFromIndex(signalId);
 
-    this.fgGraphics = new PIXI.Graphics();
-    this.bgGraphics = new PIXI.Graphics();
-
-    breadboard.componentsContainer.addChild(this.bgGraphics);
-    breadboard.componentsContainer.addChild(this.fgGraphics);
-
     this.signalValue = false;
     this.bgDirty = true;
+    this.canToggle = false;
 
     this.pulsePaths = [];
 }
 
 RelayComponent.prototype.draw = function draw(breadboard)
 {
-    var bgGraphics = this.bgGraphics;
-    var fgGraphics = this.fgGraphics;
+    var bgGraphics = breadboard.componentsBgGraphics;
+    var fgGraphics = breadboard.componentsFgGraphics;
     var top = breadboard.top;
     var left = breadboard.left;
     var spacing = breadboard.spacing;
@@ -39,10 +34,9 @@ RelayComponent.prototype.draw = function draw(breadboard)
     var outP1 = this.outP1;
     var signalP = this.signalP;
 
-    if (this.bgDirty)
+    if (true)//this.bgDirty || breadboard.dirty)
     {
         this.bgDirty = false;
-        bgGraphics.clear();
 
         bgGraphics.lineStyle(6, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 1);
@@ -70,8 +64,6 @@ RelayComponent.prototype.draw = function draw(breadboard)
         bgGraphics.drawRect(left + outP0[0] * spacing - boarder, top + outP0[1] * spacing - boarder,
             boarder * 2, spacing * 3 + boarder * 2);
     }
-
-    fgGraphics.clear();
 
     var color;
     var value0 = breadboard.connections[this.outId0].getValue();

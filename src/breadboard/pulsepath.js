@@ -129,10 +129,10 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                     updated = true;
                     stepToEdges[stepIndex].push(newId);
                     idToStep[newId] = stepIndex;
-                    var switchComponent = connections[newId].components.switch;
-                    if (switchComponent)
+                    var component = connections[newId].components.component;
+                    if (component)
                     {
-                        var outputIds = switchComponent.getOutputs(newId);
+                        var outputIds = component.getOutputs(newId);
                         for (k = 0; k < outputIds.length; k += 1)
                         {
                             var outputId = outputIds[k];
@@ -141,7 +141,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                                 var child = new PulsePath(PulsePath.nextId, pathPower, outputId, newId);
                                 child.parent = this;
                                 this.nextStepChildren.push(child);
-                                switchComponent.pulsePaths.push(child);
+                                component.pulsePaths.push(child);
                                 if (idToChild.hasOwnProperty(newId))
                                 {
                                     idToChild[newId].push(child);
@@ -186,11 +186,11 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
             var children = this.idToChild[id];
             if (children)
             {
-                var switchComponent = connection.components.switch;
+                var component = connection.components.component;
                 for (k = 0; k < children.length; k += 1)
                 {
                     var child = children[k];
-                    if (switchComponent.isConnected(id, child.inputId))
+                    if (component.isConnected(id, child.inputId))
                     {
                         child.createPulse(value);
                     }

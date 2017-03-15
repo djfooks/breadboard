@@ -72,6 +72,12 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     this.componentsContainer = new PIXI.Container();
 
+    this.componentsBgGraphics = new PIXI.Graphics();
+    this.componentsFgGraphics = new PIXI.Graphics();
+
+    this.componentsContainer.addChild(this.componentsBgGraphics);
+    this.componentsContainer.addChild(this.componentsFgGraphics);
+
     stage.addChild(this.componentsContainer);
     stage.addChild(this.bgGraphics);
     stage.addChild(this.fgGraphics);
@@ -115,29 +121,14 @@ function Breadboard(stage, top, left, cols, rows, spacing)
         }
     }
 
-    addButton("/jack-plug.png", 300, 0, Breadboard.state.ADD_WIRE, true);
-    addButton("/cancel.png",    350, 0, Breadboard.state.REMOVE_WIRE);
-    addButton("/lever.png",     400, 0, Breadboard.state.SWITCHES);
+    addButton("/jack-plug.png",   300, 0, Breadboard.state.ADD_WIRE, true);
+    addButton("/cancel.png",      350, 0, Breadboard.state.REMOVE_WIRE);
+    addButton("/lever.png",       400, 0, Breadboard.state.SWITCHES);
+    addButton("/war-pick.png",    450, 0, Breadboard.state.ADD_SWITCH);
+    addButton("/trowel.png",      500, 0, Breadboard.state.ADD_RELAY);
+    addButton("/thor-hammer.png", 550, 0, Breadboard.state.REMOVE_COMPONENT);
 
     this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
-
-    function addSwitch(x, y)
-    {
-        that.addComponent(new SwitchComponent(that, that.getIndex(x, y), that.getIndex(x, y + 1)));
-    }
-
-    function addRelay(x, y)
-    {
-        that.addComponent(new RelayComponent(that, that.getIndex(x, y), that.getIndex(x, y + 1), that.getIndex(x, y + 2), that.getIndex(x, y + 3)));
-    }
-
-    addSwitch(1, 0);
-    addSwitch(5, 6);
-    addSwitch(10, 2);
-    addSwitch(10, 6);
-    addSwitch(15, 6);
-
-    addRelay(10, 10);
 }
 
 Breadboard.state = {
@@ -145,6 +136,9 @@ Breadboard.state = {
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
     SWITCHES: 4,
+    ADD_SWITCH: 5,
+    ADD_RELAY: 6,
+    REMOVE_COMPONENT: 7
 };
 
 Breadboard.prototype.addComponent = function addComponent(switchComponent)
@@ -154,8 +148,9 @@ Breadboard.prototype.addComponent = function addComponent(switchComponent)
     var i;
     for (i = 0; i < outputs.length; i += 1)
     {
-        this.connections[outputs[i]].components.switch = switchComponent;
+        this.connections[outputs[i]].components.component = switchComponent;
     }
+    this.dirty = true;
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -245,7 +240,6 @@ Breadboard.prototype.update = function update()
     {
         // TODO draw wires here too
         this.pulsePath.rebuildPaths(this, 0);
-        this.dirty = false;
         this.pulseReset();
         this.pulsePath.createPulse(1);
     }
@@ -253,6 +247,11 @@ Breadboard.prototype.update = function update()
     this.pulsePath.updatePulses(this);
     this.updateComponents();
     this.draw();
+
+    if (this.dirty)
+    {
+        this.dirty = false;
+    }
 };
 
 Breadboard.prototype.updateComponents = function updateComponents()
@@ -295,6 +294,8 @@ Breadboard.prototype.pulseReset = function pulseReset()
 
 Breadboard.prototype.draw = function draw()
 {
+    this.componentsFgGraphics.clear();
+    this.componentsBgGraphics.clear();
     this.fgGraphics.clear();
     this.bgGraphics.clear();
 
@@ -599,12 +600,89 @@ Breadboard.prototype.toggleSwitch = function toggleSwitch(p)
     }
 
     var id = this.getIndex(p[0], p[1]);
-    if (this.connections[id].components.switch)
+    var component = this.connections[id].components.component;
+    if (component && component.canToggle)
     {
-        this.connections[id].components.switch.toggle();
+        this.connections[id].components.component.toggle();
     }
 };
 
+Breadboard.prototype.canAddComponent = function canAddComponent(positions, ids)
+{
+    var i;
+    for (i = 0; i < positions.length; i += 1)
+    {
+        var p = positions[i];
+        if (!this.validPosition(p))
+        {
+            return false;
+        }
+        ids[i] = this.getIndex(p[0], p[1]);
+        if (this.connections[ids[i]].components.component)
+        {
+            return false;
+        }
+    }
+    return true;
+};
+
+Breadboard.prototype.addSwitch = function addSwitch(p)
+{
+    p = this.getPosition(p);
+    var ids = [];
+    if (!this.canAddComponent([p, [p[0], p[1] + 1]], ids))
+    {
+        return;
+    }
+
+    this.addComponent(new SwitchComponent(this, ids[0], ids[1]));
+};
+
+
+Breadboard.prototype.addRelay = function addRelay(p)
+{
+    p = this.getPosition(p);
+    var ids = [];
+    if (!this.canAddComponent([p, [p[0], p[1] + 1], [p[0], p[1] + 2], [p[0], p[1] + 3]], ids))
+    {
+        return;
+    }
+
+    this.addComponent(new RelayComponent(this, ids[0], ids[1], ids[2], ids[3]));
+};
+
+
+Breadboard.prototype.removeComponent = function removeComponent(p)
+{
+    p = this.getPosition(p);
+    if (!this.validPosition(p))
+    {
+        return;
+    }
+
+    var id0 = this.getIndex(p[0], p[1]);
+    var component = this.connections[id0].components.component;
+    if (!component)
+    {
+        return;
+    }
+
+    var i;
+    for (i = 0; i < this.componentsList.length; i += 1)
+    {
+        if (this.componentsList[i] === component)
+        {
+            this.componentsList.splice(i, 1);
+            break;
+        }
+    }
+    var outputs = component.getConnections();
+    for (i = 0; i < outputs.length; i += 1)
+    {
+        this.connections[outputs[i]].components.component = null;
+    }
+    this.dirty = true;
+};
 
 Breadboard.prototype.mousedown = function mousedown(p)
 {
@@ -635,6 +713,18 @@ Breadboard.prototype.mouseup = function mouseup(p)
     else if (this.state === Breadboard.state.SWITCHES)
     {
         this.toggleSwitch(p);
+    }
+    else if (this.state === Breadboard.state.ADD_SWITCH)
+    {
+        this.addSwitch(p);
+    }
+    else if (this.state === Breadboard.state.ADD_RELAY)
+    {
+        this.addRelay(p);
+    }
+    else if (this.state === Breadboard.state.REMOVE_COMPONENT)
+    {
+        this.removeComponent(p);
     }
 };
 

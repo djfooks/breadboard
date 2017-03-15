@@ -7,22 +7,17 @@ function SwitchComponent(breadboard, id0, id1)
     this.id1 = id1;
     this.p1 = breadboard.getPositionFromIndex(id1);
 
-    this.fgGraphics = new PIXI.Graphics();
-    this.bgGraphics = new PIXI.Graphics();
-
-    breadboard.componentsContainer.addChild(this.bgGraphics);
-    breadboard.componentsContainer.addChild(this.fgGraphics);
-
     this.connected = false;
     this.bgDirty = true;
+    this.canToggle = true;
 
     this.pulsePaths = [];
 }
 
 SwitchComponent.prototype.draw = function draw(breadboard)
 {
-    var bgGraphics = this.bgGraphics;
-    var fgGraphics = this.fgGraphics;
+    var bgGraphics = breadboard.componentsBgGraphics;
+    var fgGraphics = breadboard.componentsFgGraphics;
     var top = breadboard.top;
     var left = breadboard.left;
     var spacing = breadboard.spacing;
@@ -31,10 +26,9 @@ SwitchComponent.prototype.draw = function draw(breadboard)
     var p0 = this.p0;
     var p1 = this.p1;
 
-    if (this.bgDirty)
+    if (true)//this.bgDirty || breadboard.dirty)
     {
         this.bgDirty = false;
-        bgGraphics.clear();
 
         bgGraphics.lineStyle(6, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 1);
@@ -53,8 +47,6 @@ SwitchComponent.prototype.draw = function draw(breadboard)
         bgGraphics.drawRect(left + p0[0] * spacing - boarder, top + p0[1] * spacing - boarder,
             boarder * 2, spacing + boarder * 2);
     }
-
-    fgGraphics.clear();
 
     var value0 = breadboard.connections[this.id0].getValue();
     var color;

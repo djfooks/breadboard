@@ -4,7 +4,7 @@ function Connection()
     this.wires = 0;
     this.components = {
         wires: [],
-        switch: null
+        component: null
     };
     this.values = new Uint32Array(8);
 }
@@ -106,7 +106,7 @@ Connection.prototype.removeWireComponent = function removeWireComponent(componen
 
 Connection.prototype.hasDot = function hasDot(component)
 {
-    if (this.components.switch)
+    if (this.components.component)
     {
         return true;
     }
