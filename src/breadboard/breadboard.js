@@ -121,12 +121,12 @@ function Breadboard(stage, top, left, cols, rows, spacing)
         }
     }
 
-    addButton("/jack-plug.png",   300, 0, Breadboard.state.ADD_WIRE, true);
-    addButton("/cancel.png",      350, 0, Breadboard.state.REMOVE_WIRE);
-    addButton("/lever.png",       400, 0, Breadboard.state.SWITCHES);
-    addButton("/war-pick.png",    450, 0, Breadboard.state.ADD_SWITCH);
-    addButton("/trowel.png",      500, 0, Breadboard.state.ADD_RELAY);
-    addButton("/thor-hammer.png", 550, 0, Breadboard.state.REMOVE_COMPONENT);
+    addButton("jack-plug.png",   300, 0, Breadboard.state.ADD_WIRE, true);
+    addButton("cancel.png",      350, 0, Breadboard.state.REMOVE_WIRE);
+    addButton("lever.png",       400, 0, Breadboard.state.SWITCHES);
+    addButton("war-pick.png",    450, 0, Breadboard.state.ADD_SWITCH);
+    addButton("trowel.png",      500, 0, Breadboard.state.ADD_RELAY);
+    addButton("thor-hammer.png", 550, 0, Breadboard.state.REMOVE_COMPONENT);
 
     this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
 }
