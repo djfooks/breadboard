@@ -38,21 +38,8 @@ var App = function ()
         this.breadboard = new Breadboard(stage, top, left, cols, rows, spacing);
     }
 
-    this.moneyText = new PIXI.Text('$');
-    this.moneyText.x = 0;
-    this.moneyText.y = 0;
-    stage.addChild(this.moneyText);
-
-    this.wiresText = new PIXI.Text('Wires: ');
-    this.wiresText.x = 100;
-    this.wiresText.y = 0;
-    stage.addChild(this.wiresText);
-
     this.nextTick = 0;
     this.gameTick = 0;
-
-    this.money = 0;
-    this.wires = 0;
 
     stage.interactive = true;
     stage.hitArea = new PIXI.Rectangle(0, 0, 1000, 1000);
@@ -98,10 +85,6 @@ App.prototype.update = function update()
 
 App.prototype.updateGame = function updateGame()
 {
-    this.money += 1;
-
-    this.moneyText.text = "$" + this.money;
-    this.wiresText.text = "Wires: " + this.wires;
 };
 
 App.prototype.debugInfo = function debugInfo(str)

@@ -20,10 +20,8 @@ function RelayComponent(breadboard, outId0, baseId, outId1, signalId)
     this.pulsePaths = [];
 }
 
-RelayComponent.prototype.draw = function draw(breadboard)
+RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics)
 {
-    var bgGraphics = breadboard.componentsBgGraphics;
-    var fgGraphics = breadboard.componentsFgGraphics;
     var top = breadboard.top;
     var left = breadboard.left;
     var spacing = breadboard.spacing;

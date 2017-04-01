@@ -14,14 +14,12 @@ function SwitchComponent(breadboard, id0, id1)
     this.pulsePaths = [];
 }
 
-SwitchComponent.prototype.draw = function draw(breadboard)
+SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics)
 {
-    var bgGraphics = breadboard.componentsBgGraphics;
-    var fgGraphics = breadboard.componentsFgGraphics;
     var top = breadboard.top;
     var left = breadboard.left;
     var spacing = breadboard.spacing;
-    var boarder = spacing * 0.38;
+    var border = spacing * 0.38;
 
     var p0 = this.p0;
     var p1 = this.p1;
@@ -44,8 +42,8 @@ SwitchComponent.prototype.draw = function draw(breadboard)
 
         bgGraphics.lineStyle(2, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 0);
-        bgGraphics.drawRect(left + p0[0] * spacing - boarder, top + p0[1] * spacing - boarder,
-            boarder * 2, spacing + boarder * 2);
+        bgGraphics.drawRect(left + p0[0] * spacing - border, top + p0[1] * spacing - border,
+            border * 2, spacing + border * 2);
     }
 
     var value0 = breadboard.connections[this.id0].getValue();
