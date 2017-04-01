@@ -64,12 +64,14 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.dirty = false;
 
     this.state = Breadboard.state.ADD_WIRE;
+    this.completeState = Breadboard.state.ADD_WIRE;
+    this.draggingComponent = null;
     this.wireStart = [-1, -1];
 
     this.simulateSteps = 0;
 
     this.drawGrid();
-    this.drawTray();
+    this.tray = new Tray(this);
 
     this.componentsContainer = new PIXI.Container();
 
@@ -134,9 +136,7 @@ Breadboard.state = {
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
     SWITCHES: 4,
-    ADD_SWITCH: 5,
-    ADD_RELAY: 6,
-    REMOVE_COMPONENT: 7
+    DRAG_COMPONENT: 5
 };
 
 Breadboard.prototype.addComponent = function addComponent(switchComponent)
@@ -232,41 +232,6 @@ Breadboard.prototype.drawGrid = function drawGrid()
     this.stage.addChild(gridGraphics);
 };
 
-Breadboard.prototype.drawTray = function drawTray()
-{
-    var trayGraphicsBg = this.trayGraphicsBg = new PIXI.Graphics();
-    var trayGraphicsFg = this.trayGraphicsFg = new PIXI.Graphics();
-
-    trayGraphicsBg.lineStyle(1, 0x000000, 1);
-
-    var left = this.left;
-    var top = this.top;
-    var cols = this.cols;
-    var rows = this.rows;
-    var spacing = this.spacing;
-
-    var x = left + cols * spacing;
-    var bottom = top + rows * spacing;
-
-    trayGraphicsBg.moveTo(x, 0);
-    trayGraphicsBg.lineTo(x, bottom);
-
-    this.traySwitch = new SwitchComponent(this, 0, 1);
-    this.traySwitch.p0 = [ 22, 2 ];
-    this.traySwitch.p1 = [ 22, 3 ];
-    this.traySwitch.draw(this, trayGraphicsBg, trayGraphicsFg);
-
-    this.trayRelay = new RelayComponent(this, 0, 1, 2, 3);
-    this.trayRelay.outP0   = [ 22, 5 ];
-    this.trayRelay.baseP   = [ 22, 6 ];
-    this.trayRelay.outP1   = [ 22, 7 ];
-    this.trayRelay.signalP = [ 22, 8 ];
-    this.trayRelay.draw(this, trayGraphicsBg, trayGraphicsFg);
-
-    this.stage.addChild(trayGraphicsBg);
-    this.stage.addChild(trayGraphicsFg);
-};
-
 Breadboard.prototype.update = function update()
 {
     if (this.dirty)
@@ -335,6 +300,7 @@ Breadboard.prototype.draw = function draw()
     this.drawComponents();
     this.drawWires(this.wires);
     this.drawWires(this.virtualWires);
+    this.tray.draw();
 };
 
 Breadboard.prototype.getWireColor = function getWireColor(count)
@@ -749,17 +715,9 @@ Breadboard.prototype.mouseup = function mouseup(p)
     {
         this.toggleSwitch(p);
     }
-    else if (this.state === Breadboard.state.ADD_SWITCH)
+    else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
-        this.addSwitch(p);
-    }
-    else if (this.state === Breadboard.state.ADD_RELAY)
-    {
-        this.addRelay(p);
-    }
-    else if (this.state === Breadboard.state.REMOVE_COMPONENT)
-    {
-        this.removeComponent(p);
+        this.state = this.completeState;
     }
 };
 
@@ -773,4 +731,15 @@ Breadboard.prototype.mousemove = function mousemove(p)
     {
         this.wireRemoveUpdate(p, true);
     }
+    else if (this.state === Breadboard.state.DRAG_COMPONENT)
+    {
+        this.dragComponent(p, true);
+    }
+};
+
+Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component)
+{
+    this.completeState = this.state;
+    this.state = Breadboard.state.DRAG_COMPONENT;
+    this.draggingComponent = component;
 };

@@ -63,43 +63,50 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
             boarder * 2, spacing * 3 + boarder * 2);
     }
 
+    var overrideColor = null;
+    if (!fgGraphics)
+    {
+        fgGraphics = bgGraphics;
+        overrideColor = 0xFFFFFF;
+    }
+
     var color;
     var value0 = breadboard.connections[this.outId0].getValue();
-    color = breadboard.getWireColor(value0);
-    bgGraphics.lineStyle(3, color, 1);
-    bgGraphics.beginFill(color, 1);
-    bgGraphics.drawCircle(left + outP0[0] * spacing, top + outP0[1] * spacing, 6);
+    color = overrideColor || breadboard.getWireColor(value0);
+    fgGraphics.lineStyle(3, color, 1);
+    fgGraphics.beginFill(color, 1);
+    fgGraphics.drawCircle(left + outP0[0] * spacing, top + outP0[1] * spacing, 6);
 
     var valueBase = breadboard.connections[this.baseId].getValue();
-    color = breadboard.getWireColor(valueBase);
-    bgGraphics.lineStyle(3, color, 1);
-    bgGraphics.beginFill(color, 1);
-    bgGraphics.drawCircle(left + baseP[0] * spacing, top + baseP[1] * spacing, 6);
+    color = overrideColor || breadboard.getWireColor(valueBase);
+    fgGraphics.lineStyle(3, color, 1);
+    fgGraphics.beginFill(color, 1);
+    fgGraphics.drawCircle(left + baseP[0] * spacing, top + baseP[1] * spacing, 6);
 
     var value1 = breadboard.connections[this.outId1].getValue();
-    color = breadboard.getWireColor(value1);
-    bgGraphics.lineStyle(3, color, 1);
-    bgGraphics.beginFill(color, 1);
-    bgGraphics.drawCircle(left + outP1[0] * spacing, top + outP1[1] * spacing, 6);
+    color = overrideColor || breadboard.getWireColor(value1);
+    fgGraphics.lineStyle(3, color, 1);
+    fgGraphics.beginFill(color, 1);
+    fgGraphics.drawCircle(left + outP1[0] * spacing, top + outP1[1] * spacing, 6);
 
     var valueSignal = breadboard.connections[this.signalId].getValue();
-    color = breadboard.getWireColor(valueSignal);
-    bgGraphics.lineStyle(3, color, 1);
-    bgGraphics.beginFill(color, 1);
-    bgGraphics.drawCircle(left + signalP[0] * spacing, top + signalP[1] * spacing, 6);
+    color = overrideColor || breadboard.getWireColor(valueSignal);
+    fgGraphics.lineStyle(3, color, 1);
+    fgGraphics.beginFill(color, 1);
+    fgGraphics.drawCircle(left + signalP[0] * spacing, top + signalP[1] * spacing, 6);
 
-    bgGraphics.moveTo(left + baseP[0] * spacing, top + baseP[1] * spacing);
+    fgGraphics.moveTo(left + baseP[0] * spacing, top + baseP[1] * spacing);
     if (this.signalValue)
     {
-        color = breadboard.getWireColor(Math.min(value1, valueBase));
-        bgGraphics.lineStyle(8, color, 1);
-        bgGraphics.lineTo(left + outP1[0] * spacing, top + outP1[1] * spacing);
+        color = overrideColor || breadboard.getWireColor(Math.min(value1, valueBase));
+        fgGraphics.lineStyle(8, color, 1);
+        fgGraphics.lineTo(left + outP1[0] * spacing, top + outP1[1] * spacing);
     }
     else
     {
-        color = breadboard.getWireColor(Math.min(value0, valueBase));
-        bgGraphics.lineStyle(8, color, 1);
-        bgGraphics.lineTo(left + outP0[0] * spacing, top + outP0[1] * spacing);
+        color = overrideColor || breadboard.getWireColor(Math.min(value0, valueBase));
+        fgGraphics.lineStyle(8, color, 1);
+        fgGraphics.lineTo(left + outP0[0] * spacing, top + outP0[1] * spacing);
     }
 };
 
