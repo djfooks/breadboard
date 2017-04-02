@@ -126,7 +126,8 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     addButton("lever.png",       400, 0, Breadboard.state.SWITCHES);
     addButton("war-pick.png",    450, 0, Breadboard.state.ADD_SWITCH);
     addButton("trowel.png",      500, 0, Breadboard.state.ADD_RELAY);
-    addButton("thor-hammer.png", 550, 0, Breadboard.state.REMOVE_COMPONENT);
+    addButton("trowel.png",      550, 0, Breadboard.state.ADD_DIODE);
+    addButton("thor-hammer.png", 600, 0, Breadboard.state.REMOVE_COMPONENT);
 
     this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
 }
@@ -138,7 +139,8 @@ Breadboard.state = {
     SWITCHES: 4,
     ADD_SWITCH: 5,
     ADD_RELAY: 6,
-    REMOVE_COMPONENT: 7
+    ADD_DIODE: 7,
+    REMOVE_COMPONENT: 8
 };
 
 Breadboard.prototype.addComponent = function addComponent(switchComponent)
@@ -638,6 +640,17 @@ Breadboard.prototype.addSwitch = function addSwitch(p)
     this.addComponent(new SwitchComponent(this, ids[0], ids[1]));
 };
 
+Breadboard.prototype.addDiode = function addDiode(p)
+{
+    p = this.getPosition(p);
+    var ids = [];
+    if (!this.canAddComponent([p, [p[0], p[1] + 1]], ids))
+    {
+        return;
+    }
+
+    this.addComponent(new DiodeComponent(this, ids[0], ids[1]));
+};
 
 Breadboard.prototype.addRelay = function addRelay(p)
 {
@@ -721,6 +734,10 @@ Breadboard.prototype.mouseup = function mouseup(p)
     else if (this.state === Breadboard.state.ADD_RELAY)
     {
         this.addRelay(p);
+    }
+    else if (this.state === Breadboard.state.ADD_DIODE)
+    {
+        this.addDiode(p);
     }
     else if (this.state === Breadboard.state.REMOVE_COMPONENT)
     {
