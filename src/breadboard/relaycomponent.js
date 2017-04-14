@@ -1,24 +1,86 @@
 
-function RelayComponent(breadboard, outId0, baseId, outId1, signalId)
+function RelayComponent(breadboard)
 {
-    this.baseId = baseId;
-    this.baseP = breadboard.getPositionFromIndex(baseId);
+    this.baseId = -1;
+    this.baseP = [-1, -1];
 
-    this.outId0 = outId0;
-    this.outP0 = breadboard.getPositionFromIndex(outId0);
+    this.outId0 = -1;
+    this.outP0 = [-1, -1];
 
-    this.outId1 = outId1;
-    this.outP1 = breadboard.getPositionFromIndex(outId1);
+    this.outId1 = -1;
+    this.outP1 = [-1, -1];
 
-    this.signalId = signalId;
-    this.signalP = breadboard.getPositionFromIndex(signalId);
+    this.signalId = -1;
+    this.signalP = [-1, -1];
 
     this.signalValue = false;
     this.bgDirty = true;
     this.canToggle = false;
 
     this.pulsePaths = [];
+
+    var container = this.container = new PIXI.Container();
+    breadboard.stage.addChild(container);
+
+    container.interactive = true;
+    container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this);
+    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, this);
 }
+
+RelayComponent.type = ComponentTypes.RELAY;
+
+RelayComponent.prototype.move = function move(breadboard, p)
+{
+    this.outP0 = [p[0], p[1]];
+    this.outId0 = breadboard.getIndex(p[0], p[1]);
+
+    this.baseP = [p[0], p[1] + 1];
+    this.baseId = breadboard.getIndex(this.baseP[0], this.baseP[1]);
+
+    this.outP1 = [p[0], p[1] + 2];
+    this.outId1 = breadboard.getIndex(this.outP1[0], this.outP1[1]);
+
+    this.signalP = [p[0], p[1] + 3];
+    this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
+
+    this.bgDirty = true;
+    this.canToggle = true;
+
+    this.pulsePaths = [];
+
+    var container = this.container;
+
+    var left = breadboard.left;
+    var top = breadboard.top;
+    var spacing = breadboard.spacing;
+    var border = spacing * 0.38;
+
+    var width = this.signalP[0] - this.outP0[0];
+    var height = this.signalP[1] - this.outP0[1];
+
+    container.hitArea = new PIXI.Rectangle(
+        left + this.outP0[0] * spacing - border,
+        top  + this.outP0[1] * spacing - border,
+        width * spacing + border * 2.0,
+        height * spacing + border * 2.0);
+};
+
+RelayComponent.prototype.clone = function clone(breadboard)
+{
+    var newSwitch = new RelayComponent(breadboard);
+    newSwitch.move(breadboard, this.outP0);
+    return newSwitch;
+};
+
+RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, p)
+{
+    var isValid = true;
+    isValid = isValid && !breadboard.pointHasComponent(p);
+    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 1]);
+    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 2]);
+    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 3]);
+    return isValid;
+};
 
 RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics)
 {
@@ -71,25 +133,25 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
     }
 
     var color;
-    var value0 = breadboard.connections[this.outId0].getValue();
+    var value0 = breadboard.getConnectionValue(this.outId0);
     color = overrideColor || breadboard.getWireColor(value0);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
     fgGraphics.drawCircle(left + outP0[0] * spacing, top + outP0[1] * spacing, 6);
 
-    var valueBase = breadboard.connections[this.baseId].getValue();
+    var valueBase = breadboard.getConnectionValue(this.baseId);
     color = overrideColor || breadboard.getWireColor(valueBase);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
     fgGraphics.drawCircle(left + baseP[0] * spacing, top + baseP[1] * spacing, 6);
 
-    var value1 = breadboard.connections[this.outId1].getValue();
+    var value1 = breadboard.getConnectionValue(this.outId1);
     color = overrideColor || breadboard.getWireColor(value1);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
     fgGraphics.drawCircle(left + outP1[0] * spacing, top + outP1[1] * spacing, 6);
 
-    var valueSignal = breadboard.connections[this.signalId].getValue();
+    var valueSignal = breadboard.getConnectionValue(this.signalId);
     color = overrideColor || breadboard.getWireColor(valueSignal);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
@@ -160,6 +222,10 @@ RelayComponent.prototype.update = function update(breadboard)
 RelayComponent.prototype.getConnections = function getConnections()
 {
     return [this.baseId, this.outId0, this.outId1, this.signalId];
+};
+
+RelayComponent.prototype.toggle = function toggle()
+{
 };
 
 RelayComponent.prototype.getOutputs = function getOutputs(id)

@@ -623,7 +623,15 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 
 Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, e)
 {
-    if (!this.draggingMoved)
+    if (this.state !== Breadboard.state.DRAG_COMPONENT || !this.draggingComponent)
+    {
+        var event = e.data.originalEvent;
+        this.mouseup([event.layerX, event.layerY]);
+    }
+
+    this.state = this.completeState;
+    this.draggingComponent = null;
+    if (this.draggingComponent === component && this.draggingMoved)
     {
         component.toggle();
     }
@@ -722,6 +730,7 @@ Breadboard.prototype.mouseup = function mouseup(p)
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
+        this.draggingComponent = null;
         this.state = this.completeState;
     }
 };
