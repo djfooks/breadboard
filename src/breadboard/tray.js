@@ -14,16 +14,22 @@ function Tray(breadboard)
 
 Tray.prototype.resetComponents = function resetComponents()
 {
-    this.switch = new SwitchComponent(this.breadboard, 0, 1);
-    this.switch.p0 = [ 22, 2 ];
-    this.switch.p1 = [ 22, 3 ];
-    this.switch.updateContainer(this.breadboard);
+    this.switch = new SwitchComponent(this.breadboard);
+    this.switch.move(this.breadboard, [22, 2]);
 
     this.relay = new RelayComponent(this.breadboard, 0, 1, 2, 3);
     this.relay.outP0   = [ 22, 5 ];
     this.relay.baseP   = [ 22, 6 ];
     this.relay.outP1   = [ 22, 7 ];
     this.relay.signalP = [ 22, 8 ];
+};
+
+Tray.prototype.isFromTray = function isFromTray(component)
+{
+    var fromTray = false;
+    fromTray = fromTray || (component === this.switch);
+    fromTray = fromTray || (component === this.relay);
+    return fromTray;
 };
 
 Tray.prototype.draw = function draw()

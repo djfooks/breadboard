@@ -66,12 +66,14 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.state = Breadboard.state.ADD_WIRE;
     this.completeState = Breadboard.state.ADD_WIRE;
     this.draggingComponent = null;
+    this.draggingGrabPoint = [-1, -1];
     this.wireStart = [-1, -1];
 
     this.simulateSteps = 0;
 
     this.drawGrid();
     this.tray = new Tray(this);
+    this.tray.draw();
 
     this.componentsContainer = new PIXI.Container();
 
@@ -137,18 +139,6 @@ Breadboard.state = {
     REMOVE_WIRE: 3,
     SWITCHES: 4,
     DRAG_COMPONENT: 5
-};
-
-Breadboard.prototype.addComponent = function addComponent(switchComponent)
-{
-    this.componentsList.push(switchComponent);
-    var outputs = switchComponent.getConnections();
-    var i;
-    for (i = 0; i < outputs.length; i += 1)
-    {
-        this.connections[outputs[i]].components.component = switchComponent;
-    }
-    this.dirty = true;
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -300,7 +290,6 @@ Breadboard.prototype.draw = function draw()
     this.drawComponents();
     this.drawWires(this.wires);
     this.drawWires(this.virtualWires);
-    this.tray.draw();
 };
 
 Breadboard.prototype.getWireColor = function getWireColor(count)
@@ -327,7 +316,7 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(this, componentsFgGraphics, componentsBgGraphics);
+        componentsList[i].draw(this, componentsBgGraphics, componentsFgGraphics);
     }
 };
 
@@ -608,54 +597,80 @@ Breadboard.prototype.toggleSwitch = function toggleSwitch(p)
     }
 };
 
-Breadboard.prototype.canAddComponent = function canAddComponent(positions, ids)
+Breadboard.prototype.getConnectionValue = function getConnectionValue(id)
 {
+    if (id < 0 || id > this.connections.length)
+    {
+        return false;
+    }
+    return this.connections[id].getValue();
+};
+
+Breadboard.prototype.pointHasComponent = function pointHasComponent(p, id)
+{
+    if (!this.validPosition(p))
+    {
+        return true;
+    }
+    var id = this.getIndex(p[0], p[1]);
+    if (this.connections[id].components.component)
+    {
+        return true;
+    }
+    return false;
+};
+
+Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, e)
+{
+    var event = e.data.originalEvent;
+    p = [event.layerX, event.layerY];
+    p = this.getPosition(p);
+
+    this.completeState = this.state;
+    this.state = Breadboard.state.DRAG_COMPONENT;
+    if (this.tray.isFromTray(component))
+    {
+        component = component.clone(this);
+    }
+    this.draggingComponent = component;
+    this.draggingGrabPoint = p;
+};
+
+Breadboard.prototype.dragComponent = function dragComponent(p)
+{
+    p = this.getPosition(p);
+    if (!this.validPosition(p))
+    {
+        return;
+    }
+
+    if (p[0] !== this.draggingGrabPoint[0] ||
+        p[1] !== this.draggingGrabPoint[1])
+    {
+        this.removeComponent(this.draggingGrabPoint);
+        if (this.draggingComponent.isValidPosition(this, p))
+        {
+            this.draggingGrabPoint = p;
+            this.draggingComponent.move(this, p);
+            this.addComponent(this.draggingComponent);
+        }
+    }
+};
+
+Breadboard.prototype.addComponent = function addComponent(component)
+{
+    this.componentsList.push(component);
+    var outputs = component.getConnections();
     var i;
-    for (i = 0; i < positions.length; i += 1)
+    for (i = 0; i < outputs.length; i += 1)
     {
-        var p = positions[i];
-        if (!this.validPosition(p))
-        {
-            return false;
-        }
-        ids[i] = this.getIndex(p[0], p[1]);
-        if (this.connections[ids[i]].components.component)
-        {
-            return false;
-        }
+        this.connections[outputs[i]].components.component = component;
     }
-    return true;
+    this.dirty = true;
 };
-
-Breadboard.prototype.addSwitch = function addSwitch(p)
-{
-    p = this.getPosition(p);
-    var ids = [];
-    if (!this.canAddComponent([p, [p[0], p[1] + 1]], ids))
-    {
-        return;
-    }
-
-    this.addComponent(new SwitchComponent(this, ids[0], ids[1]));
-};
-
-
-Breadboard.prototype.addRelay = function addRelay(p)
-{
-    p = this.getPosition(p);
-    var ids = [];
-    if (!this.canAddComponent([p, [p[0], p[1] + 1], [p[0], p[1] + 2], [p[0], p[1] + 3]], ids))
-    {
-        return;
-    }
-
-    this.addComponent(new RelayComponent(this, ids[0], ids[1], ids[2], ids[3]));
-};
-
 
 Breadboard.prototype.removeComponent = function removeComponent(p)
 {
-    p = this.getPosition(p);
     if (!this.validPosition(p))
     {
         return;
@@ -733,13 +748,6 @@ Breadboard.prototype.mousemove = function mousemove(p)
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
-        this.dragComponent(p, true);
+        this.dragComponent(p);
     }
-};
-
-Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component)
-{
-    this.completeState = this.state;
-    this.state = Breadboard.state.DRAG_COMPONENT;
-    this.draggingComponent = component;
 };

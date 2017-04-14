@@ -1,11 +1,11 @@
 
-function SwitchComponent(breadboard, id0, id1)
+function SwitchComponent(breadboard)
 {
-    this.id0 = id0;
-    this.p0 = breadboard.getPositionFromIndex(id0);
+    this.id0 = -1;
+    this.p0 = [-1, -1];
 
-    this.id1 = id1;
-    this.p1 = breadboard.getPositionFromIndex(id1);
+    this.id1 = -1;
+    this.p1 = [-1, -1];
 
     this.connected = false;
     this.bgDirty = true;
@@ -15,7 +15,6 @@ function SwitchComponent(breadboard, id0, id1)
 
     var container = this.container = new PIXI.Container();
     breadboard.stage.addChild(container);
-    this.updateContainer(breadboard);
 
     container.interactive = true;
     container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this);
@@ -23,8 +22,19 @@ function SwitchComponent(breadboard, id0, id1)
 
 SwitchComponent.type = ComponentTypes.SWITCH;
 
-SwitchComponent.prototype.updateContainer = function updateContainer(breadboard)
+SwitchComponent.prototype.move = function move(breadboard, p)
 {
+    this.p0 = [p[0], p[1]];
+    this.id0 = breadboard.getIndex(p[0], p[1]);
+
+    this.p1 = [p[0], p[1] + 1];
+    this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
+
+    this.bgDirty = true;
+    this.canToggle = true;
+
+    this.pulsePaths = [];
+
     var container = this.container;
 
     var left = breadboard.left;
@@ -40,6 +50,21 @@ SwitchComponent.prototype.updateContainer = function updateContainer(breadboard)
         top  + this.p0[1] * spacing - border,
         width * spacing + border * 2.0,
         height * spacing + border * 2.0);
+};
+
+SwitchComponent.prototype.clone = function clone(breadboard)
+{
+    var newSwitch = new SwitchComponent(breadboard);
+    newSwitch.move(breadboard, this.p0);
+    return newSwitch;
+};
+
+SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard, p)
+{
+    var isValid = true;
+    isValid = isValid && !breadboard.pointHasComponent(p);
+    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 1]);
+    return isValid;
 };
 
 SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics)
@@ -81,14 +106,14 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
         overrideColor = 0xFFFFFF;
     }
 
-    var value0 = breadboard.connections[this.id0].getValue();
+    var value0 = breadboard.getConnectionValue(this.id0);
     var color;
     color = overrideColor || breadboard.getWireColor(value0);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
     fgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 6);
 
-    var value1 = breadboard.connections[this.id1].getValue();
+    var value1 = breadboard.getConnectionValue(this.id1);
     color = overrideColor || breadboard.getWireColor(value1);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
