@@ -630,11 +630,11 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
     }
 
     this.state = this.completeState;
-    this.draggingComponent = null;
-    if (this.draggingComponent === component && this.draggingMoved)
+    if (this.draggingComponent === component && !this.draggingMoved)
     {
         component.toggle();
     }
+    this.draggingComponent = null;
 };
 
 Breadboard.prototype.dragComponent = function dragComponent(p)
