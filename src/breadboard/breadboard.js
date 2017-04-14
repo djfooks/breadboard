@@ -67,6 +67,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.completeState = Breadboard.state.ADD_WIRE;
     this.draggingComponent = null;
     this.draggingGrabPoint = [-1, -1];
+    this.draggingMoved = false;
     this.wireStart = [-1, -1];
 
     this.simulateSteps = 0;
@@ -128,7 +129,6 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     addButton("jack-plug.png",   675, 0, Breadboard.state.ADD_WIRE, true);
     addButton("cancel.png",      675, 40, Breadboard.state.REMOVE_WIRE);
-    addButton("lever.png",       400, 0, Breadboard.state.SWITCHES);
 
     this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
 }
@@ -137,8 +137,7 @@ Breadboard.state = {
     ADD_WIRE: 1,
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
-    SWITCHES: 4,
-    DRAG_COMPONENT: 5
+    DRAG_COMPONENT: 4
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -581,22 +580,6 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
     }
 };
 
-Breadboard.prototype.toggleSwitch = function toggleSwitch(p)
-{
-    p = this.getPosition(p);
-    if (!this.validPosition(p))
-    {
-        return;
-    }
-
-    var id = this.getIndex(p[0], p[1]);
-    var component = this.connections[id].components.component;
-    if (component && component.canToggle)
-    {
-        this.connections[id].components.component.toggle();
-    }
-};
-
 Breadboard.prototype.getConnectionValue = function getConnectionValue(id)
 {
     if (id < 0 || id > this.connections.length)
@@ -634,6 +617,16 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     }
     this.draggingComponent = component;
     this.draggingGrabPoint = p;
+    this.draggingMoved = false;
+};
+
+
+Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, e)
+{
+    if (!this.draggingMoved)
+    {
+        component.toggle();
+    }
 };
 
 Breadboard.prototype.dragComponent = function dragComponent(p)
@@ -647,6 +640,7 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
     if (p[0] !== this.draggingGrabPoint[0] ||
         p[1] !== this.draggingGrabPoint[1])
     {
+        this.draggingMoved = true;
         this.removeComponent(this.draggingGrabPoint);
         if (this.draggingComponent.isValidPosition(this, p))
         {
@@ -725,10 +719,6 @@ Breadboard.prototype.mouseup = function mouseup(p)
     else if (this.state === Breadboard.state.REMOVE_WIRE)
     {
         this.wireRemoveUpdate(p, false);
-    }
-    else if (this.state === Breadboard.state.SWITCHES)
-    {
-        this.toggleSwitch(p);
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {

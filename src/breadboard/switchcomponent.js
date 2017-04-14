@@ -18,6 +18,7 @@ function SwitchComponent(breadboard)
 
     container.interactive = true;
     container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this);
+    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, this);
 }
 
 SwitchComponent.type = ComponentTypes.SWITCH;
