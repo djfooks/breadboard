@@ -676,7 +676,8 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
     p = this.getPosition(p);
     if (!this.validPosition(p))
     {
-        return;
+        this.draggingMoved = true;
+        this.removeComponent(this.draggingGrabPoint);
     }
 
     if (p[0] !== this.draggingGrabPoint[0] ||
