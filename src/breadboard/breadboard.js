@@ -66,7 +66,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.state = Breadboard.state.ADD_WIRE;
     this.draggingComponent = null;
     this.draggingGrabPoint = [-1, -1];
-    this.draggingMoved = false;
+    this.shouldToggle = false;
     this.wireStart = [-1, -1];
 
     this.simulateSteps = 0;
@@ -639,6 +639,7 @@ Breadboard.prototype.pointHasComponent = function pointHasComponent(p, id)
 
 Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, e)
 {
+    this.shouldToggle = true;
     if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
     {
         return;
@@ -656,12 +657,16 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     }
     this.draggingComponent = component;
     this.draggingGrabPoint = p;
-    this.draggingMoved = false;
 };
 
 
 Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, e)
 {
+    if (this.shouldToggle)
+    {
+        component.toggle();
+        this.dirtySave = true;
+    }
     if (this.state !== Breadboard.state.DRAG_COMPONENT || !this.draggingComponent)
     {
         var event = e.data.originalEvent;
@@ -669,11 +674,6 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
         return;
     }
 
-    if (this.draggingComponent === component && !this.draggingMoved)
-    {
-        component.toggle();
-        this.dirtySave = true;
-    }
     this.draggingComponent = null;
 };
 
@@ -682,14 +682,14 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
     p = this.getPosition(p);
     if (!this.validPosition(p))
     {
-        this.draggingMoved = true;
+        this.shouldToggle = false;
         this.removeComponent(this.draggingGrabPoint);
     }
 
     if (p[0] !== this.draggingGrabPoint[0] ||
         p[1] !== this.draggingGrabPoint[1])
     {
-        this.draggingMoved = true;
+        this.shouldToggle = false;
         this.removeComponent(this.draggingGrabPoint);
         if (this.draggingComponent.isValidPosition(this, p))
         {
