@@ -36,6 +36,7 @@ var App = function ()
         var rows = 20;
         var cols = 20;
         this.breadboard = new Breadboard(stage, top, left, cols, rows, spacing);
+        this.breadboard.addWire(0, 0, cols - 1, 0, false);
     }
 
     this.nextTick = 0;
