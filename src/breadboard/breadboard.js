@@ -64,7 +64,6 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.dirty = false;
 
     this.state = Breadboard.state.ADD_WIRE;
-    this.completeState = Breadboard.state.ADD_WIRE;
     this.draggingComponent = null;
     this.draggingGrabPoint = [-1, -1];
     this.draggingMoved = false;
@@ -125,10 +124,12 @@ function Breadboard(stage, top, left, cols, rows, spacing)
         {
             onClick();
         }
+        return button;
     }
 
-    addButton("jack-plug.png",   675, 0, Breadboard.state.ADD_WIRE, true);
-    addButton("cancel.png",      675, 40, Breadboard.state.REMOVE_WIRE);
+    this.addWireButton    = addButton("jack-plug.png",   675, 0,  Breadboard.state.ADD_WIRE, true);
+    this.removeWireButton = addButton("cancel.png",      675, 40, Breadboard.state.REMOVE_WIRE);
+    this.moveButton       = addButton("move.png",        675, 80, Breadboard.state.MOVE);
 
     this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
 }
@@ -137,7 +138,8 @@ Breadboard.state = {
     ADD_WIRE: 1,
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
-    DRAG_COMPONENT: 4
+    DRAG_COMPONENT: 4,
+    MOVE: 5
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -637,12 +639,17 @@ Breadboard.prototype.pointHasComponent = function pointHasComponent(p, id)
 
 Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, e)
 {
+    if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
+    {
+        return;
+    }
     var event = e.data.originalEvent;
     p = [event.layerX, event.layerY];
     p = this.getPosition(p);
 
-    this.completeState = this.state;
     this.state = Breadboard.state.DRAG_COMPONENT;
+    this.disableButtons();
+    this.enableButton(this.moveButton);
     if (this.tray.isFromTray(component))
     {
         component = component.clone(this);
@@ -662,7 +669,6 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
         return;
     }
 
-    this.state = this.completeState;
     if (this.draggingComponent === component && !this.draggingMoved)
     {
         component.toggle();
@@ -766,7 +772,7 @@ Breadboard.prototype.mouseup = function mouseup(p)
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
         this.draggingComponent = null;
-        this.state = this.completeState;
+        this.state = Breadboard.state.MOVE;
     }
 };
 

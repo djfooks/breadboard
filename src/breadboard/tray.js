@@ -15,10 +15,10 @@ function Tray(breadboard)
 Tray.prototype.resetComponents = function resetComponents()
 {
     this.switch = new SwitchComponent(this.breadboard);
-    this.switch.move(this.breadboard, [22, 2]);
+    this.switch.move(this.breadboard, [22, 3]);
 
     this.relay = new RelayComponent(this.breadboard);
-    this.relay.move(this.breadboard, [22, 5]);
+    this.relay.move(this.breadboard, [22, 6]);
 };
 
 Tray.prototype.isFromTray = function isFromTray(component)
