@@ -161,7 +161,8 @@ Breadboard.prototype.toJson = function toJson()
     var out = {
         cols: this.cols,
         rows: this.rows,
-        wires: []
+        wires: [],
+        componentsList: []
     };
     var i;
     var wires = this.wires;
@@ -169,6 +170,12 @@ Breadboard.prototype.toJson = function toJson()
     for (i = 0; i < wiresLength; i += 1)
     {
         out.wires.push(wires[i].toJson());
+    }
+
+    var componentsList = this.componentsList;
+    for (i = 0; i < componentsList.length; i += 1)
+    {
+        out.componentsList.push(componentsList[i].toJson());
     }
     return out;
 };
@@ -184,6 +191,30 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, j
     {
         var w = wires[i];
         breadboard.addWire(w[0], w[1], w[2], w[3], false);
+    }
+
+    var componentsList = json.componentsList;
+    if (!componentsList)
+    {
+        return breadboard;
+    }
+    var componentsLength = componentsList.length;
+    var i;
+    for (i = 0; i < componentsLength; i += 1)
+    {
+        var componentJson = componentsList[i];
+        var component;
+        if (componentJson.type === ComponentTypes.SWITCH)
+        {
+            component = new SwitchComponent(breadboard);
+        }
+        else if (componentJson.type === ComponentTypes.RELAY)
+        {
+            component = new RelayComponent(breadboard);
+        }
+        component.stateFromJson(componentJson);
+        component.move(breadboard, componentJson.p);
+        breadboard.addComponent(component);
     }
     return breadboard;
 };
@@ -225,6 +256,7 @@ Breadboard.prototype.update = function update()
 {
     if (this.dirty)
     {
+        this.dirtySave = true;
         // TODO draw wires here too
         this.pulsePath.rebuildPaths(this, 0);
         this.pulseReset();
@@ -627,12 +659,14 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
     {
         var event = e.data.originalEvent;
         this.mouseup([event.layerX, event.layerY]);
+        return;
     }
 
     this.state = this.completeState;
     if (this.draggingComponent === component && !this.draggingMoved)
     {
         component.toggle();
+        this.dirtySave = true;
     }
     this.draggingComponent = null;
 };

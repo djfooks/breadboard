@@ -29,6 +29,18 @@ function RelayComponent(breadboard)
 
 RelayComponent.type = ComponentTypes.RELAY;
 
+RelayComponent.prototype.toJson = function toJson()
+{
+    return {
+        type: ComponentTypes.RELAY,
+        p: this.outP0
+    };
+};
+
+RelayComponent.prototype.stateFromJson = function stateFromJson(json)
+{
+};
+
 RelayComponent.prototype.move = function move(breadboard, p)
 {
     this.outP0 = [p[0], p[1]];

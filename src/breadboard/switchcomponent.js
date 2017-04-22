@@ -11,6 +11,7 @@ function SwitchComponent(breadboard)
     this.bgDirty = true;
     this.canToggle = true;
 
+
     this.pulsePaths = [];
 
     var container = this.container = new PIXI.Container();
@@ -58,6 +59,23 @@ SwitchComponent.prototype.clone = function clone(breadboard)
     var newSwitch = new SwitchComponent(breadboard);
     newSwitch.move(breadboard, this.p0);
     return newSwitch;
+};
+
+SwitchComponent.prototype.toJson = function toJson()
+{
+    return {
+        type: ComponentTypes.SWITCH,
+        p: this.p0,
+        connected: this.connected
+    };
+};
+
+SwitchComponent.prototype.stateFromJson = function stateFromJson(json)
+{
+    if (this.connected !== json.connected)
+    {
+        this.toggle();
+    }
 };
 
 SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard, p)

@@ -100,9 +100,10 @@ App.prototype.onError = function onError(message, source, lineno, colno, error)
 
 App.prototype.save = function save()
 {
-    if (this.breadboard && this.breadboard.dirty)
+    if (this.breadboard && this.breadboard.dirtySave)
     {
         var json = this.breadboard.toJson();
+        this.breadboard.dirtySave = false;
         var jsonStr = JSON.stringify(json);
         window.localStorage.setItem("breadboard", jsonStr);
     }
