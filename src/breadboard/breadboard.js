@@ -637,8 +637,13 @@ Breadboard.prototype.pointHasComponent = function pointHasComponent(p, id)
     return false;
 };
 
-Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, e)
+Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, button, e)
 {
+    if (button === 1)
+    {
+        return;
+    }
+
     this.shouldToggle = true;
     if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
     {
@@ -660,8 +665,16 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 };
 
 
-Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, e)
+Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, button, e)
 {
+    if (button === 1)
+    {
+        var event = e.data.originalEvent;
+        p = [event.layerX, event.layerY];
+        this.rotateComponent(component);
+        return;
+    }
+
     if (this.shouldToggle)
     {
         component.toggle();
@@ -697,6 +710,20 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
             this.draggingComponent.move(this, p);
             this.addComponent(this.draggingComponent);
         }
+    }
+};
+
+Breadboard.prototype.rotateComponent = function rotateComponent(component)
+{
+    var attempt = true;
+    if (component === this.draggingComponent)
+    {
+        attempt = false;
+    }
+    var invalid = component.rotate(this, attempt);
+    if (invalid)
+    {
+        this.removeComponent(component.p);
     }
 };
 
@@ -743,8 +770,13 @@ Breadboard.prototype.removeComponent = function removeComponent(p)
     this.dirty = true;
 };
 
-Breadboard.prototype.mousedown = function mousedown(p)
+Breadboard.prototype.mousedown = function mousedown(p, button)
 {
+    if (button === 1)
+    {
+        return;
+    }
+
     p = this.getPosition(p);
     if (this.state !== Breadboard.state.ADD_WIRE)
     {
@@ -758,8 +790,12 @@ Breadboard.prototype.mousedown = function mousedown(p)
     }
 };
 
-Breadboard.prototype.mouseup = function mouseup(p)
+Breadboard.prototype.mouseup = function mouseup(p, button)
 {
+    if (button === 1)
+    {
+        return;
+    }
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.wirePlaceUpdate(p, false);

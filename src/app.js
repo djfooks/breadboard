@@ -5,6 +5,14 @@ var App = function ()
     this.debugText = "";
     this.pixiApp = new PIXI.Application(800, 600, { antialias: true });
 
+    if (this.pixiApp.renderer.gl.canvas)
+    {
+        this.pixiApp.renderer.gl.canvas.oncontextmenu = function (e)
+        {
+            e.preventDefault();
+        }
+    }
+
     this.pixiApp.renderer.backgroundColor = 0xFFFFFF;
     var stage = this.pixiApp.stage;
 
@@ -44,24 +52,28 @@ var App = function ()
 
     stage.interactive = true;
     stage.hitArea = new PIXI.Rectangle(0, 0, 1000, 1000);
-    stage.mousedown = this.mousedown.bind(this);
-    stage.mouseup = this.mouseup.bind(this);
+    stage.mousedown = this.mousedown.bind(this, 0);
+    stage.mouseup = this.mouseup.bind(this, 0);
     stage.mousemove = this.mousemove.bind(this);
-    stage.touchstart = this.mousedown.bind(this);
-    stage.touchend = this.mouseup.bind(this);
+    stage.touchstart = this.mousedown.bind(this, 0);
+    stage.touchend = this.mouseup.bind(this, 0);
     stage.touchmove = this.mousemove.bind(this);
+    stage.rightdown = this.mousedown.bind(this, 1);
+    stage.rightup = this.mouseup.bind(this, 1);
 };
 
-App.prototype.mousedown = function mousedown(e)
+App.prototype.mousedown = function mousedown(button, e)
 {
     var event = e.data.originalEvent;
-    this.breadboard.mousedown([event.layerX, event.layerY]);
+    this.breadboard.mousedown([event.layerX, event.layerY], button);
+    return false;
 };
 
-App.prototype.mouseup = function mouseup(e)
+App.prototype.mouseup = function mouseup(button, e)
 {
     var event = e.data.originalEvent;
-    this.breadboard.mouseup([event.layerX, event.layerY]);
+    this.breadboard.mouseup([event.layerX, event.layerY], button);
+    return false;
 };
 
 App.prototype.mousemove = function mousemove(e)

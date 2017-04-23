@@ -1,6 +1,8 @@
 
 function SwitchComponent(breadboard)
 {
+    this.p = [-1, -1];
+
     this.id0 = -1;
     this.p0 = [-1, -1];
 
@@ -11,6 +13,7 @@ function SwitchComponent(breadboard)
     this.bgDirty = true;
     this.canToggle = true;
 
+    this.rotation = 0;
 
     this.pulsePaths = [];
 
@@ -18,18 +21,52 @@ function SwitchComponent(breadboard)
     breadboard.stage.addChild(container);
 
     container.interactive = true;
-    container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this);
-    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, this);
+    container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this, 0);
+    container.rightdown = breadboard.onComponentMouseDown.bind(breadboard, this, 1);
+    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, this, 0);
+    container.rightup = breadboard.onComponentMouseUp.bind(breadboard, this, 1);
 }
 
 SwitchComponent.type = ComponentTypes.SWITCH;
 
 SwitchComponent.prototype.move = function move(breadboard, p)
 {
+    this.p = [p[0], p[1]];
+
     this.p0 = [p[0], p[1]];
     this.id0 = breadboard.getIndex(p[0], p[1]);
 
     this.p1 = [p[0], p[1] + 1];
+    this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
+
+    this.bgDirty = true;
+    this.canToggle = true;
+
+    this.pulsePaths = [];
+
+    var container = this.container;
+
+    var left = breadboard.left;
+    var top = breadboard.top;
+    var spacing = breadboard.spacing;
+    var border = spacing * 0.38;
+
+    var width = this.p1[0] - this.p0[0];
+    var height = this.p1[1] - this.p0[1];
+
+    container.hitArea = new PIXI.Rectangle(
+        left + this.p0[0] * spacing - border,
+        top  + this.p0[1] * spacing - border,
+        width * spacing + border * 2.0,
+        height * spacing + border * 2.0);
+};
+
+SwitchComponent.prototype.rotate = function rotate(breadboard, attempt)
+{
+    this.rotation = Rotate90(this.rotation);
+    var matrix = RotationMatrix[this.rotation];
+
+    this.p1 = [p[0] + matrix[0], p[1] + matrix[1]];
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
 
     this.bgDirty = true;

@@ -1,6 +1,8 @@
 
 function RelayComponent(breadboard)
 {
+    this.p = [-1, -1];
+
     this.baseId = -1;
     this.baseP = [-1, -1];
 
@@ -23,8 +25,10 @@ function RelayComponent(breadboard)
     breadboard.stage.addChild(container);
 
     container.interactive = true;
-    container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this);
-    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, this);
+    container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this, 0);
+    container.rightdown = breadboard.onComponentMouseDown.bind(breadboard, this, 1);
+    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, this, 0);
+    container.rightup = breadboard.onComponentMouseUp.bind(breadboard, this, 1);
 }
 
 RelayComponent.type = ComponentTypes.RELAY;
@@ -43,6 +47,8 @@ RelayComponent.prototype.stateFromJson = function stateFromJson(json)
 
 RelayComponent.prototype.move = function move(breadboard, p)
 {
+    this.p = [p[0], p[1]];
+
     this.outP0 = [p[0], p[1]];
     this.outId0 = breadboard.getIndex(p[0], p[1]);
 
