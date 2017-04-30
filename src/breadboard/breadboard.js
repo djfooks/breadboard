@@ -623,18 +623,14 @@ Breadboard.prototype.getConnectionValue = function getConnectionValue(id)
     return this.connections[id].getValue();
 };
 
-Breadboard.prototype.pointHasComponent = function pointHasComponent(p, id)
+Breadboard.prototype.getComponent = function getComponent(p)
 {
     if (!this.validPosition(p))
     {
         return true;
     }
     var id = this.getIndex(p[0], p[1]);
-    if (this.connections[id].components.component)
-    {
-        return true;
-    }
-    return false;
+    return this.connections[id].components.component;
 };
 
 Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, button, e)
@@ -669,6 +665,10 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
 {
     if (button === 1)
     {
+        this.state = Breadboard.state.MOVE;
+        this.disableButtons();
+        this.enableButton(this.moveButton);
+
         var event = e.data.originalEvent;
         p = [event.layerX, event.layerY];
         this.rotateComponent(component);
@@ -704,7 +704,7 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
     {
         this.shouldToggle = false;
         this.removeComponent(this.draggingGrabPoint);
-        if (this.draggingComponent.isValidPosition(this, p))
+        if (this.draggingComponent.isValidPosition(this, p, this.draggingComponent.rotation))
         {
             this.draggingGrabPoint = p;
             this.draggingComponent.move(this, p);
@@ -715,15 +715,18 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
 
 Breadboard.prototype.rotateComponent = function rotateComponent(component)
 {
-    var attempt = true;
-    if (component === this.draggingComponent)
+    var valid = component.isValidPosition(this, component.p, Rotate90(component.rotation));
+    if (component !== this.draggingComponent && !valid)
     {
-        attempt = false;
+        return;
     }
-    var invalid = component.rotate(this, attempt);
-    if (invalid)
+
+    this.removeComponent(component.p);
+    component.rotate(this);
+    if (valid)
     {
-        this.removeComponent(component.p);
+        this.addComponent(component);
+        this.dirty = true;
     }
 };
 

@@ -28,67 +28,62 @@ function SwitchComponent(breadboard)
 }
 
 SwitchComponent.type = ComponentTypes.SWITCH;
+SwitchComponent.border = 0.38;
+
+SwitchComponent.prototype.updateContainer = function updateContainer(breadboard)
+{
+    var container = this.container;
+
+    var left = breadboard.left;
+    var top = breadboard.top;
+    var spacing = breadboard.spacing;
+    var border = spacing * SwitchComponent.border;
+
+    var rotationMatrix = RotationMatrix[this.rotation];
+    var screenP0 = [left + this.p0[0] * spacing, top + this.p0[1] * spacing];
+    var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
+
+    var screenMin = [Math.min(screenP0[0], screenP1[0]), Math.min(screenP0[1], screenP1[1])];
+    var screenMax = [Math.max(screenP0[0], screenP1[0]), Math.max(screenP0[1], screenP1[1])];
+
+    container.hitArea = new PIXI.Rectangle(
+        screenMin[0] - border,
+        screenMin[1] - border,
+        screenMax[0] - screenMin[0] + border * 2.0,
+        screenMax[1] - screenMin[1] + border * 2.0);
+};
 
 SwitchComponent.prototype.move = function move(breadboard, p)
 {
+    var matrix = RotationMatrix[this.rotation];
     this.p = [p[0], p[1]];
 
     this.p0 = [p[0], p[1]];
     this.id0 = breadboard.getIndex(p[0], p[1]);
 
-    this.p1 = [p[0], p[1] + 1];
+    this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
 
     this.bgDirty = true;
     this.canToggle = true;
 
     this.pulsePaths = [];
-
-    var container = this.container;
-
-    var left = breadboard.left;
-    var top = breadboard.top;
-    var spacing = breadboard.spacing;
-    var border = spacing * 0.38;
-
-    var width = this.p1[0] - this.p0[0];
-    var height = this.p1[1] - this.p0[1];
-
-    container.hitArea = new PIXI.Rectangle(
-        left + this.p0[0] * spacing - border,
-        top  + this.p0[1] * spacing - border,
-        width * spacing + border * 2.0,
-        height * spacing + border * 2.0);
+    this.updateContainer(breadboard);
 };
 
-SwitchComponent.prototype.rotate = function rotate(breadboard, attempt)
+SwitchComponent.prototype.rotate = function rotate(breadboard)
 {
     this.rotation = Rotate90(this.rotation);
     var matrix = RotationMatrix[this.rotation];
 
-    this.p1 = [p[0] + matrix[0], p[1] + matrix[1]];
+    this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
 
     this.bgDirty = true;
     this.canToggle = true;
 
     this.pulsePaths = [];
-
-    var container = this.container;
-
-    var left = breadboard.left;
-    var top = breadboard.top;
-    var spacing = breadboard.spacing;
-    var border = spacing * 0.38;
-
-    var width = this.p1[0] - this.p0[0];
-    var height = this.p1[1] - this.p0[1];
-
-    container.hitArea = new PIXI.Rectangle(
-        left + this.p0[0] * spacing - border,
-        top  + this.p0[1] * spacing - border,
-        width * spacing + border * 2.0,
-        height * spacing + border * 2.0);
+    this.updateContainer(breadboard);
 };
 
 SwitchComponent.prototype.clone = function clone(breadboard)
@@ -115,23 +110,35 @@ SwitchComponent.prototype.stateFromJson = function stateFromJson(json)
     }
 };
 
-SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard, p)
+SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard, p, rotation)
 {
+    var rotationMatrix = RotationMatrix[rotation];
+
+    var p0Component = breadboard.getComponent(p);
+    var p1Component = breadboard.getComponent(AddTransformedVector(p, rotationMatrix, [0, 1]));
+
     var isValid = true;
-    isValid = isValid && !breadboard.pointHasComponent(p);
-    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 1]);
+    isValid = isValid && (!p0Component || p0Component === this);
+    isValid = isValid && (!p1Component || p1Component === this);
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics)
+SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p)
 {
     var top = breadboard.top;
     var left = breadboard.left;
     var spacing = breadboard.spacing;
-    var border = spacing * 0.38;
+    var border = spacing * SwitchComponent.border;
 
-    var p0 = this.p0;
-    var p1 = this.p1;
+    if (!p)
+    {
+        p = [left + this.p0[0] * spacing, top + this.p0[1] * spacing];
+    }
+
+    var rotationMatrix = RotationMatrix[this.rotation];
+
+    var screenP0 = p;
+    var screenP1 = AddTransformedVector(p, rotationMatrix, [0, spacing]);
 
     if (true)//this.bgDirty || breadboard.dirty)
     {
@@ -139,20 +146,24 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
 
         bgGraphics.lineStyle(6, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 1);
-        bgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 6);
-        bgGraphics.drawCircle(left + p1[0] * spacing, top + p1[1] * spacing, 6);
+        bgGraphics.drawCircle(screenP0[0], screenP0[1], 6);
+        bgGraphics.drawCircle(screenP1[0], screenP1[1], 6);
 
         if (this.connected)
         {
             bgGraphics.lineStyle(11, 0x000000, 1);
-            bgGraphics.moveTo(left + p0[0] * spacing, top + p0[1] * spacing);
-            bgGraphics.lineTo(left + p1[0] * spacing, top + p1[1] * spacing);
+            bgGraphics.moveTo(screenP0[0], screenP0[1]);
+            bgGraphics.lineTo(screenP1[0], screenP1[1]);
         }
 
         bgGraphics.lineStyle(2, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 0);
-        bgGraphics.drawRect(left + p0[0] * spacing - border, top + p0[1] * spacing - border,
-            border * 2, spacing + border * 2);
+        var screenMin = [Math.min(screenP0[0], screenP1[0]), Math.min(screenP0[1], screenP1[1])];
+        var screenMax = [Math.max(screenP0[0], screenP1[0]), Math.max(screenP0[1], screenP1[1])];
+        bgGraphics.drawRect(screenMin[0] - border,
+                            screenMin[1] - border,
+                            screenMax[0] - screenMin[0] + border * 2.0,
+                            screenMax[1] - screenMin[1] + border * 2.0);
     }
 
     var overrideColor = null;
@@ -167,20 +178,20 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
     color = overrideColor || breadboard.getWireColor(value0);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(left + p0[0] * spacing, top + p0[1] * spacing, 6);
+    fgGraphics.drawCircle(screenP0[0], screenP0[1], 6);
 
     var value1 = breadboard.getConnectionValue(this.id1);
     color = overrideColor || breadboard.getWireColor(value1);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(left + p1[0] * spacing, top + p1[1] * spacing, 6);
+    fgGraphics.drawCircle(screenP1[0], screenP1[1], 6);
 
     if (this.connected)
     {
         color = overrideColor || breadboard.getWireColor(Math.min(value0, value1));
         fgGraphics.lineStyle(8, color, 1);
-        fgGraphics.moveTo(left + p0[0] * spacing, top + p0[1] * spacing);
-        fgGraphics.lineTo(left + p1[0] * spacing, top + p1[1] * spacing);
+        fgGraphics.moveTo(screenP0[0], screenP0[1]);
+        fgGraphics.lineTo(screenP1[0], screenP1[1]);
     }
 };
 

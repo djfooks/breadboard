@@ -93,10 +93,10 @@ RelayComponent.prototype.clone = function clone(breadboard)
 RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, p)
 {
     var isValid = true;
-    isValid = isValid && !breadboard.pointHasComponent(p);
-    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 1]);
-    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 2]);
-    isValid = isValid && !breadboard.pointHasComponent([p[0], p[1] + 3]);
+    isValid = isValid && !breadboard.getComponent(p);
+    isValid = isValid && !breadboard.getComponent([p[0], p[1] + 1]);
+    isValid = isValid && !breadboard.getComponent([p[0], p[1] + 2]);
+    isValid = isValid && !breadboard.getComponent([p[0], p[1] + 3]);
     return isValid;
 };
 
