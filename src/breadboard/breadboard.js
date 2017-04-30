@@ -215,7 +215,7 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, j
             component = new RelayComponent(breadboard);
         }
         component.stateFromJson(componentJson);
-        component.move(breadboard, componentJson.p);
+        component.move(breadboard, componentJson.p, componentJson.rotation | 0);
         breadboard.addComponent(component);
     }
     return breadboard;
@@ -707,7 +707,7 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
         if (this.draggingComponent.isValidPosition(this, p, this.draggingComponent.rotation))
         {
             this.draggingGrabPoint = p;
-            this.draggingComponent.move(this, p);
+            this.draggingComponent.move(this, p, this.draggingComponent.rotation);
             this.addComponent(this.draggingComponent);
         }
     }
@@ -715,14 +715,15 @@ Breadboard.prototype.dragComponent = function dragComponent(p)
 
 Breadboard.prototype.rotateComponent = function rotateComponent(component)
 {
-    var valid = component.isValidPosition(this, component.p, Rotate90(component.rotation));
+    var newRotation = Rotate90(component.rotation);
+    var valid = component.isValidPosition(this, component.p, newRotation);
     if (component !== this.draggingComponent && !valid)
     {
         return;
     }
 
     this.removeComponent(component.p);
-    component.rotate(this);
+    component.move(this, component.p, newRotation);
     if (valid)
     {
         this.addComponent(component);

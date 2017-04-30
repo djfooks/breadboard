@@ -28,35 +28,12 @@ function SwitchComponent(breadboard)
 }
 
 SwitchComponent.type = ComponentTypes.SWITCH;
-SwitchComponent.border = 0.38;
 
-SwitchComponent.prototype.updateContainer = function updateContainer(breadboard)
+SwitchComponent.prototype.move = function move(breadboard, p, rotation)
 {
-    var container = this.container;
-
-    var left = breadboard.left;
-    var top = breadboard.top;
-    var spacing = breadboard.spacing;
-    var border = spacing * SwitchComponent.border;
-
-    var rotationMatrix = RotationMatrix[this.rotation];
-    var screenP0 = [left + this.p0[0] * spacing, top + this.p0[1] * spacing];
-    var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
-
-    var screenMin = [Math.min(screenP0[0], screenP1[0]), Math.min(screenP0[1], screenP1[1])];
-    var screenMax = [Math.max(screenP0[0], screenP1[0]), Math.max(screenP0[1], screenP1[1])];
-
-    container.hitArea = new PIXI.Rectangle(
-        screenMin[0] - border,
-        screenMin[1] - border,
-        screenMax[0] - screenMin[0] + border * 2.0,
-        screenMax[1] - screenMin[1] + border * 2.0);
-};
-
-SwitchComponent.prototype.move = function move(breadboard, p)
-{
-    var matrix = RotationMatrix[this.rotation];
+    this.rotation = rotation;
     this.p = [p[0], p[1]];
+    var matrix = RotationMatrix[this.rotation];
 
     this.p0 = [p[0], p[1]];
     this.id0 = breadboard.getIndex(p[0], p[1]);
@@ -68,36 +45,22 @@ SwitchComponent.prototype.move = function move(breadboard, p)
     this.canToggle = true;
 
     this.pulsePaths = [];
-    this.updateContainer(breadboard);
-};
-
-SwitchComponent.prototype.rotate = function rotate(breadboard)
-{
-    this.rotation = Rotate90(this.rotation);
-    var matrix = RotationMatrix[this.rotation];
-
-    this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
-    this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
-
-    this.bgDirty = true;
-    this.canToggle = true;
-
-    this.pulsePaths = [];
-    this.updateContainer(breadboard);
+    Component.updateContainer(breadboard, this, p, [0, 1]);
 };
 
 SwitchComponent.prototype.clone = function clone(breadboard)
 {
-    var newSwitch = new SwitchComponent(breadboard);
-    newSwitch.move(breadboard, this.p0);
-    return newSwitch;
+    var cloneComponent = new SwitchComponent(breadboard);
+    cloneComponent.move(breadboard, this.p, this.rotation);
+    return cloneComponent;
 };
 
 SwitchComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.SWITCH,
-        p: this.p0,
+        p: this.p,
+        rotation: this.rotation,
         connected: this.connected
     };
 };
@@ -128,11 +91,10 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
     var top = breadboard.top;
     var left = breadboard.left;
     var spacing = breadboard.spacing;
-    var border = spacing * SwitchComponent.border;
 
     if (!p)
     {
-        p = [left + this.p0[0] * spacing, top + this.p0[1] * spacing];
+        p = [left + this.p[0] * spacing, top + this.p[1] * spacing];
     }
 
     var rotationMatrix = RotationMatrix[this.rotation];
@@ -158,12 +120,7 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
 
         bgGraphics.lineStyle(2, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 0);
-        var screenMin = [Math.min(screenP0[0], screenP1[0]), Math.min(screenP0[1], screenP1[1])];
-        var screenMax = [Math.max(screenP0[0], screenP1[0]), Math.max(screenP0[1], screenP1[1])];
-        bgGraphics.drawRect(screenMin[0] - border,
-                            screenMin[1] - border,
-                            screenMax[0] - screenMin[0] + border * 2.0,
-                            screenMax[1] - screenMin[1] + border * 2.0);
+        Component.drawContainer(breadboard, bgGraphics, screenP0, screenP1);
     }
 
     var overrideColor = null;

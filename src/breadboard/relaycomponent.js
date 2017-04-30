@@ -37,7 +37,8 @@ RelayComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.RELAY,
-        p: this.outP0
+        p: this.p,
+        rotation: this.rotation
     };
 };
 
@@ -45,72 +46,77 @@ RelayComponent.prototype.stateFromJson = function stateFromJson(json)
 {
 };
 
-RelayComponent.prototype.move = function move(breadboard, p)
+RelayComponent.prototype.move = function move(breadboard, p, rotation)
 {
+    this.rotation = rotation;
+    var matrix = RotationMatrix[this.rotation];
     this.p = [p[0], p[1]];
 
     this.outP0 = [p[0], p[1]];
     this.outId0 = breadboard.getIndex(p[0], p[1]);
 
-    this.baseP = [p[0], p[1] + 1];
+    this.baseP = AddTransformedVector(p, matrix, [0, 1]);
     this.baseId = breadboard.getIndex(this.baseP[0], this.baseP[1]);
 
-    this.outP1 = [p[0], p[1] + 2];
+    this.outP1 = AddTransformedVector(p, matrix, [0, 2]);
     this.outId1 = breadboard.getIndex(this.outP1[0], this.outP1[1]);
 
-    this.signalP = [p[0], p[1] + 3];
+    this.signalP = AddTransformedVector(p, matrix, [0, 3]);
     this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
 
     this.bgDirty = true;
     this.canToggle = true;
 
     this.pulsePaths = [];
-
-    var container = this.container;
-
-    var left = breadboard.left;
-    var top = breadboard.top;
-    var spacing = breadboard.spacing;
-    var border = spacing * 0.38;
-
-    var width = this.signalP[0] - this.outP0[0];
-    var height = this.signalP[1] - this.outP0[1];
-
-    container.hitArea = new PIXI.Rectangle(
-        left + this.outP0[0] * spacing - border,
-        top  + this.outP0[1] * spacing - border,
-        width * spacing + border * 2.0,
-        height * spacing + border * 2.0);
+    Component.updateContainer(breadboard, this, p, [0, 3]);
 };
 
 RelayComponent.prototype.clone = function clone(breadboard)
 {
-    var newSwitch = new RelayComponent(breadboard);
-    newSwitch.move(breadboard, this.outP0);
-    return newSwitch;
+    var cloneComponent = new RelayComponent(breadboard);
+    cloneComponent.move(breadboard, this.p, this.rotation);
+    return cloneComponent;
 };
 
-RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, p)
+RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, p, rotation)
 {
+    var rotationMatrix = RotationMatrix[rotation];
+
+    var p0Component = breadboard.getComponent(p);
+    var p1Component = breadboard.getComponent(AddTransformedVector(p, rotationMatrix, [0, 1]));
+    var p2Component = breadboard.getComponent(AddTransformedVector(p, rotationMatrix, [0, 2]));
+    var p3Component = breadboard.getComponent(AddTransformedVector(p, rotationMatrix, [0, 3]));
+
     var isValid = true;
-    isValid = isValid && !breadboard.getComponent(p);
-    isValid = isValid && !breadboard.getComponent([p[0], p[1] + 1]);
-    isValid = isValid && !breadboard.getComponent([p[0], p[1] + 2]);
-    isValid = isValid && !breadboard.getComponent([p[0], p[1] + 3]);
+    isValid = isValid && (!p0Component || p0Component === this);
+    isValid = isValid && (!p1Component || p1Component === this);
+    isValid = isValid && (!p2Component || p2Component === this);
+    isValid = isValid && (!p3Component || p3Component === this);
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics)
+RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p)
 {
     var top = breadboard.top;
     var left = breadboard.left;
     var spacing = breadboard.spacing;
-    var boarder = spacing * 0.38;
 
-    var baseP = this.baseP;
+    if (!p)
+    {
+        p = [left + this.p[0] * spacing, top + this.p[1] * spacing];
+    }
+
+    var rotationMatrix = RotationMatrix[this.rotation];
+
     var outP0 = this.outP0;
+    var baseP = this.baseP;
     var outP1 = this.outP1;
     var signalP = this.signalP;
+
+    var screenOutP0 = p;
+    var screenBaseP = AddTransformedVector(p, rotationMatrix, [0, spacing]);
+    var screenOutP1 = AddTransformedVector(p, rotationMatrix, [0, spacing * 2.0]);
+    var screenSignalP = AddTransformedVector(p, rotationMatrix, [0, spacing * 3.0]);
 
     if (true)//this.bgDirty || breadboard.dirty)
     {
@@ -118,29 +124,28 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
 
         bgGraphics.lineStyle(6, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 1);
-        bgGraphics.drawCircle(left + baseP[0] * spacing, top + baseP[1] * spacing, 6);
-        bgGraphics.drawCircle(left + outP0[0] * spacing, top + outP0[1] * spacing, 6);
-        bgGraphics.drawCircle(left + outP1[0] * spacing, top + outP1[1] * spacing, 6);
+        bgGraphics.drawCircle(screenOutP0[0], screenOutP0[1], 6);
+        bgGraphics.drawCircle(screenBaseP[0], screenBaseP[1], 6);
+        bgGraphics.drawCircle(screenOutP1[0], screenOutP1[1], 6);
 
         bgGraphics.lineStyle(6, 0x00FF00, 1);
         bgGraphics.beginFill(0x00FF00, 1);
-        bgGraphics.drawCircle(left + signalP[0] * spacing, top + signalP[1] * spacing, 6);
+        bgGraphics.drawCircle(screenSignalP[0], screenSignalP[1], 6);
 
         bgGraphics.lineStyle(11, 0x000000, 1);
-        bgGraphics.moveTo(left + baseP[0] * spacing, top + baseP[1] * spacing);
+        bgGraphics.moveTo(screenBaseP[0], screenBaseP[1]);
         if (this.signalValue)
         {
-            bgGraphics.lineTo(left + outP1[0] * spacing, top + outP1[1] * spacing);
+            bgGraphics.lineTo(screenOutP1[0], screenOutP1[1]);
         }
         else
         {
-            bgGraphics.lineTo(left + outP0[0] * spacing, top + outP0[1] * spacing);
+            bgGraphics.lineTo(screenOutP0[0], screenOutP0[1]);
         }
 
         bgGraphics.lineStyle(2, 0x000000, 1);
         bgGraphics.beginFill(0x000000, 0);
-        bgGraphics.drawRect(left + outP0[0] * spacing - boarder, top + outP0[1] * spacing - boarder,
-            boarder * 2, spacing * 3 + boarder * 2);
+        Component.drawContainer(breadboard, bgGraphics, screenOutP0, screenSignalP);
     }
 
     var overrideColor = null;
@@ -155,38 +160,38 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
     color = overrideColor || breadboard.getWireColor(value0);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(left + outP0[0] * spacing, top + outP0[1] * spacing, 6);
+    fgGraphics.drawCircle(screenOutP0[0], screenOutP0[1], 6);
 
     var valueBase = breadboard.getConnectionValue(this.baseId);
     color = overrideColor || breadboard.getWireColor(valueBase);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(left + baseP[0] * spacing, top + baseP[1] * spacing, 6);
+    fgGraphics.drawCircle(screenBaseP[0], screenBaseP[1], 6);
 
     var value1 = breadboard.getConnectionValue(this.outId1);
     color = overrideColor || breadboard.getWireColor(value1);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(left + outP1[0] * spacing, top + outP1[1] * spacing, 6);
+    fgGraphics.drawCircle(screenOutP1[0], screenOutP1[1], 6);
 
     var valueSignal = breadboard.getConnectionValue(this.signalId);
     color = overrideColor || breadboard.getWireColor(valueSignal);
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(left + signalP[0] * spacing, top + signalP[1] * spacing, 6);
+    fgGraphics.drawCircle(screenSignalP[0], screenSignalP[1], 6);
 
-    fgGraphics.moveTo(left + baseP[0] * spacing, top + baseP[1] * spacing);
+    fgGraphics.moveTo(screenBaseP[0], screenBaseP[1]);
     if (this.signalValue)
     {
         color = overrideColor || breadboard.getWireColor(Math.min(value1, valueBase));
         fgGraphics.lineStyle(8, color, 1);
-        fgGraphics.lineTo(left + outP1[0] * spacing, top + outP1[1] * spacing);
+        fgGraphics.lineTo(screenOutP1[0], screenOutP1[1]);
     }
     else
     {
         color = overrideColor || breadboard.getWireColor(Math.min(value0, valueBase));
         fgGraphics.lineStyle(8, color, 1);
-        fgGraphics.lineTo(left + outP0[0] * spacing, top + outP0[1] * spacing);
+        fgGraphics.lineTo(screenOutP0[0], screenOutP0[1]);
     }
 };
 
