@@ -21,7 +21,7 @@ var App = function ()
     this.fps = 30;
     this.intervalId = setInterval(this.update.bind(this), 1000 / this.fps);
 
-    var top = 60;
+    var top = 20;
     var left = 30;
     var spacing = 30;
     var json;
@@ -60,10 +60,34 @@ var App = function ()
     stage.touchmove = this.mousemove.bind(this);
     stage.rightdown = this.mousedown.bind(this, 1);
     stage.rightup = this.mouseup.bind(this, 1);
+
+    var that = this;
+    var fileDropButton = document.getElementById("fileDropButton");
+    fileDropButton.onclick = function ()
+    {
+        document.getElementById("fileDrop").classList.toggle("show");
+    };
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(e) {
+        if (!e.target.matches('.dropbtn')) {
+            var myDropdown = document.getElementById("fileDrop");
+            if (myDropdown.classList.contains('show')) {
+                myDropdown.classList.remove('show');
+            }
+        }
+    }
+    document.getElementById("clearBoardButton").onclick = function ()
+    {
+        document.getElementById("fileDrop").classList.remove("show");
+        that.breadboard.clear();
+        that.breadboard.addWire(0, 0, that.breadboard.cols - 1, 0, false);
+    };
 };
 
 App.prototype.mousedown = function mousedown(button, e)
 {
+    document.getElementById("fileDrop").classList.remove("show");
+
     var event = e.data.originalEvent;
     this.breadboard.mousedown([event.layerX, event.layerY], button);
     return false;

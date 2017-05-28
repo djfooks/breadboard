@@ -51,25 +51,8 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.cols = cols;
     this.rows = rows;
     this.spacing = spacing;
-    this.connections = new Array(cols * rows);
-    this.componentsList = [];
-    var i;
-    for (i = 0; i < this.connections.length; i += 1)
-    {
-        this.connections[i] = new Connection();
-    }
-    this.wires = [];
-    this.virtualWires = [];
-    this.removeWireId = -1;
-    this.dirty = false;
 
-    this.state = Breadboard.state.ADD_WIRE;
-    this.draggingComponent = null;
-    this.draggingGrabPoint = [-1, -1];
-    this.shouldToggle = false;
-    this.wireStart = [-1, -1];
-
-    this.simulateSteps = 0;
+    this.clear();
 
     this.drawGrid();
     this.tray = new Tray(this);
@@ -130,9 +113,32 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.addWireButton    = addButton("jack-plug.png",   675, 0,  Breadboard.state.ADD_WIRE, true);
     this.removeWireButton = addButton("cancel.png",      675, 40, Breadboard.state.REMOVE_WIRE);
     this.moveButton       = addButton("move.png",        675, 80, Breadboard.state.MOVE);
+}
+
+Breadboard.prototype.clear = function clearFn()
+{
+    this.connections = new Array(this.cols * this.rows);
+    this.componentsList = [];
+    var i;
+    for (i = 0; i < this.connections.length; i += 1)
+    {
+        this.connections[i] = new Connection();
+    }
+    this.wires = [];
+    this.virtualWires = [];
+    this.removeWireId = -1;
+    this.dirty = false;
+
+    this.state = Breadboard.state.ADD_WIRE;
+    this.draggingComponent = null;
+    this.draggingGrabPoint = [-1, -1];
+    this.shouldToggle = false;
+    this.wireStart = [-1, -1];
+
+    this.simulateSteps = 0;
 
     this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
-}
+};
 
 Breadboard.state = {
     ADD_WIRE: 1,

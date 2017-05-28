@@ -4,6 +4,8 @@
         <title>Breadboard</title>
         <meta charset="utf-8">
 
+        <link rel="stylesheet" href="src/styles.css">
+
         <script type="text/javascript" src="src/pixi.js"></script>
 
         <script type="text/javascript" src="src/breadboard/componenttypes.js"></script>
@@ -17,6 +19,16 @@
         <script type="text/javascript" src="src/breadboard/connection.js"></script>
     </head>
     <body>
+
+        <div class="container">
+          <div class="dropdown">
+            <button class="dropbtn" id="fileDropButton">Game</button>
+            <div class="dropdown-content" id="fileDrop">
+              <a href="#" id="clearBoardButton">Clear board</a>
+            </div>
+          </div>
+        </div>
+
         <p id="debugText"></p>
     </body>
 
