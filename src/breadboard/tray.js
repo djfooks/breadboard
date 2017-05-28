@@ -19,6 +19,9 @@ Tray.prototype.resetComponents = function resetComponents()
 
     this.relay = new RelayComponent(this.breadboard);
     this.relay.move(this.breadboard, [22, 6], 0);
+
+    this.diode = new DiodeComponent(this.breadboard);
+    this.diode.move(this.breadboard, [22, 11], 0);
 };
 
 Tray.prototype.isFromTray = function isFromTray(component)
@@ -26,6 +29,7 @@ Tray.prototype.isFromTray = function isFromTray(component)
     var fromTray = false;
     fromTray = fromTray || (component === this.switch);
     fromTray = fromTray || (component === this.relay);
+    fromTray = fromTray || (component === this.diode);
     return fromTray;
 };
 
@@ -50,4 +54,5 @@ Tray.prototype.draw = function draw()
 
     this.switch.draw(breadboard, graphicsBg);
     this.relay.draw(breadboard, graphicsBg);
+    this.diode.draw(breadboard, graphicsBg);
 };

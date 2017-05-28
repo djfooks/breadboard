@@ -214,6 +214,10 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, j
         {
             component = new RelayComponent(breadboard);
         }
+        else if (componentJson.type === ComponentTypes.DIODE)
+        {
+            component = new DiodeComponent(breadboard);
+        }
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p, componentJson.rotation | 0);
         breadboard.addComponent(component);
