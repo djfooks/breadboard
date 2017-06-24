@@ -127,6 +127,7 @@ Breadboard.prototype.clear = function clearFn()
     this.removeWireId = -1;
     this.dirty = false;
 
+    this.shouldSwitch = false;
     this.state = Breadboard.state.ADD_WIRE;
     this.draggingStartPoint = [-1, -1];
     this.draggingPoint = [0, 0];
@@ -145,9 +146,8 @@ Breadboard.state = {
     ADD_WIRE: 1,
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
-    SWITCH_COMPONENT: 4,
-    DRAG_COMPONENT: 5,
-    MOVE: 6
+    DRAG_COMPONENT: 4,
+    MOVE: 5
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -651,6 +651,7 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
         {
             return;
         }
+        this.shouldSwitch = false;
 
         if (p[0] === wireStart[0] ||
             p[1] === wireStart[1])
@@ -698,23 +699,25 @@ Breadboard.prototype.getComponent = function getComponent(p)
 
 Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, q, button)
 {
-    if (button === 1)
+    if (button === 2)
     {
+        this.shouldSwitch = false;
         return;
     }
+    this.shouldSwitch = true;
 
     if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
     {
+        this.onMouseDown(q, button);
         return;
     }
     p = this.getPosition(q);
 
-    this.state = Breadboard.state.SWITCH_COMPONENT;
+    this.state = Breadboard.state.DRAG_COMPONENT;
     this.draggingStartPoint = q;
     this.draggingFromTray = this.tray.isFromTray(component);
     if (this.draggingFromTray)
     {
-        this.state = Breadboard.state.DRAG_COMPONENT;
         component = component.clone(this);
     }
     this.draggingComponent = component;
@@ -725,13 +728,11 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 
 Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, button)
 {
-    if (button === 1)
+    if (button === 2)
     {
         var component;
         if (this.state === Breadboard.state.DRAG_COMPONENT)
         {
-            // Doesn't work because pixijs doesn't support right click while left click is down....
-            // TODO - Drop pixi support since it doesn't really give me anything
             component = this.draggingComponent;
         }
         else
@@ -750,30 +751,16 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         return;
     }
 
-    if (this.state === Breadboard.state.SWITCH_COMPONENT ||
-        this.state === Breadboard.state.PLACING_WIRE)
+    var q;
+    if (this.shouldSwitch)
     {
-        p = this.getPosition(p);
-        if (this.state === Breadboard.state.PLACING_WIRE &&
-            (this.wireStart[0] != p[0] ||
-             this.wireStart[1] != p[1]))
-        {
-            return;
-        }
-
-        var component = this.getComponent(p);
+        q = this.getPosition(p);
+        var component = this.getComponent(q);
         if (component)
         {
             component.toggle();
             this.dirtySave = true;
         }
-        if (this.state === Breadboard.state.SWITCH_COMPONENT)
-        {
-            this.state = Breadboard.state.MOVE;
-            this.disableButtons();
-            this.enableButton(this.moveButton);
-        }
-        return;
     }
 
     if (this.state !== Breadboard.state.DRAG_COMPONENT || !this.draggingComponent)
@@ -784,7 +771,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
 
     var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
                      p[1] + this.draggingComponentGrabPoint[1]];
-    var q = this.getPosition(grabPoint);
+    q = this.getPosition(grabPoint);
 
     if (this.validPosition(q) &&
         this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation))
@@ -811,6 +798,21 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
 Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
 {
     this.draggingPoint = p;
+    if (p[0] != this.draggingStartPoint[0] ||
+        p[1] != this.draggingStartPoint[1])
+    {
+        if (this.shouldSwitch)
+        {
+            this.disableButtons();
+            this.enableButton(this.moveButton);
+            if (!this.draggingFromTray)
+            {
+                this.removeComponent(this.draggingComponent);
+            }
+        }
+        this.shouldSwitch = false;
+    }
+
     var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
                      p[1] + this.draggingComponentGrabPoint[1]];
     p = this.getPosition(grabPoint);
@@ -824,23 +826,6 @@ Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(
     this.draggingComponent.move(this, p, this.draggingComponent.rotation);
 };
 
-Breadboard.prototype.switchComponentUpdate = function switchComponentUpdate(p)
-{
-    this.draggingPoint = p;
-    if (p[0] != this.draggingStartPoint[0] ||
-        p[1] != this.draggingStartPoint[1])
-    {
-        this.state = Breadboard.state.DRAG_COMPONENT;
-        this.disableButtons();
-        this.enableButton(this.moveButton);
-        if (!this.draggingFromTray)
-        {
-            this.removeComponent(this.draggingComponent);
-        }
-        this.draggingComponentUpdate(p);
-    }
-};
-
 Breadboard.prototype.rotateComponent = function rotateComponent(component)
 {
     var newRotation = Rotate90(component.rotation);
@@ -852,7 +837,7 @@ Breadboard.prototype.rotateComponent = function rotateComponent(component)
 
     this.removeComponent(component);
     component.move(this, component.p, newRotation);
-    if (valid)
+    if (valid && this.state !== Breadboard.state.DRAG_COMPONENT)
     {
         this.addComponent(component);
         this.dirty = true;
@@ -951,10 +936,6 @@ Breadboard.prototype.onMouseMove = function onMouseMove(p)
     else if (this.state === Breadboard.state.REMOVE_WIRE)
     {
         this.wireRemoveUpdate(p, true);
-    }
-    else if (this.state === Breadboard.state.SWITCH_COMPONENT)
-    {
-        this.switchComponentUpdate(p);
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
