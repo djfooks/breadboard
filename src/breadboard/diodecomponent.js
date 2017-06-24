@@ -80,7 +80,7 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-DiodeComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p)
+DiodeComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, pickedUp)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -96,24 +96,28 @@ DiodeComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
     var screenP0 = p;
     var screenP1 = AddTransformedVector(p, rotationMatrix, [0, spacing]);
 
+    var bgColor = Component.getColor(pickedUp);
+
     if (true)//this.bgDirty || breadboard.dirty)
     {
         this.bgDirty = false;
 
-        bgGraphics.lineStyle(6, 0x000000, 1);
-        bgGraphics.beginFill(0x000000, 1);
+        bgGraphics.lineStyle(6, bgColor, 1);
+        bgGraphics.beginFill(bgColor, 1);
         bgGraphics.drawCircle(screenP0[0], screenP0[1], 6);
         bgGraphics.drawCircle(screenP1[0], screenP1[1], 6);
 
-        if (this.connected)
-        {
-            bgGraphics.lineStyle(11, 0x000000, 1);
-            bgGraphics.moveTo(screenP0[0], screenP0[1]);
-            bgGraphics.lineTo(screenP1[0], screenP1[1]);
-        }
+        bgGraphics.lineStyle(1.5, bgColor, 1);
+        bgGraphics.beginFill(bgColor, 0);
+        var arrowHead0 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing * 0.6]);
+        var arrowLeft0 = AddTransformedVector(screenP0, rotationMatrix, [-spacing * 0.4, spacing * 0.3]);
+        var arrowRight0 = AddTransformedVector(screenP0, rotationMatrix, [spacing * 0.4, spacing * 0.3]);
+        bgGraphics.moveTo(arrowLeft0[0], arrowLeft0[1]);
+        bgGraphics.lineTo(arrowHead0[0], arrowHead0[1]);
+        bgGraphics.lineTo(arrowRight0[0], arrowRight0[1]);
 
-        bgGraphics.lineStyle(2, 0x000000, 1);
-        bgGraphics.beginFill(0x000000, 0);
+        bgGraphics.lineStyle(2, bgColor, 1);
+        bgGraphics.beginFill(bgColor, 0);
         Component.drawContainer(breadboard, bgGraphics, screenP0, screenP1);
     }
 
@@ -136,15 +140,6 @@ DiodeComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
     fgGraphics.lineStyle(3, color, 1);
     fgGraphics.beginFill(color, 1);
     fgGraphics.drawCircle(screenP1[0], screenP1[1], 6);
-
-    bgGraphics.lineStyle(1.5, 0x000000, 1);
-    bgGraphics.beginFill(0x000000, 0);
-    var arrowHead0 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing * 0.6]);
-    var arrowLeft0 = AddTransformedVector(screenP0, rotationMatrix, [-spacing * 0.4, spacing * 0.3]);
-    var arrowRight0 = AddTransformedVector(screenP0, rotationMatrix, [spacing * 0.4, spacing * 0.3]);
-    bgGraphics.moveTo(arrowLeft0[0], arrowLeft0[1]);
-    bgGraphics.lineTo(arrowHead0[0], arrowHead0[1]);
-    bgGraphics.lineTo(arrowRight0[0], arrowRight0[1]);
 };
 
 DiodeComponent.prototype.update = function update()

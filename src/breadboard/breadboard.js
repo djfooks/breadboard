@@ -66,6 +66,12 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.componentsContainer.addChild(this.componentsBgGraphics);
     this.componentsContainer.addChild(this.componentsFgGraphics);
 
+    this.pickUpComponentBgGraphics = new PIXI.Graphics();
+    this.pickUpComponentFgGraphics = new PIXI.Graphics();
+
+    this.componentsContainer.addChild(this.pickUpComponentBgGraphics);
+    this.componentsContainer.addChild(this.pickUpComponentFgGraphics);
+
     stage.addChild(this.componentsContainer);
     stage.addChild(this.bgGraphics);
     stage.addChild(this.fgGraphics);
@@ -130,8 +136,10 @@ Breadboard.prototype.clear = function clearFn()
     this.dirty = false;
 
     this.state = Breadboard.state.ADD_WIRE;
+    this.draggingPoint = [0, 0];
     this.draggingComponent = null;
     this.draggingGrabPoint = [-1, -1];
+    this.draggingComponentGrabPoint = [0, 0];
     this.shouldToggle = false;
     this.wireStart = [-1, -1];
 
@@ -327,6 +335,8 @@ Breadboard.prototype.draw = function draw()
 {
     this.componentsFgGraphics.clear();
     this.componentsBgGraphics.clear();
+    this.pickUpComponentFgGraphics.clear();
+    this.pickUpComponentBgGraphics.clear();
     this.fgGraphics.clear();
     this.bgGraphics.clear();
 
@@ -359,7 +369,14 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(this, componentsBgGraphics, componentsFgGraphics);
+        var component = componentsList[i];
+        var pickedUp = component === this.draggingComponent;
+        if (pickedUp)
+        {
+            p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0], this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
+            component.draw(this, this.pickUpComponentBgGraphics, this.pickUpComponentFgGraphics, p, false);
+        }
+        component.draw(this, componentsBgGraphics, componentsFgGraphics, null, pickedUp);
     }
 };
 
@@ -656,8 +673,8 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         return;
     }
     var event = e.data.originalEvent;
-    p = [event.layerX, event.layerY];
-    p = this.getPosition(p);
+    var q = [event.layerX, event.layerY];
+    p = this.getPosition(q);
 
     this.state = Breadboard.state.DRAG_COMPONENT;
     this.disableButtons();
@@ -668,6 +685,7 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     }
     this.draggingComponent = component;
     this.draggingGrabPoint = p;
+    this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, q);
 };
 
 
@@ -702,7 +720,9 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
 
 Breadboard.prototype.dragComponent = function dragComponent(p)
 {
-    p = this.getPosition(p);
+    this.draggingPoint = p;
+    var grabPoint = [p[0] + this.draggingComponentGrabPoint[0], p[1] + this.draggingComponentGrabPoint[1]];
+    p = this.getPosition(grabPoint);
     if (!this.validPosition(p))
     {
         this.shouldToggle = false;

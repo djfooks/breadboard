@@ -95,7 +95,7 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p)
+RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, pickedUp)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -118,21 +118,28 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
     var screenOutP1 = AddTransformedVector(p, rotationMatrix, [0, spacing * 2.0]);
     var screenSignalP = AddTransformedVector(p, rotationMatrix, [0, spacing * 3.0]);
 
+    var bgColor = Component.getColor(pickedUp);
+
     if (true)//this.bgDirty || breadboard.dirty)
     {
         this.bgDirty = false;
 
-        bgGraphics.lineStyle(6, 0x000000, 1);
-        bgGraphics.beginFill(0x000000, 1);
+        bgGraphics.lineStyle(6, bgColor, 1);
+        bgGraphics.beginFill(bgColor, 1);
         bgGraphics.drawCircle(screenOutP0[0], screenOutP0[1], 6);
         bgGraphics.drawCircle(screenBaseP[0], screenBaseP[1], 6);
         bgGraphics.drawCircle(screenOutP1[0], screenOutP1[1], 6);
 
-        bgGraphics.lineStyle(6, 0x00FF00, 1);
-        bgGraphics.beginFill(0x00FF00, 1);
+        var green = 0x00FF00;
+        if (pickedUp)
+        {
+            green = 0x10FF10;
+        }
+        bgGraphics.lineStyle(6, green, 1);
+        bgGraphics.beginFill(green, 1);
         bgGraphics.drawCircle(screenSignalP[0], screenSignalP[1], 6);
 
-        bgGraphics.lineStyle(11, 0x000000, 1);
+        bgGraphics.lineStyle(11, bgColor, 1);
         bgGraphics.moveTo(screenBaseP[0], screenBaseP[1]);
         if (this.signalValue)
         {
@@ -143,9 +150,9 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
             bgGraphics.lineTo(screenOutP0[0], screenOutP0[1]);
         }
 
-        bgGraphics.lineStyle(2, 0x000000, 1);
-        bgGraphics.beginFill(0x000000, 0);
-        Component.drawContainer(breadboard, bgGraphics, screenOutP0, screenSignalP);
+        bgGraphics.lineStyle(2, bgColor, 1);
+        bgGraphics.beginFill(bgColor, 0);
+        Component.drawContainer(breadboard, bgGraphics, screenOutP0, screenSignalP, pickedUp);
     }
 
     var overrideColor = null;

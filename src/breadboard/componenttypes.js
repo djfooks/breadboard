@@ -42,3 +42,22 @@ Component.drawContainer = function drawContainer(breadboard, graphics, screenP0,
                       screenMax[0] - screenMin[0] + border * 2.0,
                       screenMax[1] - screenMin[1] + border * 2.0);
 };
+
+Component.getColor = function drawContainer(pickedUp)
+{
+    if (pickedUp)
+    {
+        return 0xAAAAAA;
+    }
+    return 0x000000;
+};
+
+Component.getGrabPoint = function getGrabPoint(breadboard, component, p)
+{
+    var top = breadboard.top;
+    var left = breadboard.left;
+    var spacing = breadboard.spacing;
+
+    var componentP = [left + component.p[0] * spacing, top + component.p[1] * spacing];
+    return [componentP[0] - p[0], componentP[1] - p[1]];
+};

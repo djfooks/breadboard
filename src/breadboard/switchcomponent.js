@@ -86,7 +86,7 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p)
+SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, pickedUp)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -102,24 +102,26 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
     var screenP0 = p;
     var screenP1 = AddTransformedVector(p, rotationMatrix, [0, spacing]);
 
+    var bgColor = Component.getColor(pickedUp);
+
     if (true)//this.bgDirty || breadboard.dirty)
     {
         this.bgDirty = false;
 
-        bgGraphics.lineStyle(6, 0x000000, 1);
-        bgGraphics.beginFill(0x000000, 1);
+        bgGraphics.lineStyle(6, bgColor, 1);
+        bgGraphics.beginFill(bgColor, 1);
         bgGraphics.drawCircle(screenP0[0], screenP0[1], 6);
         bgGraphics.drawCircle(screenP1[0], screenP1[1], 6);
 
         if (this.connected)
         {
-            bgGraphics.lineStyle(11, 0x000000, 1);
+            bgGraphics.lineStyle(11, bgColor, 1);
             bgGraphics.moveTo(screenP0[0], screenP0[1]);
             bgGraphics.lineTo(screenP1[0], screenP1[1]);
         }
 
-        bgGraphics.lineStyle(2, 0x000000, 1);
-        bgGraphics.beginFill(0x000000, 0);
+        bgGraphics.lineStyle(2, bgColor, 1);
+        bgGraphics.beginFill(bgColor, 0);
         Component.drawContainer(breadboard, bgGraphics, screenP0, screenP1);
     }
 
