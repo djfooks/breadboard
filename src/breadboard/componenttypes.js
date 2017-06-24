@@ -9,6 +9,29 @@ var Component = {};
 
 Component.border = 0.38;
 
+Component.addContainer = function addContainer(breadboard, component)
+{
+    var container = component.container = new PIXI.Container();
+    breadboard.stage.addChild(container);
+
+    container.interactive = true;
+    container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, component, 0);
+    container.rightdown = breadboard.onComponentMouseDown.bind(breadboard, component, 1);
+    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, component, 0);
+    container.rightup = breadboard.onComponentMouseUp.bind(breadboard, component, 1);
+};
+
+Component.remove = function remove(breadboard, component)
+{
+    breadboard.stage.removeChild(component.container);
+    component.container.interactive = false;
+    component.container.mousedown = null;
+    component.container.rightdown = null;
+    component.container.mouseup = null;
+    component.container.rightup = null;
+    component.container = null;
+};
+
 Component.updateContainer = function updateContainer(breadboard, component, p, size)
 {
     var container = component.container;

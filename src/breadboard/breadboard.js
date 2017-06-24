@@ -136,11 +136,12 @@ Breadboard.prototype.clear = function clearFn()
     this.dirty = false;
 
     this.state = Breadboard.state.ADD_WIRE;
+    this.draggingStartPoint = [-1, -1];
     this.draggingPoint = [0, 0];
     this.draggingComponent = null;
     this.draggingGrabPoint = [-1, -1];
     this.draggingComponentGrabPoint = [0, 0];
-    this.shouldToggle = false;
+    this.draggingFromTray = false;
     this.wireStart = [-1, -1];
 
     this.simulateSteps = 0;
@@ -152,8 +153,9 @@ Breadboard.state = {
     ADD_WIRE: 1,
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
-    DRAG_COMPONENT: 4,
-    MOVE: 5
+    SWITCH_COMPONENT: 4,
+    DRAG_COMPONENT: 5,
+    MOVE: 6
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -369,14 +371,16 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        var component = componentsList[i];
-        var pickedUp = component === this.draggingComponent;
-        if (pickedUp)
-        {
-            p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0], this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
-            component.draw(this, this.pickUpComponentBgGraphics, this.pickUpComponentFgGraphics, p, false);
-        }
-        component.draw(this, componentsBgGraphics, componentsFgGraphics, null, pickedUp);
+        componentsList[i].draw(this, componentsBgGraphics, componentsFgGraphics, null, false);
+    }
+
+    if (this.state === Breadboard.state.DRAG_COMPONENT)
+    {
+        var p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0],
+                 this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
+        var component = this.draggingComponent;
+        component.draw(this, this.pickUpComponentBgGraphics, this.pickUpComponentFgGraphics, p, false);
+        component.draw(this, componentsBgGraphics, componentsFgGraphics, null, true);
     }
 };
 
@@ -667,7 +671,6 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         return;
     }
 
-    this.shouldToggle = true;
     if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
     {
         return;
@@ -676,70 +679,130 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     var q = [event.layerX, event.layerY];
     p = this.getPosition(q);
 
-    this.state = Breadboard.state.DRAG_COMPONENT;
-    this.disableButtons();
-    this.enableButton(this.moveButton);
-    if (this.tray.isFromTray(component))
+    this.state = Breadboard.state.SWITCH_COMPONENT;
+    this.draggingStartPoint = q;
+    this.draggingFromTray = this.tray.isFromTray(component);
+    if (this.draggingFromTray)
     {
+        this.state = Breadboard.state.DRAG_COMPONENT;
         component = component.clone(this);
     }
     this.draggingComponent = component;
     this.draggingGrabPoint = p;
     this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, q);
+    this.draggingComponentUpdate(q);
 };
 
-
-Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, button, e)
+Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, button)
 {
     if (button === 1)
     {
-        this.state = Breadboard.state.MOVE;
-        this.disableButtons();
-        this.enableButton(this.moveButton);
+        var component;
+        if (this.state === Breadboard.state.DRAG_COMPONENT)
+        {
+            // Doesn't work because pixijs doesn't support right click while left click is down....
+            // TODO - Drop pixi support since it doesn't really give me anything
+            component = this.draggingComponent;
+        }
+        else
+        {
+            p = this.getPosition(p);
+            component = this.getComponent(p);
 
-        var event = e.data.originalEvent;
-        p = [event.layerX, event.layerY];
-        this.rotateComponent(component);
+            this.state = Breadboard.state.MOVE;
+            this.disableButtons();
+            this.enableButton(this.moveButton);
+        }
+        if (component)
+        {
+            this.rotateComponent(component);
+        }
         return;
     }
 
-    if (this.shouldToggle)
+    if (this.state === Breadboard.state.SWITCH_COMPONENT ||
+        this.state === Breadboard.state.PLACING_WIRE)
     {
-        component.toggle();
-        this.dirtySave = true;
+        p = this.getPosition(p);
+        if (this.state === Breadboard.state.PLACING_WIRE &&
+            (this.wireStart[0] != p[0] ||
+             this.wireStart[1] != p[1]))
+        {
+            return;
+        }
+
+        var component = this.getComponent(p);
+        if (component)
+        {
+            component.toggle();
+            this.dirtySave = true;
+        }
+        if (this.state === Breadboard.state.SWITCH_COMPONENT)
+        {
+            this.state = Breadboard.state.MOVE;
+            this.disableButtons();
+            this.enableButton(this.moveButton);
+        }
+        return;
     }
+
     if (this.state !== Breadboard.state.DRAG_COMPONENT || !this.draggingComponent)
     {
-        var event = e.data.originalEvent;
-        this.mouseup([event.layerX, event.layerY]);
+        this.mouseup(p, button);
         return;
     }
 
+    var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
+                     p[1] + this.draggingComponentGrabPoint[1]];
+    var q = this.getPosition(grabPoint);
+
+    if (this.validPosition(q) &&
+        this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation))
+    {
+        this.draggingComponent.move(this, q, this.draggingComponent.rotation);
+        this.addComponent(this.draggingComponent);
+    }
+    else
+    {
+        Component.remove(this, this.draggingComponent);
+    }
+
+    this.state = Breadboard.state.MOVE;
+    this.disableButtons();
+    this.enableButton(this.moveButton);
     this.draggingComponent = null;
 };
 
-Breadboard.prototype.dragComponent = function dragComponent(p)
+Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, button, e)
+{
+    var event = e.data.originalEvent;
+    var p = [event.layerX, event.layerY];
+    this._onComponentMouseUp(p, button);
+};
+
+Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
 {
     this.draggingPoint = p;
-    var grabPoint = [p[0] + this.draggingComponentGrabPoint[0], p[1] + this.draggingComponentGrabPoint[1]];
+    var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
+                     p[1] + this.draggingComponentGrabPoint[1]];
     p = this.getPosition(grabPoint);
-    if (!this.validPosition(p))
-    {
-        this.shouldToggle = false;
-        this.removeComponent(this.draggingGrabPoint);
-    }
+    this.draggingComponent.move(this, p, this.draggingComponent.rotation);
+};
 
-    if (p[0] !== this.draggingGrabPoint[0] ||
-        p[1] !== this.draggingGrabPoint[1])
+Breadboard.prototype.switchComponentUpdate = function switchComponentUpdate(p)
+{
+    this.draggingPoint = p;
+    if (p[0] != this.draggingStartPoint[0] ||
+        p[1] != this.draggingStartPoint[1])
     {
-        this.shouldToggle = false;
-        this.removeComponent(this.draggingGrabPoint);
-        if (this.draggingComponent.isValidPosition(this, p, this.draggingComponent.rotation))
+        this.state = Breadboard.state.DRAG_COMPONENT;
+        this.disableButtons();
+        this.enableButton(this.moveButton);
+        if (!this.draggingFromTray)
         {
-            this.draggingGrabPoint = p;
-            this.draggingComponent.move(this, p, this.draggingComponent.rotation);
-            this.addComponent(this.draggingComponent);
+            this.removeComponent(this.draggingComponent);
         }
+        this.draggingComponentUpdate(p);
     }
 };
 
@@ -752,7 +815,7 @@ Breadboard.prototype.rotateComponent = function rotateComponent(component)
         return;
     }
 
-    this.removeComponent(component.p);
+    this.removeComponent(component);
     component.move(this, component.p, newRotation);
     if (valid)
     {
@@ -773,7 +836,7 @@ Breadboard.prototype.addComponent = function addComponent(component)
     this.dirty = true;
 };
 
-Breadboard.prototype.removeComponent = function removeComponent(p)
+Breadboard.prototype.getComponent = function getComponent(p)
 {
     if (!this.validPosition(p))
     {
@@ -781,12 +844,11 @@ Breadboard.prototype.removeComponent = function removeComponent(p)
     }
 
     var id0 = this.getIndex(p[0], p[1]);
-    var component = this.connections[id0].components.component;
-    if (!component)
-    {
-        return;
-    }
+    return this.connections[id0].components.component;
+};
 
+Breadboard.prototype.removeComponent = function removeComponent(component)
+{
     var i;
     for (i = 0; i < this.componentsList.length; i += 1)
     {
@@ -841,8 +903,7 @@ Breadboard.prototype.mouseup = function mouseup(p, button)
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
-        this.draggingComponent = null;
-        this.state = Breadboard.state.MOVE;
+        this._onComponentMouseUp(p, button);
     }
 };
 
@@ -856,8 +917,12 @@ Breadboard.prototype.mousemove = function mousemove(p)
     {
         this.wireRemoveUpdate(p, true);
     }
+    else if (this.state === Breadboard.state.SWITCH_COMPONENT)
+    {
+        this.switchComponentUpdate(p);
+    }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
-        this.dragComponent(p);
+        this.draggingComponentUpdate(p);
     }
 };

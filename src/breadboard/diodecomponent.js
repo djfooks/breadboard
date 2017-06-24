@@ -16,14 +16,7 @@ function DiodeComponent(breadboard)
 
     this.pulsePaths = [];
 
-    var container = this.container = new PIXI.Container();
-    breadboard.stage.addChild(container);
-
-    container.interactive = true;
-    container.mousedown = breadboard.onComponentMouseDown.bind(breadboard, this, 0);
-    container.rightdown = breadboard.onComponentMouseDown.bind(breadboard, this, 1);
-    container.mouseup = breadboard.onComponentMouseUp.bind(breadboard, this, 0);
-    container.rightup = breadboard.onComponentMouseUp.bind(breadboard, this, 1);
+    Component.addContainer(breadboard, this);
 }
 
 DiodeComponent.type = ComponentTypes.DIODE;
