@@ -371,16 +371,28 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(this, componentsBgGraphics, componentsFgGraphics, null, false);
+        componentsList[i].draw(this, componentsBgGraphics, componentsFgGraphics, null, 0x000000);
     }
 
     if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
         var p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0],
                  this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
+
+        var q = this.getPosition(p);
+        var valid = (this.validPosition(q) &&
+                     this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation));
         var component = this.draggingComponent;
-        component.draw(this, this.pickUpComponentBgGraphics, this.pickUpComponentFgGraphics, p, false);
-        component.draw(this, componentsBgGraphics, componentsFgGraphics, null, true);
+        var color = 0x000000;
+        if (!valid && !this.draggingFromTray)
+        {
+            color = 0xFF0000;
+        }
+        component.draw(this, this.pickUpComponentBgGraphics, this.pickUpComponentFgGraphics, p, color);
+        if (valid)
+        {
+            component.draw(this, componentsBgGraphics, componentsFgGraphics, null, 0xAAAAAA);
+        }
     }
 };
 
@@ -786,6 +798,13 @@ Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(
     var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
                      p[1] + this.draggingComponentGrabPoint[1]];
     p = this.getPosition(grabPoint);
+
+    if (this.validPosition(p) &&
+        this.draggingComponent.isValidPosition(this, p, this.draggingComponent.rotation))
+    {
+        this.draggingFromTray = false;
+    }
+
     this.draggingComponent.move(this, p, this.draggingComponent.rotation);
 };
 

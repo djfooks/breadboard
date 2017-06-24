@@ -88,7 +88,7 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, pickedUp)
+RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, bgColor)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -111,8 +111,6 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
     var screenOutP1 = AddTransformedVector(p, rotationMatrix, [0, spacing * 2.0]);
     var screenSignalP = AddTransformedVector(p, rotationMatrix, [0, spacing * 3.0]);
 
-    var bgColor = Component.getColor(pickedUp);
-
     if (true)//this.bgDirty || breadboard.dirty)
     {
         this.bgDirty = false;
@@ -124,10 +122,6 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
         bgGraphics.drawCircle(screenOutP1[0], screenOutP1[1], 6);
 
         var green = 0x00FF00;
-        if (pickedUp)
-        {
-            green = 0x10FF10;
-        }
         bgGraphics.lineStyle(6, green, 1);
         bgGraphics.beginFill(green, 1);
         bgGraphics.drawCircle(screenSignalP[0], screenSignalP[1], 6);
@@ -145,7 +139,7 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
 
         bgGraphics.lineStyle(2, bgColor, 1);
         bgGraphics.beginFill(bgColor, 0);
-        Component.drawContainer(breadboard, bgGraphics, screenOutP0, screenSignalP, pickedUp);
+        Component.drawContainer(breadboard, bgGraphics, screenOutP0, screenSignalP);
     }
 
     var overrideColor = null;

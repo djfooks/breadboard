@@ -79,7 +79,7 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, pickedUp)
+SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, bgColor)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -94,8 +94,6 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
 
     var screenP0 = p;
     var screenP1 = AddTransformedVector(p, rotationMatrix, [0, spacing]);
-
-    var bgColor = Component.getColor(pickedUp);
 
     if (true)//this.bgDirty || breadboard.dirty)
     {

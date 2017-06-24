@@ -52,7 +52,7 @@ Tray.prototype.draw = function draw()
     graphicsBg.moveTo(x, 0);
     graphicsBg.lineTo(x, bottom);
 
-    this.switch.draw(breadboard, graphicsBg);
-    this.relay.draw(breadboard, graphicsBg);
-    this.diode.draw(breadboard, graphicsBg);
+    this.switch.draw(breadboard, graphicsBg, null, null, 0x000000);
+    this.relay.draw(breadboard, graphicsBg, null, null, 0x000000);
+    this.diode.draw(breadboard, graphicsBg, null, null, 0x000000);
 };
