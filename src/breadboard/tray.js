@@ -3,12 +3,6 @@ function Tray(breadboard)
 {
     this.breadboard = breadboard;
 
-    var graphicsBg = this.graphicsBg = new PIXI.Graphics();
-    var graphicsFg = this.graphicsFg = new PIXI.Graphics();
-
-    breadboard.stage.addChild(graphicsBg);
-    breadboard.stage.addChild(graphicsFg);
-
     this.resetComponents();
 }
 
@@ -33,12 +27,9 @@ Tray.prototype.isFromTray = function isFromTray(component)
     return fromTray;
 };
 
-Tray.prototype.draw = function draw()
+Tray.prototype.draw = function draw(breadboard, ctx)
 {
-    var breadboard = this.breadboard;
-    var graphicsBg = this.graphicsBg;
-
-    graphicsBg.lineStyle(1, 0x000000, 1);
+    ctx.strokeStyle = "#000000";
 
     var left = breadboard.left;
     var top = breadboard.top;
@@ -49,10 +40,10 @@ Tray.prototype.draw = function draw()
     var x = left + cols * spacing;
     var bottom = top + rows * spacing;
 
-    graphicsBg.moveTo(x, 0);
-    graphicsBg.lineTo(x, bottom);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, bottom);
 
-    this.switch.draw(breadboard, graphicsBg, null, null, 0x000000);
-    this.relay.draw(breadboard, graphicsBg, null, null, 0x000000);
-    this.diode.draw(breadboard, graphicsBg, null, null, 0x000000);
+    this.switch.draw(breadboard, ctx, null, "#000000", "#FFFFFF");
+    this.relay.draw(breadboard, ctx, null, "#000000", "#FFFFFF");
+    this.diode.draw(breadboard, ctx, null, "#000000", "#FFFFFF");
 };

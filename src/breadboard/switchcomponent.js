@@ -17,7 +17,7 @@ function SwitchComponent(breadboard)
 
     this.pulsePaths = [];
 
-    Component.addContainer(breadboard, this);
+    Component.addHitbox(breadboard, this);
 }
 
 SwitchComponent.type = ComponentTypes.SWITCH;
@@ -38,7 +38,7 @@ SwitchComponent.prototype.move = function move(breadboard, p, rotation)
     this.canToggle = true;
 
     this.pulsePaths = [];
-    Component.updateContainer(breadboard, this, p, [0, 1]);
+    Component.updateHitbox(breadboard, this, p, [0, 1]);
 };
 
 SwitchComponent.prototype.clone = function clone(breadboard)
@@ -79,7 +79,7 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, bgColor)
+SwitchComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -95,53 +95,44 @@ SwitchComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphic
     var screenP0 = p;
     var screenP1 = AddTransformedVector(p, rotationMatrix, [0, spacing]);
 
-    if (true)//this.bgDirty || breadboard.dirty)
-    {
-        this.bgDirty = false;
+    ctx.strokeStyle = bgColor;
+    ctx.lineWidth = 6;
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.arc(screenP0[0], screenP0[1], 6, 0, Math.PI * 2);
+    ctx.moveTo(screenP1[0], screenP1[1]);
+    ctx.arc(screenP1[0], screenP1[1], 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 
-        bgGraphics.lineStyle(6, bgColor, 1);
-        bgGraphics.beginFill(bgColor, 1);
-        bgGraphics.drawCircle(screenP0[0], screenP0[1], 6);
-        bgGraphics.drawCircle(screenP1[0], screenP1[1], 6);
-
-        if (this.connected)
-        {
-            bgGraphics.lineStyle(11, bgColor, 1);
-            bgGraphics.moveTo(screenP0[0], screenP0[1]);
-            bgGraphics.lineTo(screenP1[0], screenP1[1]);
-        }
-
-        bgGraphics.lineStyle(2, bgColor, 1);
-        bgGraphics.beginFill(bgColor, 0);
-        Component.drawContainer(breadboard, bgGraphics, screenP0, screenP1);
-    }
-
-    var overrideColor = null;
-    if (!fgGraphics)
-    {
-        fgGraphics = bgGraphics;
-        overrideColor = 0xFFFFFF;
-    }
-
-    var value0 = breadboard.getConnectionValue(this.id0);
-    var color;
-    color = overrideColor || breadboard.getWireColor(value0);
-    fgGraphics.lineStyle(3, color, 1);
-    fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(screenP0[0], screenP0[1], 6);
-
-    var value1 = breadboard.getConnectionValue(this.id1);
-    color = overrideColor || breadboard.getWireColor(value1);
-    fgGraphics.lineStyle(3, color, 1);
-    fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(screenP1[0], screenP1[1], 6);
-
+    ctx.beginPath();
     if (this.connected)
     {
-        color = overrideColor || breadboard.getWireColor(Math.min(value0, value1));
-        fgGraphics.lineStyle(8, color, 1);
-        fgGraphics.moveTo(screenP0[0], screenP0[1]);
-        fgGraphics.lineTo(screenP1[0], screenP1[1]);
+        ctx.lineWidth = 11;
+        ctx.moveTo(screenP0[0], screenP0[1]);
+        ctx.lineTo(screenP1[0], screenP1[1]);
+        ctx.stroke();
+    }
+
+    Component.drawContainer(breadboard, ctx, bgColor, screenP0, screenP1);
+
+    var value0 = breadboard.getConnectionValue(this.id0);
+    var value1 = breadboard.getConnectionValue(this.id1);
+    var color;
+    ctx.lineWidth = 3;
+
+    Component.drawFgNode(breadboard, ctx, fgColor, value0, screenP0);
+    Component.drawFgNode(breadboard, ctx, fgColor, value1, screenP1);
+
+    ctx.beginPath();
+    if (this.connected)
+    {
+        color = fgColor || breadboard.getWireColor(Math.min(value0, value1));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 8;
+        ctx.moveTo(screenP0[0], screenP0[1]);
+        ctx.lineTo(screenP1[0], screenP1[1]);
+        ctx.stroke();
     }
 };
 

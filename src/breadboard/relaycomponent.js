@@ -21,7 +21,7 @@ function RelayComponent(breadboard)
 
     this.pulsePaths = [];
 
-    Component.addContainer(breadboard, this);
+    Component.addHitbox(breadboard, this);
 }
 
 RelayComponent.type = ComponentTypes.RELAY;
@@ -61,7 +61,7 @@ RelayComponent.prototype.move = function move(breadboard, p, rotation)
     this.canToggle = true;
 
     this.pulsePaths = [];
-    Component.updateContainer(breadboard, this, p, [0, 3]);
+    Component.updateHitbox(breadboard, this, p, [0, 3]);
 };
 
 RelayComponent.prototype.clone = function clone(breadboard)
@@ -88,7 +88,7 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics, p, bgColor)
+RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -111,82 +111,69 @@ RelayComponent.prototype.draw = function draw(breadboard, bgGraphics, fgGraphics
     var screenOutP1 = AddTransformedVector(p, rotationMatrix, [0, spacing * 2.0]);
     var screenSignalP = AddTransformedVector(p, rotationMatrix, [0, spacing * 3.0]);
 
-    if (true)//this.bgDirty || breadboard.dirty)
-    {
-        this.bgDirty = false;
+    ctx.strokeStyle = bgColor;
+    ctx.lineWidth = 6;
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.arc(screenOutP0[0], screenOutP0[1], 6, 0, Math.PI * 2);
+    ctx.moveTo(screenBaseP[0], screenBaseP[1]);
+    ctx.arc(screenBaseP[0], screenBaseP[1], 6, 0, Math.PI * 2);
+    ctx.moveTo(screenOutP1[0], screenOutP1[1]);
+    ctx.arc(screenOutP1[0], screenOutP1[1], 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 
-        bgGraphics.lineStyle(6, bgColor, 1);
-        bgGraphics.beginFill(bgColor, 1);
-        bgGraphics.drawCircle(screenOutP0[0], screenOutP0[1], 6);
-        bgGraphics.drawCircle(screenBaseP[0], screenBaseP[1], 6);
-        bgGraphics.drawCircle(screenOutP1[0], screenOutP1[1], 6);
+    ctx.strokeStyle = "#00FF00";
+    ctx.fillStyle = "#00FF00";
+    ctx.beginPath();
+    ctx.arc(screenSignalP[0], screenSignalP[1], 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 
-        var green = 0x00FF00;
-        bgGraphics.lineStyle(6, green, 1);
-        bgGraphics.beginFill(green, 1);
-        bgGraphics.drawCircle(screenSignalP[0], screenSignalP[1], 6);
-
-        bgGraphics.lineStyle(11, bgColor, 1);
-        bgGraphics.moveTo(screenBaseP[0], screenBaseP[1]);
-        if (this.signalValue)
-        {
-            bgGraphics.lineTo(screenOutP1[0], screenOutP1[1]);
-        }
-        else
-        {
-            bgGraphics.lineTo(screenOutP0[0], screenOutP0[1]);
-        }
-
-        bgGraphics.lineStyle(2, bgColor, 1);
-        bgGraphics.beginFill(bgColor, 0);
-        Component.drawContainer(breadboard, bgGraphics, screenOutP0, screenSignalP);
-    }
-
-    var overrideColor = null;
-    if (!fgGraphics)
-    {
-        fgGraphics = bgGraphics;
-        overrideColor = 0xFFFFFF;
-    }
-
-    var color;
-    var value0 = breadboard.getConnectionValue(this.outId0);
-    color = overrideColor || breadboard.getWireColor(value0);
-    fgGraphics.lineStyle(3, color, 1);
-    fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(screenOutP0[0], screenOutP0[1], 6);
-
-    var valueBase = breadboard.getConnectionValue(this.baseId);
-    color = overrideColor || breadboard.getWireColor(valueBase);
-    fgGraphics.lineStyle(3, color, 1);
-    fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(screenBaseP[0], screenBaseP[1], 6);
-
-    var value1 = breadboard.getConnectionValue(this.outId1);
-    color = overrideColor || breadboard.getWireColor(value1);
-    fgGraphics.lineStyle(3, color, 1);
-    fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(screenOutP1[0], screenOutP1[1], 6);
-
-    var valueSignal = breadboard.getConnectionValue(this.signalId);
-    color = overrideColor || breadboard.getWireColor(valueSignal);
-    fgGraphics.lineStyle(3, color, 1);
-    fgGraphics.beginFill(color, 1);
-    fgGraphics.drawCircle(screenSignalP[0], screenSignalP[1], 6);
-
-    fgGraphics.moveTo(screenBaseP[0], screenBaseP[1]);
+    ctx.beginPath();
+    ctx.strokeStyle = bgColor;
+    ctx.lineWidth = 11;
+    ctx.moveTo(screenBaseP[0], screenBaseP[1]);
     if (this.signalValue)
     {
-        color = overrideColor || breadboard.getWireColor(Math.min(value1, valueBase));
-        fgGraphics.lineStyle(8, color, 1);
-        fgGraphics.lineTo(screenOutP1[0], screenOutP1[1]);
+        ctx.lineTo(screenOutP1[0], screenOutP1[1]);
     }
     else
     {
-        color = overrideColor || breadboard.getWireColor(Math.min(value0, valueBase));
-        fgGraphics.lineStyle(8, color, 1);
-        fgGraphics.lineTo(screenOutP0[0], screenOutP0[1]);
+        ctx.lineTo(screenOutP0[0], screenOutP0[1]);
     }
+    ctx.stroke();
+
+    Component.drawContainer(breadboard, ctx, bgColor, screenOutP0, screenSignalP);
+
+    var color;
+    var value0 = breadboard.getConnectionValue(this.outId0);
+    var valueBase = breadboard.getConnectionValue(this.baseId);
+    var value1 = breadboard.getConnectionValue(this.outId1);
+    var valueSignal = breadboard.getConnectionValue(this.signalId);
+    ctx.lineWidth = 3;
+
+    Component.drawFgNode(breadboard, ctx, fgColor, value0, screenOutP0);
+    Component.drawFgNode(breadboard, ctx, fgColor, valueBase, screenBaseP);
+    Component.drawFgNode(breadboard, ctx, fgColor, value1, screenOutP1);
+    Component.drawFgNode(breadboard, ctx, fgColor, valueSignal, screenSignalP);
+
+    ctx.beginPath();
+    ctx.lineWidth = 8;
+    ctx.moveTo(screenBaseP[0], screenBaseP[1]);
+    if (this.signalValue)
+    {
+        color = fgColor || breadboard.getWireColor(Math.min(value1, valueBase));
+        ctx.strokeStyle = color;
+        ctx.lineTo(screenOutP1[0], screenOutP1[1]);
+    }
+    else
+    {
+        color = fgColor || breadboard.getWireColor(Math.min(value0, valueBase));
+        ctx.strokeStyle = color;
+        ctx.lineTo(screenOutP0[0], screenOutP0[1]);
+    }
+    ctx.stroke();
 };
 
 RelayComponent.prototype.update = function update(breadboard)

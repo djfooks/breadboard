@@ -42,9 +42,11 @@ Wire.prototype.toJson = function toJson()
 
 function Breadboard(stage, top, left, cols, rows, spacing)
 {
-    this.fgGraphics = new PIXI.Graphics();
-    this.bgGraphics = new PIXI.Graphics();
     this.stage = stage;
+
+    this.stage.onMouseDown = this.onMouseDown.bind(this);
+    this.stage.onMouseUp = this.onMouseUp.bind(this);
+    this.stage.onMouseMove = this.onMouseMove.bind(this);
 
     this.top = top;
     this.left = left;
@@ -56,25 +58,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     this.drawGrid();
     this.tray = new Tray(this);
-    this.tray.draw();
-
-    this.componentsContainer = new PIXI.Container();
-
-    this.componentsBgGraphics = new PIXI.Graphics();
-    this.componentsFgGraphics = new PIXI.Graphics();
-
-    this.componentsContainer.addChild(this.componentsBgGraphics);
-    this.componentsContainer.addChild(this.componentsFgGraphics);
-
-    this.pickUpComponentBgGraphics = new PIXI.Graphics();
-    this.pickUpComponentFgGraphics = new PIXI.Graphics();
-
-    this.componentsContainer.addChild(this.pickUpComponentBgGraphics);
-    this.componentsContainer.addChild(this.pickUpComponentFgGraphics);
-
-    stage.addChild(this.componentsContainer);
-    stage.addChild(this.bgGraphics);
-    stage.addChild(this.fgGraphics);
+    this.tray.draw(this, stage.ctx);
 
     this.disabledMatrix = [1, 0, 0, 0, 0,
                            0, 1, 0, 0, 0,
@@ -87,26 +71,22 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     var buttons = this.buttons = [];
     var that = this;
+    this.imagesRequested = 0;
     function addButton(texture, x, y, state, first)
     {
-        var button = PIXI.Sprite.fromImage(texture);
-        button.x = x;
-        button.y = y;
-        button.width = 30;
-        button.height = 30;
-        button.filters = [new PIXI.filters.ColorMatrixFilter()];
-        button.interactive = true;
-
+        var button = new Button(x, y, 30, 30);
         function onClick()
         {
             that.disableButtons();
             that.state = state;
             that.enableButton(button);
         }
+        button.hitbox.onMouseUp = onClick;
+        button.disabledTexture = texture + ".png";
+        button.enabledTexture = texture + "-enabled.png";
+        button.enabled = false;
 
-        button.on("pointerdown", onClick);
-
-        stage.addChild(button);
+        stage.addButton(button);
 
         buttons.push(button);
         if (first)
@@ -116,9 +96,21 @@ function Breadboard(stage, top, left, cols, rows, spacing)
         return button;
     }
 
-    this.addWireButton    = addButton("jack-plug.png",   675, 0,  Breadboard.state.ADD_WIRE, true);
-    this.removeWireButton = addButton("cancel.png",      675, 40, Breadboard.state.REMOVE_WIRE);
-    this.moveButton       = addButton("move.png",        675, 80, Breadboard.state.MOVE);
+    this.addWireButton    = addButton("jack-plug",   655, 0,  Breadboard.state.ADD_WIRE, true);
+    this.removeWireButton = addButton("cancel",      655, 40, Breadboard.state.REMOVE_WIRE);
+    this.moveButton       = addButton("move",        655, 80, Breadboard.state.MOVE);
+}
+
+Breadboard.prototype.postLoad = function postLoad()
+{
+    var i;
+    var buttons = this.buttons;
+    for (i = 0; i < buttons.length; i += 1)
+    {
+        var button = buttons[i];
+        button.enabledTexture = TextureManager.get(button.enabledTexture);
+        button.disabledTexture = TextureManager.get(button.disabledTexture);
+    }
 }
 
 Breadboard.prototype.clear = function clearFn()
@@ -164,13 +156,27 @@ Breadboard.prototype.disableButtons = function disableButtons()
     var buttons = this.buttons;
     for (i = 0; i < buttons.length; i += 1)
     {
-        buttons[i].filters[0].matrix = this.disabledMatrix;
+        buttons[i].enabled = false;
     }
 };
 
 Breadboard.prototype.enableButton = function disableButtons(button)
 {
-    button.filters[0].matrix = this.enabledMatrix;
+    button.enabled = true;
+};
+
+Breadboard.prototype.drawButtons = function drawButtons()
+{
+    var ctx = this.stage.ctx;
+    var i;
+    var buttons = this.buttons;
+    for (i = 0; i < buttons.length; i += 1)
+    {
+        var button = buttons[i];
+        var texture = button.enabled ? button.enabledTexture : button.disabledTexture;
+        var hitbox = button.hitbox;
+        ctx.drawImage(texture, hitbox.minX, hitbox.minY, hitbox.getWidth(), hitbox.getHeight());
+    }
 };
 
 
@@ -243,9 +249,7 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, j
 
 Breadboard.prototype.drawGrid = function drawGrid()
 {
-    var gridGraphics = this.gridGraphics = new PIXI.Graphics();
-
-    gridGraphics.lineStyle(1, 0xB0B0B0, 1);
+    var ctx = this.stage.ctx;
 
     var x;
     var y;
@@ -259,19 +263,22 @@ Breadboard.prototype.drawGrid = function drawGrid()
     var right = left + (cols - 1) * spacing;
     var bottom = top + (rows - 1) * spacing;
 
+    ctx.beginPath();
+    ctx.strokeStyle = "#B0B0B0";
+    ctx.lineWidth = 1;
     for (x = 0; x < cols; x += 1)
     {
         for (y = 0; y < rows; y += 1)
         {
-            gridGraphics.moveTo(left + x * spacing, top);
-            gridGraphics.lineTo(left + x * spacing, bottom);
+            ctx.moveTo(left + x * spacing, top);
+            ctx.lineTo(left + x * spacing, bottom);
 
-            gridGraphics.moveTo(left,  top + y * spacing);
-            gridGraphics.lineTo(right, top + y * spacing);
+            ctx.moveTo(left,  top + y * spacing);
+            ctx.lineTo(right, top + y * spacing);
         }
     }
 
-    this.stage.addChild(gridGraphics);
+    ctx.stroke();
 };
 
 Breadboard.prototype.update = function update()
@@ -335,12 +342,12 @@ Breadboard.prototype.pulseReset = function pulseReset()
 
 Breadboard.prototype.draw = function draw()
 {
-    this.componentsFgGraphics.clear();
-    this.componentsBgGraphics.clear();
-    this.pickUpComponentFgGraphics.clear();
-    this.pickUpComponentBgGraphics.clear();
-    this.fgGraphics.clear();
-    this.bgGraphics.clear();
+    var canvas = this.stage.canvas;
+    var ctx = this.stage.ctx;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.tray.draw(this, ctx);
+    this.drawGrid();
+    this.drawButtons();
 
     this.drawComponents();
     this.drawWires(this.wires);
@@ -351,27 +358,26 @@ Breadboard.prototype.getWireColor = function getWireColor(count)
 {
     if (count > 1)
     {
-        return 0xFF0000;
+        return "#FF0000";
     }
     else if (count > 0)
     {
-        return 0xFF8888;
+        return "#FF8888";
     }
     else
     {
-        return 0xFFFFFF;
+        return "#FFFFFF";
     }
 };
 
 Breadboard.prototype.drawComponents = function drawComponents()
 {
-    var componentsFgGraphics = this.componentsFgGraphics;
-    var componentsBgGraphics = this.componentsBgGraphics;
+    var ctx = this.stage.ctx;
     var componentsList = this.componentsList;
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(this, componentsBgGraphics, componentsFgGraphics, null, 0x000000);
+        componentsList[i].draw(this, ctx, null, "#000000");
     }
 
     if (this.state === Breadboard.state.DRAG_COMPONENT)
@@ -383,23 +389,22 @@ Breadboard.prototype.drawComponents = function drawComponents()
         var valid = (this.validPosition(q) &&
                      this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation));
         var component = this.draggingComponent;
-        var color = 0x000000;
-        if (!valid && !this.draggingFromTray)
-        {
-            color = 0xFF0000;
-        }
-        component.draw(this, this.pickUpComponentBgGraphics, this.pickUpComponentFgGraphics, p, color);
+        var color = "#000000";
         if (valid)
         {
-            component.draw(this, componentsBgGraphics, componentsFgGraphics, null, 0xAAAAAA);
+            component.draw(this, ctx, null, "#AAAAAA");
         }
+        if (!valid && !this.draggingFromTray)
+        {
+            color = "#FF0000";
+        }
+        component.draw(this, ctx, p, color);
     }
 };
 
 Breadboard.prototype.drawWires = function drawWires(wires)
 {
-    var fgGraphics = this.fgGraphics;
-    var bgGraphics = this.bgGraphics;
+    var ctx = this.stage.ctx;
 
     var i;
 
@@ -409,7 +414,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
     var top = this.top;
     var spacing = this.spacing;
     var circlesDrawn = {};
-    bgGraphics.lineStyle(6, 0x000000, 1);
+
     for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
@@ -417,7 +422,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         var y0 = wire.y0;
         var x1 = wire.x1;
         var y1 = wire.y1;
-        bgGraphics.lineStyle(6, 0x000000, 1);
+
         var removing = false;
         wire.iterate(function wireIterate(x, y)
         {
@@ -432,17 +437,24 @@ Breadboard.prototype.drawWires = function drawWires(wires)
                 return;
             }
             circlesDrawn[id] = true;
-            bgGraphics.drawCircle(left + x * spacing, top + y * spacing, 2);
+
+            ctx.fillStyle = "#000000";
+            ctx.beginPath();
+            ctx.arc(left + x * spacing, top + y * spacing, 5, 0, Math.PI * 2);
+            ctx.fill();
         });
 
+        ctx.strokeStyle = "#000000";
         if (removing)
         {
-            bgGraphics.lineStyle(6, 0x888888, 1);
+            ctx.strokeStyle = "#888888";
         }
 
-        bgGraphics.moveTo(left + x0 * spacing, top + y0 * spacing);
-        bgGraphics.lineTo(left + x1 * spacing, top + y1 * spacing);
-        // TODO only update bgGraphics when a wire/component is added
+        ctx.beginPath();
+        ctx.lineWidth = 6;
+        ctx.moveTo(left + x0 * spacing, top + y0 * spacing);
+        ctx.lineTo(left + x1 * spacing, top + y1 * spacing);
+        ctx.stroke();
     }
 
     var circlesDrawn = {};
@@ -464,15 +476,20 @@ Breadboard.prototype.drawWires = function drawWires(wires)
             if (circlesDrawn[id] || connection.hasDot())
             {
                 circlesDrawn[id] = true;
-                fgGraphics.lineStyle(6, that.getWireColor(connectionValue), 1);
-                fgGraphics.drawCircle(left + x * spacing, top + y * spacing, 1);
+                ctx.fillStyle = that.getWireColor(connectionValue);
+                ctx.beginPath();
+                ctx.arc(left + x * spacing, top + y * spacing, 4, 0, Math.PI * 2);
+                ctx.fill();
             }
             if (value !== connectionValue)
             {
-                fgGraphics.lineStyle(3, that.getWireColor(value), 1);
+                ctx.strokeStyle = that.getWireColor(value);
+                ctx.lineWidth = 3;
                 value = connectionValue;
-                fgGraphics.moveTo(left + start[0] * spacing, top + start[1] * spacing);
-                fgGraphics.lineTo(left + x * spacing, top + y * spacing);
+                ctx.beginPath();
+                ctx.moveTo(left + start[0] * spacing, top + start[1] * spacing);
+                ctx.lineTo(left + x * spacing, top + y * spacing);
+                ctx.stroke();
                 start[0] = x;
                 start[1] = y;
             }
@@ -480,9 +497,12 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
         if (start[0] !== wire.x1 || start[1] !== wire.y1)
         {
-            fgGraphics.lineStyle(3, that.getWireColor(value), 1);
-            fgGraphics.moveTo(left + start[0] * spacing, top + start[1] * spacing);
-            fgGraphics.lineTo(left + wire.x1 * spacing, top + wire.y1 * spacing);
+            ctx.strokeStyle = that.getWireColor(value);
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(left + start[0] * spacing, top + start[1] * spacing);
+            ctx.lineTo(left + wire.x1 * spacing, top + wire.y1 * spacing);
+            ctx.stroke();
         }
     }
 };
@@ -676,7 +696,7 @@ Breadboard.prototype.getComponent = function getComponent(p)
     return this.connections[id].components.component;
 };
 
-Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, button, e)
+Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, q, button)
 {
     if (button === 1)
     {
@@ -687,8 +707,6 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     {
         return;
     }
-    var event = e.data.originalEvent;
-    var q = [event.layerX, event.layerY];
     p = this.getPosition(q);
 
     this.state = Breadboard.state.SWITCH_COMPONENT;
@@ -760,7 +778,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
 
     if (this.state !== Breadboard.state.DRAG_COMPONENT || !this.draggingComponent)
     {
-        this.mouseup(p, button);
+        this.onMouseUp(p, button);
         return;
     }
 
@@ -785,10 +803,8 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
     this.draggingComponent = null;
 };
 
-Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, button, e)
+Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, p, button)
 {
-    var event = e.data.originalEvent;
-    var p = [event.layerX, event.layerY];
     this._onComponentMouseUp(p, button);
 };
 
@@ -885,7 +901,7 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     this.dirty = true;
 };
 
-Breadboard.prototype.mousedown = function mousedown(p, button)
+Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
 {
     if (button === 1)
     {
@@ -905,7 +921,7 @@ Breadboard.prototype.mousedown = function mousedown(p, button)
     }
 };
 
-Breadboard.prototype.mouseup = function mouseup(p, button)
+Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
 {
     if (button === 1)
     {
@@ -926,7 +942,7 @@ Breadboard.prototype.mouseup = function mouseup(p, button)
     }
 };
 
-Breadboard.prototype.mousemove = function mousemove(p)
+Breadboard.prototype.onMouseMove = function onMouseMove(p)
 {
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
