@@ -64,6 +64,9 @@ var App = function ()
         that.breadboard.addWire(0, 0, that.breadboard.cols - 1, 0, false);
     };
 
+    // disable mouse scroll on middle click
+    document.body.onmousedown = function(e) { if (e.button === 1) return false; }
+
     this.loading = true;
     TextureManager.request("jack-plug.png");
     TextureManager.request("jack-plug-enabled.png");

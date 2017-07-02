@@ -35,6 +35,10 @@ function Stage(canvas)
     this.ctx = canvas.getContext("2d");
     this.hitboxes = [];
     this.buttons = [];
+
+    this.onMouseDown = null;
+    this.onMouseUp = null;
+    this.onMouseMove = null;
 }
 
 Stage.prototype.addHitbox = function addHitbox(hitbox)
@@ -92,6 +96,7 @@ Stage.prototype.mouseDown = function mouseDown(e)
     {
         this.onMouseDown(p, e.button);
     }
+    return false;
 };
 
 Stage.prototype.mouseUp = function mouseUp(e)
@@ -107,6 +112,7 @@ Stage.prototype.mouseUp = function mouseUp(e)
     {
         this.onMouseUp(p, e.button);
     }
+    return false;
 };
 
 Stage.prototype.mouseMove = function mouseMove(e)

@@ -9,12 +9,15 @@ function Tray(breadboard)
 Tray.prototype.resetComponents = function resetComponents()
 {
     this.switch = new SwitchComponent(this.breadboard);
+    this.breadboard.stage.addHitbox(this.switch.hitbox);
     this.switch.move(this.breadboard, [22, 4], 0);
 
     this.relay = new RelayComponent(this.breadboard);
+    this.breadboard.stage.addHitbox(this.relay.hitbox);
     this.relay.move(this.breadboard, [22, 7], 0);
 
     this.diode = new DiodeComponent(this.breadboard);
+    this.breadboard.stage.addHitbox(this.diode.hitbox);
     this.diode.move(this.breadboard, [22, 12], 0);
 };
 

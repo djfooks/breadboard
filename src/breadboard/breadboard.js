@@ -44,9 +44,21 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 {
     this.stage = stage;
 
-    this.stage.onMouseDown = this.onMouseDown.bind(this);
-    this.stage.onMouseUp = this.onMouseUp.bind(this);
-    this.stage.onMouseMove = this.onMouseMove.bind(this);
+    this.stage.onMouseDown = this.onMouseDown.bind(this, false);
+    this.stage.onMouseUp = this.onMouseUp.bind(this, false);
+    this.stage.onMouseMove = this.onMouseMove.bind(this, false);
+
+    this.gameStage = new GameStage(0, 0, 300, 300);//cols * spacing, rows * spacing);
+    this.stage.addHitbox(this.gameStage.gameStageHitbox);
+
+    this.gameStage.onMouseDown = this.onMouseDown.bind(this, true);
+    this.gameStage.onMouseUp = this.onMouseUp.bind(this, true);
+    this.gameStage.onMouseMove = this.onMouseMove.bind(this, true);
+    this.mouseOverGameStage = false;
+
+    this.isScrolling = false;
+    this.scrollGrab = [0, 0];
+    this.scrollGrabView = [0, 0];
 
     this.top = top;
     this.left = left;
@@ -56,9 +68,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     this.clear();
 
-    this.drawGrid();
     this.tray = new Tray(this);
-    this.tray.draw(this, stage.ctx);
 
     this.disabledMatrix = [1, 0, 0, 0, 0,
                            0, 1, 0, 0, 0,
@@ -239,6 +249,7 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, j
         {
             component = new DiodeComponent(breadboard);
         }
+        breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p, componentJson.rotation | 0);
         breadboard.addComponent(component);
@@ -345,12 +356,22 @@ Breadboard.prototype.draw = function draw()
     var ctx = this.stage.ctx;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this.tray.draw(this, ctx);
-    this.drawGrid();
     this.drawButtons();
 
+    var gs = this.gameStage;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(gs.minX, gs.minY, gs.maxX - gs.minY, gs.maxY - gs.minY);
+    ctx.clip();
+
+    this.drawGrid();
     this.drawComponents();
     this.drawWires(this.wires);
     this.drawWires(this.virtualWires);
+
+    ctx.restore();
+
+    this.drawDraggedComponents();
 };
 
 Breadboard.prototype.getWireColor = function getWireColor(count)
@@ -378,26 +399,39 @@ Breadboard.prototype.drawComponents = function drawComponents()
     {
         componentsList[i].draw(this, ctx, null, "#000000");
     }
+};
 
+Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
+{
+    var ctx = this.stage.ctx;
     if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
         var p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0],
                  this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
 
         var q = this.getPosition(p);
-        var valid = (this.validPosition(q) &&
+        var valid = (this.mouseOverGameStage &&
+                     this.validPosition(q) &&
                      this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation));
         var component = this.draggingComponent;
-        var color = "#000000";
         if (valid)
         {
             component.draw(this, ctx, null, "#AAAAAA");
         }
-        if (!valid && !this.draggingFromTray)
+        var color;
+        if (this.draggingFromTray)
+        {
+            color = "#000000";
+        }
+        else if (!valid && !this.mouseOverGameStage)
         {
             color = "#FF0000";
         }
-        component.draw(this, ctx, p, color);
+        else
+        {
+            color = "#000000";
+        }
+        component.draw(this, ctx, p, color, "#FFFFFF");
     }
 };
 
@@ -698,34 +732,49 @@ Breadboard.prototype.getComponent = function getComponent(p)
 
 Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, q, button)
 {
+    var fromTray = this.tray.isFromTray(component);
+    if (button === 1)
+    {
+        this.onMouseDown(!fromTray, q, button);
+        return;
+    }
+
     if (button === 2)
     {
         this.shouldSwitch = false;
         return;
     }
+
     this.shouldSwitch = true;
 
     if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
     {
-        this.onMouseDown(q, button);
+        this.onMouseDown(!fromTray, q, button);
         return;
     }
     p = this.getPosition(q);
 
     this.state = Breadboard.state.DRAG_COMPONENT;
     this.draggingStartPoint = q;
-    this.draggingFromTray = this.tray.isFromTray(component);
-    if (this.draggingFromTray)
+    this.draggingFromTray = fromTray;
+    if (this.fromTray)
     {
         component = component.clone(this);
+        this.stage.addHitbox(component.hitbox);
     }
     this.draggingComponent = component;
     this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, q);
-    this.draggingComponentUpdate(q);
+    this.draggingComponentUpdate(this.draggingFromTray, q);
 };
 
 Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, button)
 {
+    if (button === 1)
+    {
+        this.onMouseUp(p, button);
+        return;
+    }
+
     if (button === 2)
     {
         var component;
@@ -796,7 +845,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
     this._onComponentMouseUp(p, button);
 };
 
-Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
+Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(gameSpace, p)
 {
     this.draggingPoint = p;
     if (this.shouldSwitch)
@@ -820,10 +869,11 @@ Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(
                          p[1] + this.draggingComponentGrabPoint[1]];
         p = this.getPosition(grabPoint);
 
-        if (this.validPosition(p) &&
-            this.draggingComponent.isValidPosition(this, p, this.draggingComponent.rotation))
+        if (this.draggingFromTray && gameSpace)
         {
             this.draggingFromTray = false;
+            this.stage.removeHitbox(this.draggingComponent.hitbox);
+            this.gameStage.addHitbox(this.draggingComponent.hitbox);
         }
 
         this.draggingComponent.move(this, p, this.draggingComponent.rotation);
@@ -892,10 +942,13 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     this.dirty = true;
 };
 
-Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
+Breadboard.prototype.onMouseDown = function onMouseDown(gameSpace, p, button)
 {
-    if (button === 1)
+    if (button === 1 && gameSpace)
     {
+        this.isScrolling = true;
+        this.scrollGrab = this.gameStage.fromView(p);
+        this.scrollGrabView = this.gameStage.view;
         return;
     }
 
@@ -912,10 +965,11 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
     }
 };
 
-Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
+Breadboard.prototype.onMouseUp = function onMouseUp(gameSpace, p, button)
 {
     if (button === 1)
     {
+        this.isScrolling = false;
         return;
     }
     if (this.state === Breadboard.state.PLACING_WIRE)
@@ -933,8 +987,21 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
     }
 };
 
-Breadboard.prototype.onMouseMove = function onMouseMove(p)
+Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 {
+    this.mouseOverGameStage = gameSpace;
+
+    if (this.isScrolling)
+    {
+        if (gameSpace)
+        {
+            p = this.gameStage.fromView(p);
+        }
+        var delta = [p[0] - this.scrollGrab[0], p[1] - this.scrollGrab[1]];
+        this.gameStage.view = [this.scrollGrabView[0] + delta[0], this.scrollGrabView[1] + delta[1]];
+        return;
+    }
+
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.wirePlaceUpdate(p, true);
@@ -945,6 +1012,6 @@ Breadboard.prototype.onMouseMove = function onMouseMove(p)
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
-        this.draggingComponentUpdate(p);
+        this.draggingComponentUpdate(gameSpace, p);
     }
 };

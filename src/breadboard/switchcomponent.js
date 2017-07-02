@@ -92,8 +92,8 @@ SwitchComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCo
 
     var rotationMatrix = RotationMatrix[this.rotation];
 
-    var screenP0 = p;
-    var screenP1 = AddTransformedVector(p, rotationMatrix, [0, spacing]);
+    var screenP0 = breadboard.gameStage.fromView(p);
+    var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
 
     ctx.strokeStyle = bgColor;
     ctx.lineWidth = 6;

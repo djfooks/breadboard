@@ -12,7 +12,6 @@ Component.border = 0.38;
 Component.addHitbox = function addHitbox(breadboard, component)
 {
     var hitbox = component.hitbox = new Hitbox(0, 0, 0, 0);
-    breadboard.stage.addHitbox(hitbox);
 
     hitbox.onMouseDown = breadboard.onComponentMouseDown.bind(breadboard, component);
     hitbox.onMouseUp = breadboard.onComponentMouseUp.bind(breadboard, component);
