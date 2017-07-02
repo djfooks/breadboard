@@ -767,19 +767,22 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         return;
     }
 
-    var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
-                     p[1] + this.draggingComponentGrabPoint[1]];
-    q = this.getPosition(grabPoint);
+    if (!this.shouldSwitch)
+    {
+        var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
+                         p[1] + this.draggingComponentGrabPoint[1]];
+        q = this.getPosition(grabPoint);
 
-    if (this.validPosition(q) &&
-        this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation))
-    {
-        this.draggingComponent.move(this, q, this.draggingComponent.rotation);
-        this.addComponent(this.draggingComponent);
-    }
-    else
-    {
-        Component.remove(this, this.draggingComponent);
+        if (this.validPosition(q) &&
+            this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation))
+        {
+            this.draggingComponent.move(this, q, this.draggingComponent.rotation);
+            this.addComponent(this.draggingComponent);
+        }
+        else
+        {
+            Component.remove(this, this.draggingComponent);
+        }
     }
 
     this.state = Breadboard.state.MOVE;
@@ -796,10 +799,10 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
 Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
 {
     this.draggingPoint = p;
-    if (p[0] != this.draggingStartPoint[0] ||
-        p[1] != this.draggingStartPoint[1])
+    if (this.shouldSwitch)
     {
-        if (this.shouldSwitch)
+        if (p[0] != this.draggingStartPoint[0] ||
+            p[1] != this.draggingStartPoint[1])
         {
             this.disableButtons();
             this.enableButton(this.moveButton);
@@ -807,21 +810,24 @@ Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(
             {
                 this.removeComponent(this.draggingComponent);
             }
+            this.shouldSwitch = false;
         }
-        this.shouldSwitch = false;
     }
 
-    var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
-                     p[1] + this.draggingComponentGrabPoint[1]];
-    p = this.getPosition(grabPoint);
-
-    if (this.validPosition(p) &&
-        this.draggingComponent.isValidPosition(this, p, this.draggingComponent.rotation))
+    if (!this.shouldSwitch)
     {
-        this.draggingFromTray = false;
-    }
+        var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
+                         p[1] + this.draggingComponentGrabPoint[1]];
+        p = this.getPosition(grabPoint);
 
-    this.draggingComponent.move(this, p, this.draggingComponent.rotation);
+        if (this.validPosition(p) &&
+            this.draggingComponent.isValidPosition(this, p, this.draggingComponent.rotation))
+        {
+            this.draggingFromTray = false;
+        }
+
+        this.draggingComponent.move(this, p, this.draggingComponent.rotation);
+    }
 };
 
 Breadboard.prototype.rotateComponent = function rotateComponent(component)
