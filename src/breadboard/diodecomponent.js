@@ -73,7 +73,7 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-DiodeComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor)
+DiodeComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor, gameStage)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -86,8 +86,8 @@ DiodeComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCol
 
     var rotationMatrix = RotationMatrix[this.rotation];
 
-    var screenP0 = p;
-    var screenP1 = AddTransformedVector(p, rotationMatrix, [0, spacing]);
+    var screenP0 = gameStage.fromView(p);
+    var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
 
     ctx.strokeStyle = bgColor;
     ctx.lineWidth = 6;

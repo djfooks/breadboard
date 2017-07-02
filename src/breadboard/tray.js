@@ -3,6 +3,8 @@ function Tray(breadboard)
 {
     this.breadboard = breadboard;
 
+    this.gameStage = new GameStage(0, 0, 99999, 99999);
+
     this.resetComponents();
 }
 
@@ -46,7 +48,7 @@ Tray.prototype.draw = function draw(breadboard, ctx)
     ctx.moveTo(x, 0);
     ctx.lineTo(x, bottom);
 
-    this.switch.draw(breadboard, ctx, null, "#000000", "#FFFFFF");
-    this.relay.draw(breadboard, ctx, null, "#000000", "#FFFFFF");
-    this.diode.draw(breadboard, ctx, null, "#000000", "#FFFFFF");
+    this.switch.draw(breadboard, ctx, null, "#000000", "#FFFFFF", this.gameStage);
+    this.relay.draw(breadboard, ctx, null, "#000000", "#FFFFFF", this.gameStage);
+    this.diode.draw(breadboard, ctx, null, "#000000", "#FFFFFF", this.gameStage);
 };

@@ -79,7 +79,7 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor)
+SwitchComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor, gameStage)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -92,7 +92,7 @@ SwitchComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCo
 
     var rotationMatrix = RotationMatrix[this.rotation];
 
-    var screenP0 = breadboard.gameStage.fromView(p);
+    var screenP0 = gameStage.fromView(p);
     var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
 
     ctx.strokeStyle = bgColor;

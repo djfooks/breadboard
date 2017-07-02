@@ -44,15 +44,15 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 {
     this.stage = stage;
 
-    this.stage.onMouseDown = this.onMouseDown.bind(this, false);
-    this.stage.onMouseUp = this.onMouseUp.bind(this, false);
+    this.stage.onMouseDown = this.onMouseDown.bind(this);
+    this.stage.onMouseUp = this.onMouseUp.bind(this);
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
 
-    this.gameStage = new GameStage(0, 0, 300, 300);//cols * spacing, rows * spacing);
+    this.gameStage = new GameStage(0, 0, cols * spacing, rows * spacing);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
-    this.gameStage.onMouseDown = this.onMouseDown.bind(this, true);
-    this.gameStage.onMouseUp = this.onMouseUp.bind(this, true);
+    this.gameStage.onMouseDown = this.onMouseDown.bind(this);
+    this.gameStage.onMouseUp = this.onMouseUp.bind(this);
     this.gameStage.onMouseMove = this.onMouseMove.bind(this, true);
     this.mouseOverGameStage = false;
 
@@ -264,8 +264,8 @@ Breadboard.prototype.drawGrid = function drawGrid()
     var x;
     var y;
 
-    var left = this.left;
-    var top = this.top;
+    var left = this.left - this.gameStage.view[0];
+    var top = this.top - this.gameStage.view[1];
     var cols = this.cols;
     var rows = this.rows;
     var spacing = this.spacing;
@@ -397,7 +397,7 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(this, ctx, null, "#000000");
+        componentsList[i].draw(this, ctx, null, "#000000", null, this.gameStage);
     }
 };
 
@@ -409,14 +409,15 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
         var p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0],
                  this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
 
-        var q = this.getPosition(p);
+
+        var q = this.getPosition(this.gameStage.fromView(p));
         var valid = (this.mouseOverGameStage &&
                      this.validPosition(q) &&
                      this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation));
         var component = this.draggingComponent;
         if (valid)
         {
-            component.draw(this, ctx, null, "#AAAAAA");
+            component.draw(this, ctx, null, "#AAAAAA", null, this.gameStage);
         }
         var color;
         if (this.draggingFromTray)
@@ -431,7 +432,7 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
         {
             color = "#000000";
         }
-        component.draw(this, ctx, p, color, "#FFFFFF");
+        component.draw(this, ctx, p, color, "#FFFFFF", this.gameStage);
     }
 };
 
@@ -443,8 +444,8 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
     var that = this;
     var connections = this.connections;
-    var left = this.left;
-    var top = this.top;
+    var left = this.left - this.gameStage.view[0];
+    var top = this.top - this.gameStage.view[1];
     var spacing = this.spacing;
     var circlesDrawn = {};
 
@@ -764,7 +765,7 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     }
     this.draggingComponent = component;
     this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, q);
-    this.draggingComponentUpdate(this.draggingFromTray, q);
+    this.draggingComponentUpdate(q);
 };
 
 Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, button)
@@ -845,7 +846,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
     this._onComponentMouseUp(p, button);
 };
 
-Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(gameSpace, p)
+Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
 {
     this.draggingPoint = p;
     if (this.shouldSwitch)
@@ -865,16 +866,16 @@ Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(
 
     if (!this.shouldSwitch)
     {
-        var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
-                         p[1] + this.draggingComponentGrabPoint[1]];
-        p = this.getPosition(grabPoint);
-
-        if (this.draggingFromTray && gameSpace)
+        if (this.draggingFromTray && this.mouseOverGameStage)
         {
             this.draggingFromTray = false;
             this.stage.removeHitbox(this.draggingComponent.hitbox);
             this.gameStage.addHitbox(this.draggingComponent.hitbox);
         }
+        var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
+                         p[1] + this.draggingComponentGrabPoint[1]];
+        grabPoint = this.gameStage.toView(grabPoint);
+        p = this.getPosition(grabPoint);
 
         this.draggingComponent.move(this, p, this.draggingComponent.rotation);
     }
@@ -942,16 +943,22 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     this.dirty = true;
 };
 
-Breadboard.prototype.onMouseDown = function onMouseDown(gameSpace, p, button)
+Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
 {
-    if (button === 1 && gameSpace)
+    if (button === 1 && this.mouseOverGameStage)
     {
         this.isScrolling = true;
-        this.scrollGrab = this.gameStage.fromView(p);
+        this.scrollGrab = p;
         this.scrollGrabView = this.gameStage.view;
         return;
     }
 
+    if (!this.mouseOverGameStage)
+    {
+        return;
+    }
+
+    p = this.gameStage.toView(p);
     p = this.getPosition(p);
     if (this.state !== Breadboard.state.ADD_WIRE)
     {
@@ -965,13 +972,20 @@ Breadboard.prototype.onMouseDown = function onMouseDown(gameSpace, p, button)
     }
 };
 
-Breadboard.prototype.onMouseUp = function onMouseUp(gameSpace, p, button)
+Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
 {
     if (button === 1)
     {
         this.isScrolling = false;
         return;
     }
+
+    if (!this.mouseOverGameStage)
+    {
+        return;
+    }
+
+    p = this.gameStage.toView(p);
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.wirePlaceUpdate(p, false);
@@ -993,25 +1007,23 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 
     if (this.isScrolling)
     {
-        if (gameSpace)
-        {
-            p = this.gameStage.fromView(p);
-        }
         var delta = [p[0] - this.scrollGrab[0], p[1] - this.scrollGrab[1]];
-        this.gameStage.view = [this.scrollGrabView[0] + delta[0], this.scrollGrabView[1] + delta[1]];
+        this.gameStage.view = [this.scrollGrabView[0] - delta[0], this.scrollGrabView[1] - delta[1]];
         return;
     }
 
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
+        p = this.gameStage.toView(p);
         this.wirePlaceUpdate(p, true);
     }
     else if (this.state === Breadboard.state.REMOVE_WIRE)
     {
+        p = this.gameStage.toView(p);
         this.wireRemoveUpdate(p, true);
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
-        this.draggingComponentUpdate(gameSpace, p);
+        this.draggingComponentUpdate(p);
     }
 };

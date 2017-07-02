@@ -65,8 +65,8 @@ GameStage.prototype.findHitbox = function findHitbox(x, y)
 
 GameStage.prototype.mouseDown = function mouseDown(p, button)
 {
-    p = this.toView(p);
-    var hitbox = this.findHitbox(p[0], p[1]);
+    var q = this.toView(p);
+    var hitbox = this.findHitbox(q[0], q[1]);
     if (hitbox && hitbox.onMouseDown)
     {
         hitbox.onMouseDown(p, button);
@@ -79,8 +79,8 @@ GameStage.prototype.mouseDown = function mouseDown(p, button)
 
 GameStage.prototype.mouseUp = function mouseUp(p, button)
 {
-    p = this.toView(p);
-    var hitbox = this.findHitbox(p[0], p[1]);
+    var q = this.toView(p);
+    var hitbox = this.findHitbox(q[0], q[1]);
     if (hitbox && hitbox.onMouseUp)
     {
         hitbox.onMouseUp(p, button);
@@ -93,9 +93,8 @@ GameStage.prototype.mouseUp = function mouseUp(p, button)
 
 GameStage.prototype.mouseMove = function mouseMove(p)
 {
-    p = this.toView(p);
-
-    var hitbox = this.findHitbox(p[0], p[1]);
+    var q = this.toView(p);
+    var hitbox = this.findHitbox(q[0], q[1]);
     if (hitbox && hitbox.onMouseMove)
     {
         hitbox.onMouseMove(p);

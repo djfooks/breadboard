@@ -88,7 +88,7 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor)
+RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor, gameStage)
 {
     var top = breadboard.top;
     var left = breadboard.left;
@@ -106,10 +106,10 @@ RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCol
     var outP1 = this.outP1;
     var signalP = this.signalP;
 
-    var screenOutP0 = p;
-    var screenBaseP = AddTransformedVector(p, rotationMatrix, [0, spacing]);
-    var screenOutP1 = AddTransformedVector(p, rotationMatrix, [0, spacing * 2.0]);
-    var screenSignalP = AddTransformedVector(p, rotationMatrix, [0, spacing * 3.0]);
+    var screenOutP0 = gameStage.fromView(p);
+    var screenBaseP = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing]);
+    var screenOutP1 = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing * 2.0]);
+    var screenSignalP = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing * 3.0]);
 
     ctx.strokeStyle = bgColor;
     ctx.lineWidth = 6;
