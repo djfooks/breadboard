@@ -132,7 +132,6 @@ Breadboard.prototype.clear = function clearFn()
     this.draggingStartPoint = [-1, -1];
     this.draggingPoint = [0, 0];
     this.draggingComponent = null;
-    this.draggingGrabPoint = [-1, -1];
     this.draggingComponentGrabPoint = [0, 0];
     this.draggingFromTray = false;
     this.wireStart = [-1, -1];
@@ -721,7 +720,6 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         component = component.clone(this);
     }
     this.draggingComponent = component;
-    this.draggingGrabPoint = p;
     this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, q);
     this.draggingComponentUpdate(q);
 };
@@ -830,10 +828,12 @@ Breadboard.prototype.rotateComponent = function rotateComponent(component)
 {
     var newRotation = Rotate90(component.rotation);
     var valid = component.isValidPosition(this, component.p, newRotation);
-    if (component !== this.draggingComponent && !valid)
+    if (this.state !== Breadboard.state.DRAG_COMPONENT && !valid)
     {
         return;
     }
+
+    this.draggingComponentGrabPoint = [this.draggingComponentGrabPoint[1], -this.draggingComponentGrabPoint[0]];
 
     this.removeComponent(component);
     component.move(this, component.p, newRotation);
