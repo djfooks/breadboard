@@ -797,7 +797,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
     var q;
     if (this.shouldSwitch)
     {
-        q = this.getPosition(p);
+        q = this.getPosition(this.gameStage.toView(p));
         var component = this.getComponent(q);
         if (component)
         {
