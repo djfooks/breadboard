@@ -33,8 +33,8 @@ var App = function ()
     }
     else
     {
-        var rows = 20;
-        var cols = 20;
+        var rows = 50;
+        var cols = 50;
         this.breadboard = new Breadboard(this.stage, top, left, cols, rows, spacing);
         this.breadboard.addWire(0, 0, cols - 1, 0, false);
     }

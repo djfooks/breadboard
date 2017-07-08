@@ -48,7 +48,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.stage.onMouseUp = this.onMouseUp.bind(this);
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
 
-    this.gameStage = new GameStage(1, 1, cols * spacing + 1, rows * spacing + 1);
+    this.gameStage = new GameStage(1, 1, 601, 601);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
     this.gameStage.onMouseDown = this.onMouseDown.bind(this);
@@ -208,7 +208,7 @@ Breadboard.prototype.toJson = function toJson()
 
 Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, json)
 {
-    var breadboard = new Breadboard(stage, top, left, json.cols, json.rows, spacing);
+    var breadboard = new Breadboard(stage, top, left, 50, 50, spacing);
 
     var wires = json.wires;
     var wiresLength = wires.length;
