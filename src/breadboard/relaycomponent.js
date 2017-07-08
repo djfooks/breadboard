@@ -71,20 +71,24 @@ RelayComponent.prototype.clone = function clone(breadboard)
     return cloneComponent;
 };
 
-RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, p, rotation)
+RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
 {
     var rotationMatrix = RotationMatrix[rotation];
 
-    var p0Component = breadboard.getComponent(p);
-    var p1Component = breadboard.getComponent(AddTransformedVector(p, rotationMatrix, [0, 1]));
-    var p2Component = breadboard.getComponent(AddTransformedVector(p, rotationMatrix, [0, 2]));
-    var p3Component = breadboard.getComponent(AddTransformedVector(p, rotationMatrix, [0, 3]));
+    var p1 = AddTransformedVector(p0, rotationMatrix, [0, 1]);
+    var p2 = AddTransformedVector(p0, rotationMatrix, [0, 2]);
+    var p3 = AddTransformedVector(p0, rotationMatrix, [0, 3]);
+
+    var p0Component = breadboard.getComponent(p0);
+    var p1Component = breadboard.getComponent(p1);
+    var p2Component = breadboard.getComponent(p2);
+    var p3Component = breadboard.getComponent(p3);
 
     var isValid = true;
-    isValid = isValid && (!p0Component || p0Component === this);
-    isValid = isValid && (!p1Component || p1Component === this);
-    isValid = isValid && (!p2Component || p2Component === this);
-    isValid = isValid && (!p3Component || p3Component === this);
+    isValid = isValid && breadboard.validPosition(p0) && (!p0Component || p0Component === this);
+    isValid = isValid && breadboard.validPosition(p1) && (!p1Component || p1Component === this);
+    isValid = isValid && breadboard.validPosition(p2) && (!p2Component || p2Component === this);
+    isValid = isValid && breadboard.validPosition(p3) && (!p3Component || p3Component === this);
     return isValid;
 };
 

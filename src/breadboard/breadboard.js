@@ -70,7 +70,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
 
     this.tray = new Tray(this);
 
-    this.drawHitboxes = true;
+    this.drawHitboxes = false;
 
     var buttons = this.buttons = [];
     var that = this;
@@ -787,23 +787,9 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
     }
     else if (button === 2)
     {
-        var component;
         if (this.state === Breadboard.state.DRAG_COMPONENT)
         {
-            component = this.draggingComponent;
-        }
-        else
-        {
-            p = this.getPosition(p);
-            component = this.getComponent(p);
-
-            this.state = Breadboard.state.MOVE;
-            this.disableButtons();
-            this.enableButton(this.moveButton);
-        }
-        if (component)
-        {
-            this.rotateComponent(component);
+            this.rotateComponent(this.draggingComponent);
         }
         return;
     }
