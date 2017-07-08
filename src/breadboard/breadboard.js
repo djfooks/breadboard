@@ -743,7 +743,7 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     var fromTray = this.tray.isFromTray(component);
     if (button === 1)
     {
-        this.onMouseDown(!fromTray, q, button);
+        this.onMouseDown(q, button);
         return;
     }
 
@@ -757,7 +757,7 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 
     if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
     {
-        this.onMouseDown(!fromTray, q, button);
+        this.onMouseDown(q, button);
         return;
     }
     p = this.getPosition(q);
