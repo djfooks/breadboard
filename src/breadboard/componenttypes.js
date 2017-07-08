@@ -20,6 +20,7 @@ Component.addHitbox = function addHitbox(breadboard, component)
 Component.remove = function remove(breadboard, component)
 {
     breadboard.stage.removeHitbox(component.hitbox);
+    breadboard.gameStage.removeHitbox(component.hitbox);
     component.hitbox.onMouseDown = null;
     component.hitbox.onMouseUp = null;
     component.hitbox = null;

@@ -114,3 +114,41 @@ GameStage.prototype.fromView = function fromView(p)
 {
     return [p[0] - this.view[0], p[1] - this.view[1]];
 };
+
+GameStage.prototype.drawBorder = function drawBorder(ctx)
+{
+    var x0 = this.minX - 1;
+    var y0 = this.minY - 1;
+    var x1 = this.maxX + 1;
+    var y1 = this.maxY + 1;
+
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#000000";
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x0, y1);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x1, y0);
+    ctx.lineTo(x0, y0);
+    ctx.stroke();
+};
+
+GameStage.prototype.drawHitboxes = function drawHitboxes(ctx)
+{
+    var i;
+    for (i = 0; i < this.hitboxes.length; i += 1)
+    {
+        var hitbox = this.hitboxes[i];
+        var min = this.fromView([hitbox.minX, hitbox.minY]);
+        var max = this.fromView([hitbox.maxX, hitbox.maxY]);
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#0000FF";
+        ctx.moveTo(min[0], min[1]);
+        ctx.lineTo(min[0], max[1]);
+        ctx.lineTo(max[0], max[1]);
+        ctx.lineTo(max[0], min[1]);
+        ctx.lineTo(min[0], min[1]);
+        ctx.stroke();
+    }
+};
