@@ -409,7 +409,6 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
         var p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0],
                  this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
 
-
         var q = this.getPosition(this.gameStage.fromView(p));
         var valid = (this.mouseOverGameStage &&
                      this.validPosition(q) &&
@@ -758,13 +757,13 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     this.state = Breadboard.state.DRAG_COMPONENT;
     this.draggingStartPoint = q;
     this.draggingFromTray = fromTray;
-    if (this.fromTray)
+    if (fromTray)
     {
         component = component.clone(this);
         this.stage.addHitbox(component.hitbox);
     }
     this.draggingComponent = component;
-    this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, q);
+    this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, this.gameStage.toView(q));
     this.draggingComponentUpdate(q);
 };
 
@@ -775,8 +774,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         this.onMouseUp(p, button);
         return;
     }
-
-    if (button === 2)
+    else if (button === 2)
     {
         var component;
         if (this.state === Breadboard.state.DRAG_COMPONENT)
@@ -819,14 +817,11 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
 
     if (!this.shouldSwitch)
     {
-        var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
-                         p[1] + this.draggingComponentGrabPoint[1]];
-        q = this.getPosition(grabPoint);
-
-        if (this.validPosition(q) &&
-            this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation))
+        var valid = (this.mouseOverGameStage &&
+                     this.validPosition(this.draggingComponent.p) &&
+                     this.draggingComponent.isValidPosition(this, this.draggingComponent.p, this.draggingComponent.rotation));
+        if (valid)
         {
-            this.draggingComponent.move(this, q, this.draggingComponent.rotation);
             this.addComponent(this.draggingComponent);
         }
         else
@@ -848,7 +843,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
 
 Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
 {
-    this.draggingPoint = p;
+    this.draggingPoint = this.gameStage.toView(p);
     if (this.shouldSwitch)
     {
         if (p[0] != this.draggingStartPoint[0] ||
