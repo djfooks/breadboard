@@ -758,13 +758,16 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     this.state = Breadboard.state.DRAG_COMPONENT;
     this.draggingStartPoint = q;
     this.draggingFromTray = fromTray;
+
+    var gameStage = this.gameStage;
     if (fromTray)
     {
         component = component.clone(this);
         this.stage.addHitbox(component.hitbox);
+        gameStage = this.tray.gameStage;
     }
     this.draggingComponent = component;
-    this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, this.gameStage.toView(q));
+    this.draggingComponentGrabPoint = Component.getGrabPoint(this, component, gameStage.toView(q));
     this.draggingComponentUpdate(q);
 };
 
@@ -844,7 +847,8 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component,
 
 Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
 {
-    this.draggingPoint = this.gameStage.toView(p);
+    var gameStage = this.draggingFromTray ? this.tray.gameStage : this.gameStage;
+    this.draggingPoint = gameStage.toView(p);
     if (this.shouldSwitch)
     {
         if (p[0] != this.draggingStartPoint[0] ||
@@ -865,12 +869,14 @@ Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(
         if (this.draggingFromTray && this.mouseOverGameStage)
         {
             this.draggingFromTray = false;
+
             this.stage.removeHitbox(this.draggingComponent.hitbox);
-            this.gameStage.addHitbox(this.draggingComponent.hitbox);
+            gameStage = this.gameStage;
+            gameStage.addHitbox(this.draggingComponent.hitbox);
         }
         var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
                          p[1] + this.draggingComponentGrabPoint[1]];
-        grabPoint = this.gameStage.toView(grabPoint);
+        grabPoint = gameStage.toView(grabPoint);
         p = this.getPosition(grabPoint);
 
         this.draggingComponent.move(this, p, this.draggingComponent.rotation);
