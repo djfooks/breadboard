@@ -404,26 +404,27 @@ Breadboard.prototype.drawComponents = function drawComponents()
 Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
 {
     var ctx = this.stage.ctx;
+    var gameStage = this.draggingFromTray ? this.tray.gameStage : this.gameStage;
     if (this.state === Breadboard.state.DRAG_COMPONENT)
     {
         var p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0],
                  this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
 
-        var q = this.getPosition(this.gameStage.fromView(p));
+        var q = this.getPosition(p);
         var valid = (this.mouseOverGameStage &&
                      this.validPosition(q) &&
                      this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation));
         var component = this.draggingComponent;
         if (valid)
         {
-            component.draw(this, ctx, null, "#AAAAAA", null, this.gameStage);
+            component.draw(this, ctx, null, "#AAAAAA", null, gameStage);
         }
         var color;
         if (this.draggingFromTray)
         {
             color = "#000000";
         }
-        else if (!valid && !this.mouseOverGameStage)
+        else if (!valid || !this.mouseOverGameStage)
         {
             color = "#FF0000";
         }
@@ -431,7 +432,7 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
         {
             color = "#000000";
         }
-        component.draw(this, ctx, p, color, "#FFFFFF", this.gameStage);
+        component.draw(this, ctx, p, color, "#FFFFFF", gameStage);
     }
 };
 
