@@ -1,5 +1,5 @@
 
-function GameStage(minX, minY, maxX, maxY)
+function GameStage(minX, minY, maxX, maxY, zoom1Spacing)
 {
     this.minX = minX;
     this.minY = minY;
@@ -15,10 +15,14 @@ function GameStage(minX, minY, maxX, maxY)
     this.hitboxes = [];
 
     this.view = [0, 0];
+    this.zoomVelocity = 0;
     this.zoomLevel = 1;
     this.zoom = 1;
+    this.zoom1Spacing = zoom1Spacing;
+    this.spacing = zoom1Spacing;
 
-    this.mousePos = [0, 0];
+    this.mousePos = [(this.maxX - this.minX) * 0.5,
+                     (this.maxX - this.minX) * 0.5];
 
     this.onMouseDown = null;
     this.onMouseUp = null;
@@ -31,10 +35,17 @@ GameStage.prototype.scroll = function scroll(delta)
     this.view[1] += delta[1];
 };
 
-GameStage.prototype.zoomDelta = function zoomDelta(deltaY)
+GameStage.prototype.update = function update(deltaTime)
 {
+    this.zoomVelocity *= 0.8;
+
     var oldZoom = this.zoom;
-    this.zoomLevel += deltaY * 0.01;
+    this.zoomLevel += this.zoomVelocity;
+    if (this.zoomLevel > 30)
+    {
+        this.zoomLevel = 30;
+        this.zoomVelocity = 0;
+    }
     this.zoom = Math.pow(1.05, this.zoomLevel);
 
     // keep whatever is under the mouse stationary during the zoom
@@ -45,8 +56,16 @@ GameStage.prototype.zoomDelta = function zoomDelta(deltaY)
     var offsetY = this.mousePos[1] - (this.maxX - this.minX) * 0.5;
 
     // move the view slightly so that whatever is under the mouse moves to the center of the game space
-    this.view[0] += offsetX * 0.05;
-    this.view[1] += offsetY * 0.05;
+    var centerVelocity = Math.abs(this.zoomVelocity);
+    this.view[0] += offsetX * centerVelocity * 0.05;
+    this.view[1] += offsetY * centerVelocity * 0.05;
+
+    this.spacing = this.zoom1Spacing * this.zoom;
+};
+
+GameStage.prototype.zoomDelta = function zoomDelta(deltaY)
+{
+    this.zoomVelocity += deltaY * 0.005;
 };
 
 GameStage.prototype.addHitbox = function addHitbox(hitbox)

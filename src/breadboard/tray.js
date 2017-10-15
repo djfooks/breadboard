@@ -43,11 +43,13 @@ Tray.prototype.draw = function draw(breadboard, ctx)
     var top = breadboard.top;
     var cols = breadboard.cols;
     var rows = breadboard.rows;
-    var spacing = breadboard.zoom0Spacing;
+    var spacing = breadboard.zoom1Spacing;
 
-    var drawOptions = new DrawOptions(null, spacing, 1);
+    var drawOptions = new DrawOptions(null);
     drawOptions.top = 30;
     drawOptions.left = 670;
+    drawOptions.spacing = spacing;
+    drawOptions.zoom = 1;
 
     var x = left + cols * spacing;
     var bottom = top + rows * spacing;

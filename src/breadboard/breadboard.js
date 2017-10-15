@@ -40,20 +40,22 @@ Wire.prototype.toJson = function toJson()
     return [this.x0, this.y0, this.x1, this.y1];
 };
 
-function DrawOptions(breadboard, spacing, zoom)
+function DrawOptions(breadboard)
 {
-    this.spacing = spacing;
-    this.zoom = zoom;
     if (breadboard)
     {
         this.top = breadboard.top;
         this.left = breadboard.left;
+        this.spacing = breadboard.gameStage.spacing;
+        this.zoom = breadboard.gameStage.zoom;
         this.getConnectionValue = breadboard.getConnectionValue.bind(breadboard);
     }
     else
     {
         this.top = 0;
         this.left = 0;
+        this.spacing = 1;
+        this.zoom = 1;
         this.getConnectionValue = function getConnectionValueFn() { return 0; };
     }
 };
@@ -83,7 +85,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
     this.stage.onWheel = this.onWheel.bind(this);
 
-    this.gameStage = new GameStage(1, 1, 601, 601);
+    this.gameStage = new GameStage(1, 1, 601, 601, spacing);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
     this.gameStage.onMouseDown = this.onMouseDown.bind(this);
@@ -99,8 +101,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.left = left;
     this.cols = cols;
     this.rows = rows;
-    this.zoom0Spacing = this.spacing = spacing;
-    this.zoom = 1;
+    this.zoom1Spacing = spacing;
 
     this.clear();
 
@@ -297,14 +298,14 @@ Breadboard.prototype.drawGrid = function drawGrid()
     var top = this.top - this.gameStage.view[1];
     var cols = this.cols;
     var rows = this.rows;
-    var spacing = this.spacing;
+    var spacing = this.zoom1Spacing * this.gameStage.zoom;
 
     var right = left + (cols - 1) * spacing;
     var bottom = top + (rows - 1) * spacing;
 
     ctx.beginPath();
     ctx.strokeStyle = "#B0B0B0";
-    ctx.lineWidth = 1 * this.zoom;
+    ctx.lineWidth = 1 * this.gameStage.zoom;
     for (x = 0; x < cols; x += 1)
     {
         for (y = 0; y < rows; y += 1)
@@ -331,6 +332,7 @@ Breadboard.prototype.update = function update()
         this.pulsePath.createPulse(1);
     }
 
+    this.gameStage.update();
     this.pulsePath.updatePulses(this);
     this.updateComponents();
     this.draw();
@@ -421,7 +423,7 @@ Breadboard.prototype.drawComponents = function drawComponents()
 {
     var ctx = this.stage.ctx;
     var componentsList = this.componentsList;
-    var drawOptions = new DrawOptions(this, this.spacing, this.zoom);
+    var drawOptions = new DrawOptions(this);
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
@@ -468,7 +470,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 {
     var ctx = this.stage.ctx;
 
-    var drawOptions = new DrawOptions(this, this.spacing, this.zoom);
+    var drawOptions = new DrawOptions(this);
 
     var i;
 
@@ -586,15 +588,15 @@ Breadboard.prototype.getPositionFromIndex = function getPositionFromIndex(index)
 
 Breadboard.prototype.getPosition = function getPosition(p)
 {
-    var x = Math.round((p[0] - this.left) / this.spacing);
-    var y = Math.round((p[1] - this.top) / this.spacing);
+    var x = Math.round((p[0] - this.left) / this.gameStage.spacing);
+    var y = Math.round((p[1] - this.top) / this.gameStage.spacing);
     return [x, y];
 };
 
 Breadboard.prototype.getLayerPosition = function getLayerPosition(p)
 {
-    var x = p[0] * this.spacing + this.left;
-    var y = p[1] * this.spacing + this.top;
+    var x = p[0] * this.gameStage.spacing + this.left;
+    var y = p[1] * this.gameStage.spacing + this.top;
     return [x, y];
 };
 
@@ -1052,6 +1054,4 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 Breadboard.prototype.onWheel = function onWheel(deltaY)
 {
     this.gameStage.zoomDelta(-deltaY);
-    this.spacing = this.zoom0Spacing * this.gameStage.zoom;
-    this.zoom = this.gameStage.zoom;
 };
