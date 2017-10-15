@@ -304,7 +304,7 @@ Breadboard.prototype.drawGrid = function drawGrid()
 
     ctx.beginPath();
     ctx.strokeStyle = "#B0B0B0";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1 * this.zoom;
     for (x = 0; x < cols; x += 1)
     {
         for (y = 0; y < rows; y += 1)
