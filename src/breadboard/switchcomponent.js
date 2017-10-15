@@ -81,11 +81,12 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor, gameStage)
+SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
 {
-    var top = breadboard.top;
-    var left = breadboard.left;
-    var spacing = breadboard.spacing;
+    var top = drawOptions.top;
+    var left = drawOptions.left;
+    var spacing = drawOptions.spacing;
+    var zoom = drawOptions.zoom;
 
     if (!p)
     {
@@ -97,41 +98,42 @@ SwitchComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCo
     var screenP0 = gameStage.fromView(p);
     var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
 
+    var radius = 6 * zoom;
     ctx.strokeStyle = bgColor;
-    ctx.lineWidth = 6;
+    ctx.lineWidth = radius;
     ctx.fillStyle = bgColor;
     ctx.beginPath();
-    ctx.arc(screenP0[0], screenP0[1], 6, 0, Math.PI * 2);
+    ctx.arc(screenP0[0], screenP0[1], radius, 0, Math.PI * 2);
     ctx.moveTo(screenP1[0], screenP1[1]);
-    ctx.arc(screenP1[0], screenP1[1], 6, 0, Math.PI * 2);
+    ctx.arc(screenP1[0], screenP1[1], radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
     if (this.connected)
     {
-        ctx.lineWidth = 11;
+        ctx.lineWidth = 11 * zoom;
         ctx.moveTo(screenP0[0], screenP0[1]);
         ctx.lineTo(screenP1[0], screenP1[1]);
         ctx.stroke();
     }
 
-    Component.drawContainer(breadboard, ctx, bgColor, screenP0, screenP1);
+    Component.drawContainer(drawOptions, ctx, bgColor, screenP0, screenP1);
 
-    var value0 = breadboard.getConnectionValue(this.id0);
-    var value1 = breadboard.getConnectionValue(this.id1);
+    var value0 = drawOptions.getConnectionValue(this.id0);
+    var value1 = drawOptions.getConnectionValue(this.id1);
     var color;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3 * zoom;
 
-    Component.drawFgNode(breadboard, ctx, fgColor, value0, screenP0);
-    Component.drawFgNode(breadboard, ctx, fgColor, value1, screenP1);
+    Component.drawFgNode(drawOptions, ctx, fgColor, value0, screenP0);
+    Component.drawFgNode(drawOptions, ctx, fgColor, value1, screenP1);
 
     ctx.beginPath();
     if (this.connected)
     {
-        color = fgColor || breadboard.getWireColor(Math.min(value0, value1));
+        color = fgColor || drawOptions.getWireColor(Math.min(value0, value1));
         ctx.strokeStyle = color;
-        ctx.lineWidth = 8;
+        ctx.lineWidth = 8 * zoom;
         ctx.moveTo(screenP0[0], screenP0[1]);
         ctx.lineTo(screenP1[0], screenP1[1]);
         ctx.stroke();

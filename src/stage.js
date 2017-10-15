@@ -130,6 +130,11 @@ Stage.prototype.mouseMove = function mouseMove(e)
     }
 };
 
+Stage.prototype.wheel = function wheel(e)
+{
+    this.onWheel(e.deltaY);
+}
+
 Stage.prototype.enable = function enable()
 {
     var c = this.canvas;
@@ -139,6 +144,7 @@ Stage.prototype.enable = function enable()
     c.addEventListener("mousedown", this.mouseDown.bind(this));
     c.addEventListener("mouseup", this.mouseUp.bind(this));
     c.addEventListener("mousemove", this.mouseMove.bind(this));
+    c.addEventListener("wheel", this.wheel.bind(this));
 };
 
 Stage.prototype.getCanvasPosition = function getCanvasPosition(e, p)

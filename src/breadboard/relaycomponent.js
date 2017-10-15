@@ -92,11 +92,12 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor, gameStage)
+RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
 {
-    var top = breadboard.top;
-    var left = breadboard.left;
-    var spacing = breadboard.spacing;
+    var top = drawOptions.top;
+    var left = drawOptions.left;
+    var spacing = drawOptions.spacing;
+    var zoom = drawOptions.zoom;
 
     if (!p)
     {
@@ -115,28 +116,29 @@ RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCol
     var screenOutP1 = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing * 2.0]);
     var screenSignalP = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing * 3.0]);
 
+    var radius = 6 * zoom;
     ctx.strokeStyle = bgColor;
-    ctx.lineWidth = 6;
+    ctx.lineWidth = radius;
     ctx.fillStyle = bgColor;
     ctx.beginPath();
-    ctx.arc(screenOutP0[0], screenOutP0[1], 6, 0, Math.PI * 2);
+    ctx.arc(screenOutP0[0], screenOutP0[1], radius, 0, Math.PI * 2);
     ctx.moveTo(screenBaseP[0], screenBaseP[1]);
-    ctx.arc(screenBaseP[0], screenBaseP[1], 6, 0, Math.PI * 2);
+    ctx.arc(screenBaseP[0], screenBaseP[1], radius, 0, Math.PI * 2);
     ctx.moveTo(screenOutP1[0], screenOutP1[1]);
-    ctx.arc(screenOutP1[0], screenOutP1[1], 6, 0, Math.PI * 2);
+    ctx.arc(screenOutP1[0], screenOutP1[1], radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     ctx.strokeStyle = "#00FF00";
     ctx.fillStyle = "#00FF00";
     ctx.beginPath();
-    ctx.arc(screenSignalP[0], screenSignalP[1], 6, 0, Math.PI * 2);
+    ctx.arc(screenSignalP[0], screenSignalP[1], radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
     ctx.strokeStyle = bgColor;
-    ctx.lineWidth = 11;
+    ctx.lineWidth = 11 * zoom;
     ctx.moveTo(screenBaseP[0], screenBaseP[1]);
     if (this.signalValue)
     {
@@ -148,32 +150,32 @@ RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCol
     }
     ctx.stroke();
 
-    Component.drawContainer(breadboard, ctx, bgColor, screenOutP0, screenSignalP);
+    Component.drawContainer(drawOptions, ctx, bgColor, screenOutP0, screenSignalP);
 
     var color;
-    var value0 = breadboard.getConnectionValue(this.outId0);
-    var valueBase = breadboard.getConnectionValue(this.baseId);
-    var value1 = breadboard.getConnectionValue(this.outId1);
-    var valueSignal = breadboard.getConnectionValue(this.signalId);
-    ctx.lineWidth = 3;
+    var value0 = drawOptions.getConnectionValue(this.outId0);
+    var valueBase = drawOptions.getConnectionValue(this.baseId);
+    var value1 = drawOptions.getConnectionValue(this.outId1);
+    var valueSignal = drawOptions.getConnectionValue(this.signalId);
+    ctx.lineWidth = 3 * zoom;
 
-    Component.drawFgNode(breadboard, ctx, fgColor, value0, screenOutP0);
-    Component.drawFgNode(breadboard, ctx, fgColor, valueBase, screenBaseP);
-    Component.drawFgNode(breadboard, ctx, fgColor, value1, screenOutP1);
-    Component.drawFgNode(breadboard, ctx, fgColor, valueSignal, screenSignalP);
+    Component.drawFgNode(drawOptions, ctx, fgColor, value0, screenOutP0);
+    Component.drawFgNode(drawOptions, ctx, fgColor, valueBase, screenBaseP);
+    Component.drawFgNode(drawOptions, ctx, fgColor, value1, screenOutP1);
+    Component.drawFgNode(drawOptions, ctx, fgColor, valueSignal, screenSignalP);
 
     ctx.beginPath();
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 8 * zoom;
     ctx.moveTo(screenBaseP[0], screenBaseP[1]);
     if (this.signalValue)
     {
-        color = fgColor || breadboard.getWireColor(Math.min(value1, valueBase));
+        color = fgColor || drawOptions.getWireColor(Math.min(value1, valueBase));
         ctx.strokeStyle = color;
         ctx.lineTo(screenOutP1[0], screenOutP1[1]);
     }
     else
     {
-        color = fgColor || breadboard.getWireColor(Math.min(value0, valueBase));
+        color = fgColor || drawOptions.getWireColor(Math.min(value0, valueBase));
         ctx.strokeStyle = color;
         ctx.lineTo(screenOutP0[0], screenOutP0[1]);
     }
@@ -183,12 +185,11 @@ RelayComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCol
 RelayComponent.prototype.update = function update(breadboard)
 {
     var signalValue = breadboard.connections[this.signalId].isOn();
-    if (this.signalValue === signalValue)
+    if (this.signalValue !== signalValue)
     {
-        return;
+        this.signalValue = signalValue;
+        this.bgDirty = true;
     }
-    this.signalValue = signalValue;
-    this.bgDirty = true;
 
     var i;
     for (i = 0; i < this.pulsePaths.length; i += 1)

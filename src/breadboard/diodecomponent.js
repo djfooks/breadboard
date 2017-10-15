@@ -75,11 +75,11 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-DiodeComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgColor, gameStage)
+DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
 {
-    var top = breadboard.top;
-    var left = breadboard.left;
-    var spacing = breadboard.spacing;
+    var top = drawOptions.top;
+    var left = drawOptions.left;
+    var spacing = drawOptions.spacing;
 
     if (!p)
     {
@@ -111,13 +111,13 @@ DiodeComponent.prototype.draw = function draw(breadboard, ctx, p, bgColor, fgCol
     ctx.lineTo(arrowRight0[0], arrowRight0[1]);
     ctx.stroke();
 
-    Component.drawContainer(breadboard, ctx, bgColor, screenP0, screenP1);
+    Component.drawContainer(drawOptions, ctx, bgColor, screenP0, screenP1);
 
-    var value0 = breadboard.getConnectionValue(this.id0);
-    var value1 = breadboard.getConnectionValue(this.id1);
+    var value0 = drawOptions.getConnectionValue(this.id0);
+    var value1 = drawOptions.getConnectionValue(this.id1);
 
-    Component.drawFgNode(breadboard, ctx, fgColor, value0, screenP0);
-    Component.drawFgNode(breadboard, ctx, fgColor, value1, screenP1);
+    Component.drawFgNode(drawOptions, ctx, fgColor, value0, screenP0);
+    Component.drawFgNode(drawOptions, ctx, fgColor, value1, screenP1);
 };
 
 DiodeComponent.prototype.update = function update()

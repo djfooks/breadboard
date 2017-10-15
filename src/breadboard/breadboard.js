@@ -40,6 +40,40 @@ Wire.prototype.toJson = function toJson()
     return [this.x0, this.y0, this.x1, this.y1];
 };
 
+function DrawOptions(breadboard, spacing, zoom)
+{
+    this.spacing = spacing;
+    this.zoom = zoom;
+    if (breadboard)
+    {
+        this.top = breadboard.top;
+        this.left = breadboard.left;
+        this.getConnectionValue = breadboard.getConnectionValue.bind(breadboard);
+    }
+    else
+    {
+        this.top = 0;
+        this.left = 0;
+        this.getConnectionValue = function getConnectionValueFn() { return 0; };
+    }
+};
+
+DrawOptions.prototype.getWireColor = function getWireColor(count)
+{
+    if (count > 1)
+    {
+        return "#FF0000";
+    }
+    else if (count > 0)
+    {
+        return "#FF8888";
+    }
+    else
+    {
+        return "#FFFFFF";
+    }
+};
+
 function Breadboard(stage, top, left, cols, rows, spacing)
 {
     this.stage = stage;
@@ -47,6 +81,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.stage.onMouseDown = this.onMouseDown.bind(this);
     this.stage.onMouseUp = this.onMouseUp.bind(this);
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
+    this.stage.onWheel = this.onWheel.bind(this);
 
     this.gameStage = new GameStage(1, 1, 601, 601);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
@@ -64,7 +99,8 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.left = left;
     this.cols = cols;
     this.rows = rows;
-    this.spacing = spacing;
+    this.zoom0Spacing = this.spacing = spacing;
+    this.zoom = 1;
 
     this.clear();
 
@@ -381,30 +417,15 @@ Breadboard.prototype.draw = function draw()
     }
 };
 
-Breadboard.prototype.getWireColor = function getWireColor(count)
-{
-    if (count > 1)
-    {
-        return "#FF0000";
-    }
-    else if (count > 0)
-    {
-        return "#FF8888";
-    }
-    else
-    {
-        return "#FFFFFF";
-    }
-};
-
 Breadboard.prototype.drawComponents = function drawComponents()
 {
     var ctx = this.stage.ctx;
     var componentsList = this.componentsList;
+    var drawOptions = new DrawOptions(this, this.spacing, this.zoom);
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(this, ctx, null, "#000000", null, this.gameStage);
+        componentsList[i].draw(drawOptions, ctx, null, "#000000", null, this.gameStage);
     }
 };
 
@@ -447,13 +468,16 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 {
     var ctx = this.stage.ctx;
 
+    var drawOptions = new DrawOptions(this, this.spacing, this.zoom);
+
     var i;
 
     var that = this;
     var connections = this.connections;
     var left = this.left - this.gameStage.view[0];
     var top = this.top - this.gameStage.view[1];
-    var spacing = this.spacing;
+    var spacing = drawOptions.spacing;
+    var zoom = drawOptions.zoom;
     var circlesDrawn = {};
 
     for (i = 0; i < wires.length; i += 1)
@@ -481,7 +505,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
             ctx.fillStyle = "#000000";
             ctx.beginPath();
-            ctx.arc(left + x * spacing, top + y * spacing, 5, 0, Math.PI * 2);
+            ctx.arc(left + x * spacing, top + y * spacing, 5 * zoom, 0, Math.PI * 2);
             ctx.fill();
         });
 
@@ -492,7 +516,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         }
 
         ctx.beginPath();
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 6 * zoom;
         ctx.moveTo(left + x0 * spacing, top + y0 * spacing);
         ctx.lineTo(left + x1 * spacing, top + y1 * spacing);
         ctx.stroke();
@@ -517,15 +541,15 @@ Breadboard.prototype.drawWires = function drawWires(wires)
             if (circlesDrawn[id] || connection.hasDot())
             {
                 circlesDrawn[id] = true;
-                ctx.fillStyle = that.getWireColor(connectionValue);
+                ctx.fillStyle = drawOptions.getWireColor(connectionValue);
                 ctx.beginPath();
-                ctx.arc(left + x * spacing, top + y * spacing, 4, 0, Math.PI * 2);
+                ctx.arc(left + x * spacing, top + y * spacing, 4 * zoom, 0, Math.PI * 2);
                 ctx.fill();
             }
             if (value !== connectionValue)
             {
-                ctx.strokeStyle = that.getWireColor(value);
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = drawOptions.getWireColor(value);
+                ctx.lineWidth = 3 * zoom;
                 value = connectionValue;
                 ctx.beginPath();
                 ctx.moveTo(left + start[0] * spacing, top + start[1] * spacing);
@@ -538,8 +562,8 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
         if (start[0] !== wire.x1 || start[1] !== wire.y1)
         {
-            ctx.strokeStyle = that.getWireColor(value);
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = drawOptions.getWireColor(value);
+            ctx.lineWidth = 3 * zoom;
             ctx.beginPath();
             ctx.moveTo(left + start[0] * spacing, top + start[1] * spacing);
             ctx.lineTo(left + wire.x1 * spacing, top + wire.y1 * spacing);
@@ -1023,4 +1047,11 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
     {
         this.draggingComponentUpdate(p);
     }
+};
+
+Breadboard.prototype.onWheel = function onWheel(deltaY)
+{
+    this.gameStage.zoomDelta(-deltaY);
+    this.spacing = this.zoom0Spacing * this.gameStage.zoom;
+    this.zoom = this.gameStage.zoom;
 };

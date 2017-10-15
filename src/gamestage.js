@@ -15,6 +15,8 @@ function GameStage(minX, minY, maxX, maxY)
     this.hitboxes = [];
 
     this.view = [0, 0];
+    this.zoomLevel = 1;
+    this.zoom = 1;
 
     this.onMouseDown = null;
     this.onMouseUp = null;
@@ -25,6 +27,12 @@ GameStage.prototype.scroll = function scroll(delta)
 {
     this.view[0] += delta[0];
     this.view[1] += delta[1];
+};
+
+GameStage.prototype.zoomDelta = function zoomDelta(deltaY)
+{
+    this.zoomLevel += deltaY * 0.01;
+    this.zoom = Math.pow(1.05, this.zoomLevel);
 };
 
 GameStage.prototype.addHitbox = function addHitbox(hitbox)

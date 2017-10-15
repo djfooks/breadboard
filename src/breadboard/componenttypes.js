@@ -48,9 +48,9 @@ Component.updateHitbox = function updateHitbox(breadboard, component, p, size)
     hitbox.maxY = screenMax[1] + border;
 };
 
-Component.drawContainer = function drawContainer(breadboard, ctx, bgColor, screenP0, screenP1)
+Component.drawContainer = function drawContainer(drawOptions, ctx, bgColor, screenP0, screenP1)
 {
-    var border = Math.floor(breadboard.spacing * Component.border);
+    var border = Math.floor(drawOptions.spacing * Component.border);
     var screenMin = [Math.min(screenP0[0], screenP1[0]), Math.min(screenP0[1], screenP1[1])];
     var screenMax = [Math.max(screenP0[0], screenP1[0]), Math.max(screenP0[1], screenP1[1])];
     var x0 = screenMin[0] - border;
@@ -59,7 +59,7 @@ Component.drawContainer = function drawContainer(breadboard, ctx, bgColor, scree
     var y1 = screenMax[1] + border;
 
     ctx.beginPath();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * drawOptions.zoom;
     ctx.strokeStyle = bgColor;
     ctx.moveTo(x0, y0);
     ctx.lineTo(x0, y1);
@@ -69,13 +69,13 @@ Component.drawContainer = function drawContainer(breadboard, ctx, bgColor, scree
     ctx.stroke();
 };
 
-Component.drawFgNode = function drawFgNode(breadboard, ctx, fgColor, value0, p)
+Component.drawFgNode = function drawFgNode(drawOptions, ctx, fgColor, value0, p)
 {
-    var color = fgColor || breadboard.getWireColor(value0);
+    var color = fgColor || drawOptions.getWireColor(value0);
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(p[0], p[1], 6, 0, Math.PI * 2);
+    ctx.arc(p[0], p[1], 6 * drawOptions.zoom, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 }
