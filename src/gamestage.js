@@ -1,5 +1,5 @@
 
-function GameStage(minX, minY, maxX, maxY, zoom1Spacing)
+function GameStage(minX, minY, maxX, maxY)
 {
     this.minX = minX;
     this.minY = minY;
@@ -18,8 +18,6 @@ function GameStage(minX, minY, maxX, maxY, zoom1Spacing)
     this.zoomVelocity = 0;
     this.zoomLevel = 1;
     this.zoom = 1;
-    this.zoom1Spacing = zoom1Spacing;
-    this.spacing = zoom1Spacing;
 
     this.mousePos = [(this.maxX - this.minX) * 0.5,
                      (this.maxX - this.minX) * 0.5];
@@ -59,8 +57,6 @@ GameStage.prototype.update = function update(deltaTime)
     var centerVelocity = Math.abs(this.zoomVelocity);
     this.view[0] += offsetX * centerVelocity * 0.05;
     this.view[1] += offsetY * centerVelocity * 0.05;
-
-    this.spacing = this.zoom1Spacing * this.zoom;
 };
 
 GameStage.prototype.zoomDelta = function zoomDelta(deltaY)

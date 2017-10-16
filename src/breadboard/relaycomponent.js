@@ -92,92 +92,79 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
+RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
 {
-    var top = drawOptions.top;
-    var left = drawOptions.left;
-    var spacing = drawOptions.spacing;
-    var zoom = drawOptions.zoom;
-
     if (!p)
     {
-        p = [left + this.p[0] * spacing, top + this.p[1] * spacing];
+        p = this.p;
     }
-
-    var rotationMatrix = RotationMatrix[this.rotation];
 
     var outP0 = this.outP0;
     var baseP = this.baseP;
     var outP1 = this.outP1;
     var signalP = this.signalP;
 
-    var screenOutP0 = gameStage.fromView(p);
-    var screenBaseP = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing]);
-    var screenOutP1 = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing * 2.0]);
-    var screenSignalP = AddTransformedVector(screenOutP0, rotationMatrix, [0, spacing * 3.0]);
-
-    var radius = 6 * zoom;
-    ctx.strokeStyle = bgColor;
-    ctx.lineWidth = radius;
+    var radius = Component.connectionBgRadius;
     ctx.fillStyle = bgColor;
-    ctx.beginPath();
-    ctx.arc(screenOutP0[0], screenOutP0[1], radius, 0, Math.PI * 2);
-    ctx.moveTo(screenBaseP[0], screenBaseP[1]);
-    ctx.arc(screenBaseP[0], screenBaseP[1], radius, 0, Math.PI * 2);
-    ctx.moveTo(screenOutP1[0], screenOutP1[1]);
-    ctx.arc(screenOutP1[0], screenOutP1[1], radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
 
-    ctx.strokeStyle = "#00FF00";
-    ctx.fillStyle = "#00FF00";
     ctx.beginPath();
-    ctx.arc(screenSignalP[0], screenSignalP[1], radius, 0, Math.PI * 2);
+    ctx.arc(outP0[0], outP0[1], radius, 0, Math.PI * 2.0);
     ctx.fill();
-    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(baseP[0], baseP[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(outP1[0], outP1[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.fillStyle = "#00FF00"; // green
+    ctx.beginPath();
+    ctx.arc(signalP[0], signalP[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
 
     ctx.beginPath();
     ctx.strokeStyle = bgColor;
-    ctx.lineWidth = 11 * zoom;
-    ctx.moveTo(screenBaseP[0], screenBaseP[1]);
+    ctx.lineWidth = 0.3;
+    ctx.moveTo(baseP[0], baseP[1]);
     if (this.signalValue)
     {
-        ctx.lineTo(screenOutP1[0], screenOutP1[1]);
+        ctx.lineTo(outP1[0], outP1[1]);
     }
     else
     {
-        ctx.lineTo(screenOutP0[0], screenOutP0[1]);
+        ctx.lineTo(outP0[0], outP0[1]);
     }
     ctx.stroke();
 
-    Component.drawContainer(drawOptions, ctx, bgColor, screenOutP0, screenSignalP);
+    Component.drawContainer(drawOptions, ctx, bgColor, outP0, signalP);
 
     var color;
     var value0 = drawOptions.getConnectionValue(this.outId0);
     var valueBase = drawOptions.getConnectionValue(this.baseId);
     var value1 = drawOptions.getConnectionValue(this.outId1);
     var valueSignal = drawOptions.getConnectionValue(this.signalId);
-    ctx.lineWidth = 3 * zoom;
 
-    Component.drawFgNode(drawOptions, ctx, fgColor, value0, screenOutP0);
-    Component.drawFgNode(drawOptions, ctx, fgColor, valueBase, screenBaseP);
-    Component.drawFgNode(drawOptions, ctx, fgColor, value1, screenOutP1);
-    Component.drawFgNode(drawOptions, ctx, fgColor, valueSignal, screenSignalP);
+    Component.drawFgNode(ctx, fgColor, value0, outP0);
+    Component.drawFgNode(ctx, fgColor, valueBase, baseP);
+    Component.drawFgNode(ctx, fgColor, value1, outP1);
+    Component.drawFgNode(ctx, fgColor, valueSignal, signalP);
 
     ctx.beginPath();
-    ctx.lineWidth = 8 * zoom;
-    ctx.moveTo(screenBaseP[0], screenBaseP[1]);
+    ctx.lineWidth = 0.2;
+    ctx.moveTo(baseP[0], baseP[1]);
     if (this.signalValue)
     {
-        color = fgColor || drawOptions.getWireColor(Math.min(value1, valueBase));
+        color = fgColor || Wire.getColor(Math.min(value1, valueBase));
         ctx.strokeStyle = color;
-        ctx.lineTo(screenOutP1[0], screenOutP1[1]);
+        ctx.lineTo(outP1[0], outP1[1]);
     }
     else
     {
-        color = fgColor || drawOptions.getWireColor(Math.min(value0, valueBase));
+        color = fgColor || Wire.getColor(Math.min(value0, valueBase));
         ctx.strokeStyle = color;
-        ctx.lineTo(screenOutP0[0], screenOutP0[1]);
+        ctx.lineTo(outP0[0], outP0[1]);
     }
     ctx.stroke();
 };

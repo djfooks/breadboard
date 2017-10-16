@@ -35,29 +35,21 @@ Tray.prototype.isFromTray = function isFromTray(component)
     return fromTray;
 };
 
-Tray.prototype.draw = function draw(breadboard, ctx)
+Tray.prototype.draw = function draw(ctx)
 {
-    ctx.strokeStyle = "#000000";
-
-    var left = breadboard.left;
-    var top = breadboard.top;
-    var cols = breadboard.cols;
-    var rows = breadboard.rows;
-    var spacing = breadboard.zoom1Spacing;
-
     var drawOptions = new DrawOptions(null);
-    drawOptions.top = 30;
-    drawOptions.left = 670;
-    drawOptions.spacing = spacing;
-    drawOptions.zoom = 1;
 
-    var x = left + cols * spacing;
-    var bottom = top + rows * spacing;
+    ctx.save();
 
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, bottom);
+    var z = 25;
+    var left = 670;
+    var top = 0;
 
-    this.switch.draw(drawOptions, ctx, null, "#000000", "#FFFFFF", this.gameStage);
-    this.relay.draw(drawOptions, ctx, null, "#000000", "#FFFFFF", this.gameStage);
-    this.diode.draw(drawOptions, ctx, null, "#000000", "#FFFFFF", this.gameStage);
+    ctx.transform(z, 0, 0, z, left, top);
+
+    // this.switch.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
+    this.relay.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
+    // this.diode.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
+
+    ctx.restore();
 };

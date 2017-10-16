@@ -15,7 +15,6 @@ var App = function ()
 
     var top = 10;
     var left = 10;
-    var spacing = 30;
     var json;
     var jsonStr = window.localStorage.getItem("breadboard");
     if (jsonStr)
@@ -29,13 +28,13 @@ var App = function ()
     }
     if (json)
     {
-        this.breadboard = Breadboard.createFromJson(this.stage, top, left, spacing, json);
+        this.breadboard = Breadboard.createFromJson(this.stage, top, left, json);
     }
     else
     {
         var rows = 50;
         var cols = 50;
-        this.breadboard = new Breadboard(this.stage, top, left, cols, rows, spacing);
+        this.breadboard = new Breadboard(this.stage, top, left, cols, rows);
         this.breadboard.addWire(0, 0, cols - 1, 0, false);
     }
 

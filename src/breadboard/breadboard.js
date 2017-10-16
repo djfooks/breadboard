@@ -40,27 +40,7 @@ Wire.prototype.toJson = function toJson()
     return [this.x0, this.y0, this.x1, this.y1];
 };
 
-function DrawOptions(breadboard)
-{
-    if (breadboard)
-    {
-        this.top = breadboard.top;
-        this.left = breadboard.left;
-        this.spacing = breadboard.gameStage.spacing;
-        this.zoom = breadboard.gameStage.zoom;
-        this.getConnectionValue = breadboard.getConnectionValue.bind(breadboard);
-    }
-    else
-    {
-        this.top = 0;
-        this.left = 0;
-        this.spacing = 1;
-        this.zoom = 1;
-        this.getConnectionValue = function getConnectionValueFn() { return 0; };
-    }
-};
-
-DrawOptions.prototype.getWireColor = function getWireColor(count)
+Wire.getColor = function getColor(count)
 {
     if (count > 1)
     {
@@ -76,7 +56,19 @@ DrawOptions.prototype.getWireColor = function getWireColor(count)
     }
 };
 
-function Breadboard(stage, top, left, cols, rows, spacing)
+function DrawOptions(breadboard)
+{
+    if (breadboard)
+    {
+        this.getConnectionValue = breadboard.getConnectionValue.bind(breadboard);
+    }
+    else
+    {
+        this.getConnectionValue = function getConnectionValueFn() { return 0; };
+    }
+};
+
+function Breadboard(stage, top, left, cols, rows)
 {
     this.stage = stage;
 
@@ -85,7 +77,7 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
     this.stage.onWheel = this.onWheel.bind(this);
 
-    this.gameStage = new GameStage(1, 1, 601, 601, spacing);
+    this.gameStage = new GameStage(1, 1, 601, 601);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
     this.gameStage.onMouseDown = this.onMouseDown.bind(this);
@@ -101,7 +93,6 @@ function Breadboard(stage, top, left, cols, rows, spacing)
     this.left = left;
     this.cols = cols;
     this.rows = rows;
-    this.zoom1Spacing = spacing;
 
     this.clear();
 
@@ -243,9 +234,9 @@ Breadboard.prototype.toJson = function toJson()
     return out;
 };
 
-Breadboard.createFromJson = function createFromJson(stage, top, left, spacing, json)
+Breadboard.createFromJson = function createFromJson(stage, top, left, json)
 {
-    var breadboard = new Breadboard(stage, top, left, 50, 50, spacing);
+    var breadboard = new Breadboard(stage, top, left, 50, 50);
 
     var wires = json.wires;
     var wiresLength = wires.length;
@@ -294,27 +285,24 @@ Breadboard.prototype.drawGrid = function drawGrid()
     var x;
     var y;
 
-    var left = this.left - this.gameStage.view[0];
-    var top = this.top - this.gameStage.view[1];
     var cols = this.cols;
     var rows = this.rows;
-    var spacing = this.zoom1Spacing * this.gameStage.zoom;
 
-    var right = left + (cols - 1) * spacing;
-    var bottom = top + (rows - 1) * spacing;
+    var right = cols - 1;
+    var bottom = rows - 1;
 
     ctx.beginPath();
     ctx.strokeStyle = "#B0B0B0";
-    ctx.lineWidth = 1 * this.gameStage.zoom;
+    ctx.lineWidth = 0.1;
     for (x = 0; x < cols; x += 1)
     {
         for (y = 0; y < rows; y += 1)
         {
-            ctx.moveTo(left + x * spacing, top);
-            ctx.lineTo(left + x * spacing, bottom);
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, bottom);
 
-            ctx.moveTo(left,  top + y * spacing);
-            ctx.lineTo(right, top + y * spacing);
+            ctx.moveTo(0, y);
+            ctx.lineTo(right, y);
         }
     }
 
@@ -388,7 +376,7 @@ Breadboard.prototype.draw = function draw()
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this.gameStage.drawBorder(ctx);
 
-    this.tray.draw(this, ctx);
+    this.tray.draw(ctx);
     this.drawButtons();
 
     var gs = this.gameStage;
@@ -397,10 +385,16 @@ Breadboard.prototype.draw = function draw()
     ctx.rect(gs.minX, gs.minY, gs.maxX - gs.minY, gs.maxY - gs.minY);
     ctx.clip();
 
+    var z = gs.zoom * 20;
+    var left = this.left - this.gameStage.view[0];
+    var top = this.top - this.gameStage.view[1];
+
+    ctx.transform(z, 0, 0, z, left, top);
+
     this.drawGrid();
     this.drawComponents();
-    this.drawWires(this.wires);
-    this.drawWires(this.virtualWires);
+    // this.drawWires(this.wires);
+    // this.drawWires(this.virtualWires);
 
     if (this.drawHitboxes)
     {
