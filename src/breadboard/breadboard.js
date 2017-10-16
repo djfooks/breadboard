@@ -293,7 +293,7 @@ Breadboard.prototype.drawGrid = function drawGrid()
 
     ctx.beginPath();
     ctx.strokeStyle = "#B0B0B0";
-    ctx.lineWidth = 0.1;
+    ctx.lineWidth = 0.05;
     for (x = 0; x < cols; x += 1)
     {
         for (y = 0; y < rows; y += 1)
@@ -393,7 +393,7 @@ Breadboard.prototype.draw = function draw()
 
     this.drawGrid();
     this.drawComponents();
-    // this.drawWires(this.wires);
+    this.drawWires(this.wires);
     // this.drawWires(this.virtualWires);
 
     if (this.drawHitboxes)
@@ -464,16 +464,10 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 {
     var ctx = this.stage.ctx;
 
-    var drawOptions = new DrawOptions(this);
-
     var i;
 
     var that = this;
     var connections = this.connections;
-    var left = this.left - this.gameStage.view[0];
-    var top = this.top - this.gameStage.view[1];
-    var spacing = drawOptions.spacing;
-    var zoom = drawOptions.zoom;
     var circlesDrawn = {};
 
     for (i = 0; i < wires.length; i += 1)
@@ -501,7 +495,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
             ctx.fillStyle = "#000000";
             ctx.beginPath();
-            ctx.arc(left + x * spacing, top + y * spacing, 5 * zoom, 0, Math.PI * 2);
+            ctx.arc(x, y, 0.2, 0, Math.PI * 2);
             ctx.fill();
         });
 
@@ -512,9 +506,9 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         }
 
         ctx.beginPath();
-        ctx.lineWidth = 6 * zoom;
-        ctx.moveTo(left + x0 * spacing, top + y0 * spacing);
-        ctx.lineTo(left + x1 * spacing, top + y1 * spacing);
+        ctx.lineWidth = 0.2;
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
         ctx.stroke();
     }
 
@@ -537,19 +531,19 @@ Breadboard.prototype.drawWires = function drawWires(wires)
             if (circlesDrawn[id] || connection.hasDot())
             {
                 circlesDrawn[id] = true;
-                ctx.fillStyle = drawOptions.getWireColor(connectionValue);
+                ctx.fillStyle = Wire.getColor(connectionValue);
                 ctx.beginPath();
-                ctx.arc(left + x * spacing, top + y * spacing, 4 * zoom, 0, Math.PI * 2);
+                ctx.arc(x, y, 0.15, 0, Math.PI * 2);
                 ctx.fill();
             }
             if (value !== connectionValue)
             {
-                ctx.strokeStyle = drawOptions.getWireColor(value);
-                ctx.lineWidth = 3 * zoom;
+                ctx.strokeStyle = Wire.getColor(value);
+                ctx.lineWidth = 0.1;
                 value = connectionValue;
                 ctx.beginPath();
-                ctx.moveTo(left + start[0] * spacing, top + start[1] * spacing);
-                ctx.lineTo(left + x * spacing, top + y * spacing);
+                ctx.moveTo(start[0], start[1]);
+                ctx.lineTo(x, y);
                 ctx.stroke();
                 start[0] = x;
                 start[1] = y;
@@ -558,11 +552,11 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
         if (start[0] !== wire.x1 || start[1] !== wire.y1)
         {
-            ctx.strokeStyle = drawOptions.getWireColor(value);
-            ctx.lineWidth = 3 * zoom;
+            ctx.strokeStyle = Wire.getColor(value);
+            ctx.lineWidth = 0.1;
             ctx.beginPath();
-            ctx.moveTo(left + start[0] * spacing, top + start[1] * spacing);
-            ctx.lineTo(left + wire.x1 * spacing, top + wire.y1 * spacing);
+            ctx.moveTo(start[0], start[1]);
+            ctx.lineTo(wire.x1, wire.y1);
             ctx.stroke();
         }
     }
