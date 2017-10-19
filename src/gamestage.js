@@ -16,8 +16,8 @@ function GameStage(minX, minY, maxX, maxY)
 
     this.view = [0, 0];
     this.zoomVelocity = 0;
-    this.zoomLevel = 1;
-    this.zoom = 1;
+    this.zoomLevel = 70;
+    this.zoom = 20;
 
     this.mousePos = [(this.maxX - this.minX) * 0.5,
                      (this.maxX - this.minX) * 0.5];
@@ -39,9 +39,9 @@ GameStage.prototype.update = function update(deltaTime)
 
     var oldZoom = this.zoom;
     this.zoomLevel += this.zoomVelocity;
-    if (this.zoomLevel > 30)
+    if (this.zoomLevel > 100)
     {
-        this.zoomLevel = 30;
+        this.zoomLevel = 100;
         this.zoomVelocity = 0;
     }
     this.zoom = Math.pow(1.05, this.zoomLevel);
@@ -147,7 +147,8 @@ GameStage.prototype.mouseMove = function mouseMove(p)
 
 GameStage.prototype.toView = function toView(p)
 {
-    return [p[0] + this.view[0], p[1] + this.view[1]];
+    return [(p[0] - this.minX + this.view[0]) / this.zoom,
+            (p[1] - this.minY + this.view[1]) / this.zoom];
 };
 
 GameStage.prototype.fromView = function fromView(p)

@@ -385,7 +385,7 @@ Breadboard.prototype.draw = function draw()
     ctx.rect(gs.minX, gs.minY, gs.maxX - gs.minY, gs.maxY - gs.minY);
     ctx.clip();
 
-    var z = gs.zoom * 20;
+    var z = gs.zoom;
     var left = this.left - this.gameStage.view[0];
     var top = this.top - this.gameStage.view[1];
 
@@ -394,7 +394,7 @@ Breadboard.prototype.draw = function draw()
     this.drawGrid();
     this.drawComponents();
     this.drawWires(this.wires);
-    // this.drawWires(this.virtualWires);
+    this.drawWires(this.virtualWires);
 
     if (this.drawHitboxes)
     {
@@ -576,8 +576,8 @@ Breadboard.prototype.getPositionFromIndex = function getPositionFromIndex(index)
 
 Breadboard.prototype.getPosition = function getPosition(p)
 {
-    var x = Math.round((p[0] - this.left) / this.gameStage.spacing);
-    var y = Math.round((p[1] - this.top) / this.gameStage.spacing);
+    var x = Math.round(p[0]);
+    var y = Math.round(p[1]);
     return [x, y];
 };
 
