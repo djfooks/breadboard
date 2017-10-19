@@ -781,7 +781,7 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         this.onMouseDown(q, button);
         return;
     }
-    p = this.getPosition(q);
+    var p = this.getPosition(q);
 
     this.state = Breadboard.state.DRAG_COMPONENT;
     this.draggingStartPoint = q;
@@ -889,12 +889,12 @@ Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(
             gameStage = this.gameStage;
             gameStage.addHitbox(this.draggingComponent.hitbox);
         }
-        var grabPoint = [p[0] + this.draggingComponentGrabPoint[0],
-                         p[1] + this.draggingComponentGrabPoint[1]];
-        grabPoint = gameStage.toView(grabPoint);
-        p = this.getPosition(grabPoint);
+        var grabPoint = gameStage.toView(p);
+        grabPoint = [grabPoint[0] + this.draggingComponentGrabPoint[0],
+                     grabPoint[1] + this.draggingComponentGrabPoint[1]];
+        grabPoint = this.getPosition(grabPoint);
 
-        this.draggingComponent.move(this, p, this.draggingComponent.rotation);
+        this.draggingComponent.move(this, grabPoint, this.draggingComponent.rotation);
     }
 };
 
