@@ -386,8 +386,8 @@ Breadboard.prototype.draw = function draw()
     ctx.clip();
 
     var z = gs.zoom;
-    var left = this.left - this.gameStage.view[0];
-    var top = this.top - this.gameStage.view[1];
+    var left = -this.gameStage.view[0];
+    var top = -this.gameStage.view[1];
 
     ctx.transform(z, 0, 0, z, left, top);
 
