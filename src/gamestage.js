@@ -18,6 +18,7 @@ function GameStage(minX, minY, maxX, maxY)
     this.zoomVelocity = 0;
     this.zoomLevel = 70;
     this.zoom = 20;
+    this.invZoom = 1 / this.zoom;
 
     this.mousePos = [(this.maxX - this.minX) * 0.5,
                      (this.maxX - this.minX) * 0.5];
@@ -45,6 +46,7 @@ GameStage.prototype.update = function update(deltaTime)
         this.zoomVelocity = 0;
     }
     this.zoom = Math.pow(1.05, this.zoomLevel);
+    this.invZoom = 1 / this.zoom;
 
     // keep whatever is under the mouse stationary during the zoom
     this.view[0] = ((this.view[0] + this.mousePos[0]) * (this.zoom / oldZoom)) - this.mousePos[0];
@@ -145,6 +147,12 @@ GameStage.prototype.mouseMove = function mouseMove(p)
     }
 };
 
+GameStage.prototype.transformContext = function transformContext(ctx)
+{
+    var z = this.zoom;
+    ctx.transform(z, 0, 0, z, -this.view[0], -this.view[1]);
+};
+
 GameStage.prototype.toView = function toView(p)
 {
     return [(p[0] - this.minX + this.view[0]) / this.zoom,
@@ -153,7 +161,8 @@ GameStage.prototype.toView = function toView(p)
 
 GameStage.prototype.fromView = function fromView(p)
 {
-    return [p[0] - this.view[0], p[1] - this.view[1]];
+    return [p[0] * this.zoom + this.minX - this.view[0],
+            p[1] * this.zoom + this.minY - this.view[1]];
 };
 
 GameStage.prototype.drawBorder = function drawBorder(ctx)
@@ -180,16 +189,14 @@ GameStage.prototype.drawHitboxes = function drawHitboxes(ctx)
     for (i = 0; i < this.hitboxes.length; i += 1)
     {
         var hitbox = this.hitboxes[i];
-        var min = this.fromView([hitbox.minX, hitbox.minY]);
-        var max = this.fromView([hitbox.maxX, hitbox.maxY]);
         ctx.beginPath();
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1 * this.invZoom;
         ctx.strokeStyle = "#0000FF";
-        ctx.moveTo(min[0], min[1]);
-        ctx.lineTo(min[0], max[1]);
-        ctx.lineTo(max[0], max[1]);
-        ctx.lineTo(max[0], min[1]);
-        ctx.lineTo(min[0], min[1]);
+        ctx.moveTo(hitbox.minX, hitbox.minY);
+        ctx.lineTo(hitbox.minX, hitbox.maxY);
+        ctx.lineTo(hitbox.maxX, hitbox.maxY);
+        ctx.lineTo(hitbox.maxX, hitbox.minY);
+        ctx.lineTo(hitbox.minX, hitbox.minY);
         ctx.stroke();
     }
 };

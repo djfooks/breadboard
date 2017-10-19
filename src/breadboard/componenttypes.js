@@ -26,26 +26,17 @@ Component.remove = function remove(breadboard, component)
     component.hitbox = null;
 };
 
-Component.updateHitbox = function updateHitbox(breadboard, component, p, size)
+Component.updateHitbox = function updateHitbox(component, p0, p1)
 {
     var hitbox = component.hitbox;
 
-    var left = breadboard.left;
-    var top = breadboard.top;
-    var spacing = breadboard.spacing;
-    var border = spacing * Component.border;
-
-    var rotationMatrix = RotationMatrix[component.rotation];
-    var screenP0 = [left + component.p[0] * spacing, top + component.p[1] * spacing];
-    var screenP1   = AddTransformedVector(screenP0, rotationMatrix, [size[0] * spacing, size[1] * spacing]);
-
-    var screenMin = [Math.min(screenP0[0], screenP1[0]), Math.min(screenP0[1], screenP1[1])];
-    var screenMax = [Math.max(screenP0[0], screenP1[0]), Math.max(screenP0[1], screenP1[1])];
-
-    hitbox.minX = screenMin[0] - border;
-    hitbox.minY = screenMin[1] - border;
-    hitbox.maxX = screenMax[0] + border;
-    hitbox.maxY = screenMax[1] + border;
+    var border = Component.border;
+    var min = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1])];
+    var max = [Math.max(p0[0], p1[0]), Math.max(p0[1], p1[1])];
+    hitbox.minX = min[0] - border;
+    hitbox.minY = min[1] - border;
+    hitbox.maxX = max[0] + border;
+    hitbox.maxY = max[1] + border;
 };
 
 Component.drawContainer = function drawContainer(drawOptions, ctx, bgColor, p0, p1)
@@ -81,12 +72,7 @@ Component.drawFgNode = function drawFgNode(ctx, fgColor, value0, p)
     ctx.fill();
 }
 
-Component.getGrabPoint = function getGrabPoint(breadboard, component, p)
+Component.getGrabPoint = function getGrabPoint(component, p)
 {
-    var top = breadboard.top;
-    var left = breadboard.left;
-    var spacing = breadboard.spacing;
-
-    var componentP = [left + component.p[0] * spacing, top + component.p[1] * spacing];
-    return [componentP[0] - p[0], componentP[1] - p[1]];
+    return [component.p[0] - p[0], component.p[1] - p[1]];
 };
