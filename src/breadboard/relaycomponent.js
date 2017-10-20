@@ -61,7 +61,7 @@ RelayComponent.prototype.move = function move(breadboard, p, rotation)
     this.canToggle = true;
 
     this.pulsePaths = [];
-    Component.updateHitbox(this, this.p, this.signalP);
+    Component.updateHitbox(this, p, this.signalP);
 };
 
 RelayComponent.prototype.clone = function clone(breadboard)
@@ -107,9 +107,9 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     {
         var rotationMatrix = RotationMatrix[this.rotation];
         outP0 = p;
-        var baseP = AddTransformedVector(p, rotationMatrix, [0, 1]);
-        var outP1 = AddTransformedVector(p, rotationMatrix, [0, 2]);
-        var signalP = AddTransformedVector(p, rotationMatrix, [0, 3]);
+        baseP = AddTransformedVector(p, rotationMatrix, [0, 1]);
+        outP1 = AddTransformedVector(p, rotationMatrix, [0, 2]);
+        signalP = AddTransformedVector(p, rotationMatrix, [0, 3]);
     }
 
     var radius = Component.connectionBgRadius;

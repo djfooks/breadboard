@@ -37,7 +37,7 @@ DiodeComponent.prototype.move = function move(breadboard, p, rotation)
     this.canToggle = true;
 
     this.pulsePaths = [];
-    Component.updateHitbox(breadboard, this, p, [0, 1]);
+    Component.updateHitbox(this, p, this.p1);
 };
 
 DiodeComponent.prototype.clone = function clone(breadboard)
@@ -77,47 +77,49 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
 
 DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
 {
-    var top = drawOptions.top;
-    var left = drawOptions.left;
-    var spacing = drawOptions.spacing;
-
-    if (!p)
-    {
-        p = [left + this.p[0] * spacing, top + this.p[1] * spacing];
-    }
+    var p0 = this.p0;
+    var p1 = this.p1;
 
     var rotationMatrix = RotationMatrix[this.rotation];
+    if (!p)
+    {
+        p = this.p;
+    }
+    else
+    {
+        p0 = p;
+        p1 = AddTransformedVector(p, rotationMatrix, [0, 1]);
+    }
 
-    var screenP0 = gameStage.fromView(p);
-    var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
-
-    ctx.strokeStyle = bgColor;
-    ctx.lineWidth = 6;
+    var radius = Component.connectionBgRadius;
     ctx.fillStyle = bgColor;
-    ctx.beginPath();
-    ctx.arc(screenP0[0], screenP0[1], 6, 0, Math.PI * 2);
-    ctx.moveTo(screenP1[0], screenP1[1]);
-    ctx.arc(screenP1[0], screenP1[1], 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
 
-    ctx.lineWidth = 1.5;
-    var arrowHead0 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing * 0.6]);
-    var arrowLeft0 = AddTransformedVector(screenP0, rotationMatrix, [-spacing * 0.4 + ctx.lineWidth, spacing * 0.3]);
-    var arrowRight0 = AddTransformedVector(screenP0, rotationMatrix, [spacing * 0.4 - ctx.lineWidth, spacing * 0.3]);
+    ctx.beginPath();
+    ctx.arc(p0[0], p0[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(p1[0], p1[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.lineWidth = 0.05;
+    ctx.strokeStyle = bgColor;
+    var arrowHead0 = AddTransformedVector(p0, rotationMatrix, [0, 0.65]);
+    var arrowLeft0 = AddTransformedVector(p0, rotationMatrix, [-Component.border, 0.15]);
+    var arrowRight0 = AddTransformedVector(p0, rotationMatrix, [Component.border, 0.15]);
     ctx.beginPath();
     ctx.moveTo(arrowLeft0[0], arrowLeft0[1]);
     ctx.lineTo(arrowHead0[0], arrowHead0[1]);
     ctx.lineTo(arrowRight0[0], arrowRight0[1]);
     ctx.stroke();
 
-    Component.drawContainer(drawOptions, ctx, bgColor, screenP0, screenP1);
+    Component.drawContainer(drawOptions, ctx, bgColor, p0, p1);
 
     var value0 = drawOptions.getConnectionValue(this.id0);
     var value1 = drawOptions.getConnectionValue(this.id1);
 
-    Component.drawFgNode(drawOptions, ctx, fgColor, value0, screenP0);
-    Component.drawFgNode(drawOptions, ctx, fgColor, value1, screenP1);
+    Component.drawFgNode(ctx, fgColor, value0, p0);
+    Component.drawFgNode(ctx, fgColor, value1, p1);
 };
 
 DiodeComponent.prototype.update = function update()

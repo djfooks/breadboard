@@ -38,7 +38,7 @@ SwitchComponent.prototype.move = function move(breadboard, p, rotation)
     this.canToggle = true;
 
     this.pulsePaths = [];
-    Component.updateHitbox(breadboard, this, p, [0, 1]);
+    Component.updateHitbox(this, p, this.p1);
 };
 
 SwitchComponent.prototype.clone = function clone(breadboard)
@@ -83,59 +83,57 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
 
 SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
 {
-    var top = drawOptions.top;
-    var left = drawOptions.left;
-    var spacing = drawOptions.spacing;
-    var zoom = drawOptions.zoom;
+    var p0 = this.p0;
+    var p1 = this.p1;
 
     if (!p)
     {
-        p = [left + this.p[0] * spacing, top + this.p[1] * spacing];
+        p = this.p;
+    }
+    else
+    {
+        var rotationMatrix = RotationMatrix[this.rotation];
+        p0 = p;
+        p1 = AddTransformedVector(p, rotationMatrix, [0, 1]);
     }
 
-    var rotationMatrix = RotationMatrix[this.rotation];
-
-    var screenP0 = gameStage.fromView(p);
-    var screenP1 = AddTransformedVector(screenP0, rotationMatrix, [0, spacing]);
-
-    var radius = 6 * zoom;
-    ctx.strokeStyle = bgColor;
-    ctx.lineWidth = radius;
+    var radius = Component.connectionBgRadius;
     ctx.fillStyle = bgColor;
-    ctx.beginPath();
-    ctx.arc(screenP0[0], screenP0[1], radius, 0, Math.PI * 2);
-    ctx.moveTo(screenP1[0], screenP1[1]);
-    ctx.arc(screenP1[0], screenP1[1], radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
 
     ctx.beginPath();
+    ctx.arc(p0[0], p0[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(p1[0], p1[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.strokeStyle = bgColor;
     if (this.connected)
     {
-        ctx.lineWidth = 11 * zoom;
-        ctx.moveTo(screenP0[0], screenP0[1]);
-        ctx.lineTo(screenP1[0], screenP1[1]);
+        ctx.beginPath();
+        ctx.lineWidth = 0.3;
+        ctx.moveTo(p0[0], p0[1]);
+        ctx.lineTo(p1[0], p1[1]);
         ctx.stroke();
     }
 
-    Component.drawContainer(drawOptions, ctx, bgColor, screenP0, screenP1);
+    Component.drawContainer(drawOptions, ctx, bgColor, p0, p1);
 
     var value0 = drawOptions.getConnectionValue(this.id0);
     var value1 = drawOptions.getConnectionValue(this.id1);
-    var color;
-    ctx.lineWidth = 3 * zoom;
 
-    Component.drawFgNode(drawOptions, ctx, fgColor, value0, screenP0);
-    Component.drawFgNode(drawOptions, ctx, fgColor, value1, screenP1);
+    Component.drawFgNode(ctx, fgColor, value0, p0);
+    Component.drawFgNode(ctx, fgColor, value1, p1);
 
     ctx.beginPath();
     if (this.connected)
     {
-        color = fgColor || drawOptions.getWireColor(Math.min(value0, value1));
+        var color = fgColor || Wire.getColor(Math.min(value0, value1));
         ctx.strokeStyle = color;
-        ctx.lineWidth = 8 * zoom;
-        ctx.moveTo(screenP0[0], screenP0[1]);
-        ctx.lineTo(screenP1[0], screenP1[1]);
+        ctx.lineWidth = 0.2;
+        ctx.moveTo(p0[0], p0[1]);
+        ctx.lineTo(p1[0], p1[1]);
         ctx.stroke();
     }
 };
