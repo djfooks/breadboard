@@ -10,11 +10,7 @@ function SwitchComponent(breadboard)
     this.p1 = [-1, -1];
 
     this.connected = false;
-    this.bgDirty = true;
-    this.canToggle = true;
-
     this.rotation = 0;
-
     this.pulsePaths = [];
 
     Component.addHitbox(breadboard, this);
@@ -34,8 +30,6 @@ SwitchComponent.prototype.move = function move(breadboard, p, rotation)
     this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
 
-    this.bgDirty = true;
-    this.canToggle = true;
 
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.p1);
@@ -81,7 +75,7 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
+SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
 {
     var p0 = this.p0;
     var p1 = this.p1;
@@ -145,7 +139,6 @@ SwitchComponent.prototype.update = function update()
 SwitchComponent.prototype.toggle = function toggle()
 {
     this.connected = !this.connected;
-    this.bgDirty = true;
 
     var i;
     for (i = 0; i < this.pulsePaths.length; i += 1)

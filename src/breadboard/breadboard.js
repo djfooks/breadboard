@@ -159,6 +159,7 @@ Breadboard.prototype.clear = function clearFn()
     }
     this.wires = [];
     this.virtualWires = [];
+    this.batteries = [];
     this.removeWireId = -1;
     this.dirty = false;
 
@@ -269,6 +270,11 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         else if (componentJson.type === ComponentTypes.RELAY)
         {
             component = new RelayComponent(breadboard);
+        }
+        else if (componentJson.type === ComponentTypes.BATTERY)
+        {
+            component = new BatteryComponent(breadboard);
+            breadboard.batteries.push(component);
         }
         else if (componentJson.type === ComponentTypes.DIODE)
         {
@@ -928,6 +934,11 @@ Breadboard.prototype.addComponent = function addComponent(component)
         this.connections[outputs[i]].components.component = component;
     }
     this.dirty = true;
+
+    if (component.type === ComponentTypes.BATTERY)
+    {
+        this.batteries.push(component);
+    }
 };
 
 Breadboard.prototype.getComponent = function getComponent(p)
@@ -943,15 +954,24 @@ Breadboard.prototype.getComponent = function getComponent(p)
 
 Breadboard.prototype.removeComponent = function removeComponent(component)
 {
-    var i;
-    for (i = 0; i < this.componentsList.length; i += 1)
+    var removeObjectFromList = function removeObjectFromList(list, obj)
     {
-        if (this.componentsList[i] === component)
+        var i;
+        for (i = 0; i < this.componentsList.length; i += 1)
         {
-            this.componentsList.splice(i, 1);
-            break;
+            if (this.componentsList[i] === component)
+            {
+                this.componentsList.splice(i, 1);
+                break;
+            }
         }
+    };
+    removeObjectFromList(this.componentsList, component);
+    if (component.type === ComponentTypes.BATTERY)
+    {
+        removeObjectFromList(this.batteries, component);
     }
+
     var outputs = component.getConnections();
     for (i = 0; i < outputs.length; i += 1)
     {

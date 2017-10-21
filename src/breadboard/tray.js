@@ -13,22 +13,27 @@ function Tray(breadboard)
 
 Tray.prototype.resetComponents = function resetComponents()
 {
+    this.battery = new BatteryComponent(this.breadboard);
+    this.gameStage.addHitbox(this.battery.hitbox);
+    this.battery.move(this.breadboard, [0, 6], 0);
+
     this.switch = new SwitchComponent(this.breadboard);
     this.gameStage.addHitbox(this.switch.hitbox);
-    this.switch.move(this.breadboard, [0, 6], 0);
+    this.switch.move(this.breadboard, [0, 9], 0);
 
     this.relay = new RelayComponent(this.breadboard);
     this.gameStage.addHitbox(this.relay.hitbox);
-    this.relay.move(this.breadboard, [0, 9], 0);
+    this.relay.move(this.breadboard, [0, 12], 0);
 
     this.diode = new DiodeComponent(this.breadboard);
     this.gameStage.addHitbox(this.diode.hitbox);
-    this.diode.move(this.breadboard, [0, 14], 0);
+    this.diode.move(this.breadboard, [0, 17], 0);
 };
 
 Tray.prototype.isFromTray = function isFromTray(component)
 {
     var fromTray = false;
+    fromTray = fromTray || (component === this.battery);
     fromTray = fromTray || (component === this.switch);
     fromTray = fromTray || (component === this.relay);
     fromTray = fromTray || (component === this.diode);
@@ -43,6 +48,7 @@ Tray.prototype.draw = function draw(ctx)
 
     this.gameStage.transformContext(ctx);
 
+    this.battery.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.switch.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.relay.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.diode.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");

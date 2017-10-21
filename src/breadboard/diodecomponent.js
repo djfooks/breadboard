@@ -9,11 +9,7 @@ function DiodeComponent(breadboard)
     this.id1 = -1;
     this.p1 = [-1, -1];
 
-    this.bgDirty = true;
-    this.canToggle = true;
-
     this.rotation = 0;
-
     this.pulsePaths = [];
 
     Component.addHitbox(breadboard, this);
@@ -32,9 +28,6 @@ DiodeComponent.prototype.move = function move(breadboard, p, rotation)
 
     this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
-
-    this.bgDirty = true;
-    this.canToggle = true;
 
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.p1);
@@ -75,7 +68,7 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, gameStage)
+DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
 {
     var p0 = this.p0;
     var p1 = this.p1;

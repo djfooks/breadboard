@@ -3,6 +3,7 @@ var ComponentTypes = {
     SWITCH: 1,
     RELAY: 2,
     DIODE: 3,
+    BATTERY: 4,
 };
 
 var Component = {};

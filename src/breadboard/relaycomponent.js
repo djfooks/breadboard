@@ -15,9 +15,6 @@ function RelayComponent(breadboard)
     this.signalId = -1;
     this.signalP = [-1, -1];
 
-    this.signalValue = false;
-    this.bgDirty = true;
-    this.canToggle = false;
 
     this.pulsePaths = [];
 
@@ -56,9 +53,6 @@ RelayComponent.prototype.move = function move(breadboard, p, rotation)
 
     this.signalP = AddTransformedVector(p, matrix, [0, 3]);
     this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
-
-    this.bgDirty = true;
-    this.canToggle = true;
 
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.signalP);
@@ -183,7 +177,6 @@ RelayComponent.prototype.update = function update(breadboard)
     if (this.signalValue !== signalValue)
     {
         this.signalValue = signalValue;
-        this.bgDirty = true;
     }
 
     var i;
