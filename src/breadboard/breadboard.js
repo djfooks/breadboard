@@ -964,11 +964,16 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
             if (list[i] === obj)
             {
                 list.splice(i, 1);
-                break;
+                return true;
             }
         }
+        return false;
     };
-    removeObjectFromList(this.componentsList, component);
+    if (!removeObjectFromList(this.componentsList, component))
+    {
+        return false;
+    }
+
     if (component.type === ComponentTypes.BATTERY)
     {
         removeObjectFromList(this.batteries, component);
@@ -980,6 +985,7 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
         this.connections[outputs[i]].components.component = null;
     }
     this.dirty = true;
+    return true;
 };
 
 Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
