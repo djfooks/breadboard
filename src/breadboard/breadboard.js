@@ -174,6 +174,7 @@ Breadboard.prototype.clear = function clearFn()
 
     this.simulateSteps = 0;
 
+    this.connectionIdPulseMap = {};
     this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
 };
 
@@ -324,7 +325,8 @@ Breadboard.prototype.update = function update()
     if (this.dirty)
     {
         this.dirtySave = true;
-        // TODO draw wires here too
+
+        this.connectionIdPulseMap = {};
         this.pulsePath.rebuildPaths(this, 0);
         this.pulseReset();
         this.pulsePath.createPulse(1);
@@ -957,11 +959,11 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     var removeObjectFromList = function removeObjectFromList(list, obj)
     {
         var i;
-        for (i = 0; i < this.componentsList.length; i += 1)
+        for (i = 0; i < list.length; i += 1)
         {
-            if (this.componentsList[i] === component)
+            if (list[i] === obj)
             {
-                this.componentsList.splice(i, 1);
+                list.splice(i, 1);
                 break;
             }
         }

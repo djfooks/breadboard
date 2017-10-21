@@ -7,6 +7,7 @@ function PulsePath(id, pathPower, inputId, sourceId)
     this.pathPower = pathPower;
     this.values = new Uint8Array(pathPower);
     this.parent = null;
+    this.wireId = -1;
 
     this.reset();
 }
@@ -53,6 +54,8 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
 
     this.reset();
 
+    this.addConnection(breadboard.connectionIdPulseMap, this.id);
+
     var i;
     for (i = 1; i < this.pathPower; i += 1)
     {
@@ -60,6 +63,95 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
         {
             return;
         }
+    }
+
+    this.recursiveBuildWireIds(breadboard);
+};
+
+PulsePath.prototype.addConnection = function addConnection(connectionIdPulseMap, connectionId)
+{
+    if (connectionIdPulseMap.hasOwnProperty(connectionId))
+    {
+        connectionIdPulseMap[connectionId].push(this);
+    }
+    else
+    {
+        connectionIdPulseMap[connectionId] = [this];
+    }
+}
+
+PulsePath.maxWireId = 0;
+PulsePath.prototype.recursiveBuildWireIds = function recursiveBuildWireIds(breadboard)
+{
+    var overlappingPulses = [];
+    var idToStep = this.idToStep;
+    var id;
+    var i;
+    var connectionIdPulseMap = breadboard.connectionIdPulseMap;
+    for (id in idToStep)
+    {
+        if (idToStep.hasOwnProperty(id))
+        {
+            var pulses = connectionIdPulseMap[id];
+            if (pulses.length === 1)
+            {
+                continue;
+            }
+            for (i = 0; i < pulses.length; i += 1)
+            {
+                var pulse = pulses[i];
+                if (pulse === this)
+                {
+                    continue;
+                }
+                var j;
+                var alreadyOverlapping = false;
+                for (j = 0; j < overlappingPulses.length; j += 1)
+                {
+                    if (overlappingPulses[j] == pulse)
+                    {
+                        alreadyOverlapping = true;
+                        break;
+                    }
+                }
+                if (!alreadyOverlapping)
+                {
+                    overlappingPulses.push(pulse);
+                }
+            }
+        }
+    }
+
+    if (overlappingPulses.length > 255)
+    {
+        throw new Error("Too many paths through 1 wire! (" + overlappingPulses.length + ")");
+    }
+
+    var wireId = 0;
+    while (true)
+    {
+        var wireIdUsed = false;
+        for (i = 0; i < overlappingPulses.length; i += 1)
+        {
+            if (overlappingPulses[i].wireId === wireId)
+            {
+                wireId += 1;
+                wireIdUsed = true;
+            }
+        }
+        if (!wireIdUsed)
+        {
+            this.wireId = wireId;
+            break;
+        }
+    }
+
+    PulsePath.maxWireId = Math.max(PulsePath.maxWireId, wireId);
+
+    var children = this.children;
+    for (i = 0; i < children.length; i += 1)
+    {
+        children[i].recursiveBuildWireIds(breadboard);
     }
 };
 
@@ -104,6 +196,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
     var idToStep = this.idToStep;
     var idToChild = this.idToChild;
     var connections = breadboard.connections;
+    var connectionIdPulseMap = breadboard.connectionIdPulseMap;
 
     var updated = false;
 
@@ -129,6 +222,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                     updated = true;
                     stepToEdges[stepIndex].push(newId);
                     idToStep[newId] = stepIndex;
+                    this.addConnection(connectionIdPulseMap, newId);
                     var component = connections[newId].components.component;
                     if (component)
                     {
@@ -139,6 +233,8 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                             if (outputId !== -1 && !this.hasVisited(outputId))
                             {
                                 var child = new PulsePath(PulsePath.nextId, pathPower, outputId, newId);
+                                child.addConnection(connectionIdPulseMap, outputId);
+
                                 child.parent = this;
                                 this.nextStepChildren.push(child);
                                 component.pulsePaths.push(child);
@@ -181,7 +277,7 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
         {
             var id = edges[j];
             var connection = breadboard.connections[id]
-            connection.setPulseValue(this.id, value);
+            connection.setPulseValue(this.wireId, value);
 
             var children = this.idToChild[id];
             if (children)

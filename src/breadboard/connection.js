@@ -60,10 +60,10 @@ Connection.prototype.getValue = function getValue()
     return count;
 }
 
-Connection.prototype.setPulseValue = function setPulseValue(pulseId, value)
+Connection.prototype.setPulseValue = function setPulseValue(wireId, value)
 {
-    var i = pulseId >> 5;
-    var bit = pulseId & 31;
+    var i = wireId >> 5;
+    var bit = wireId & 31;
     if (value)
     {
         this.values[i] |= 1 << bit;

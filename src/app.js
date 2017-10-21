@@ -96,8 +96,8 @@ App.prototype.update = function update()
         this.nextTick = 30;
     }
 
-    this.save();
     this.breadboard.update();
+    this.save();
 };
 
 App.prototype.updateGame = function updateGame()
