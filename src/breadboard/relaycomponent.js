@@ -21,7 +21,7 @@ function RelayComponent(breadboard)
     Component.addHitbox(breadboard, this);
 }
 
-RelayComponent.type = ComponentTypes.RELAY;
+RelayComponent.prototype.type = ComponentTypes.RELAY;
 
 RelayComponent.prototype.toJson = function toJson()
 {

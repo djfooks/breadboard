@@ -15,7 +15,7 @@ function DiodeComponent(breadboard)
     Component.addHitbox(breadboard, this);
 }
 
-DiodeComponent.type = ComponentTypes.DIODE;
+DiodeComponent.prototype.type = ComponentTypes.DIODE;
 
 DiodeComponent.prototype.move = function move(breadboard, p, rotation)
 {

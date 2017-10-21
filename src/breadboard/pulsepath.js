@@ -1,7 +1,6 @@
 
-function PulsePath(id, pathPower, inputId, sourceId)
+function PulsePath(pathPower, inputId, sourceId)
 {
-    this.id = id;
     this.inputId = inputId;
     this.sourceId = sourceId;
     this.pathPower = pathPower;
@@ -54,7 +53,7 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
 
     this.reset();
 
-    this.addConnection(breadboard.connectionIdPulseMap, this.id);
+    this.addConnection(breadboard.connectionIdPulseMap, this.inputId);
 
     var i;
     for (i = 1; i < this.pathPower; i += 1)
@@ -64,8 +63,6 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
             return;
         }
     }
-
-    this.recursiveBuildWireIds(breadboard);
 };
 
 PulsePath.prototype.addConnection = function addConnection(connectionIdPulseMap, connectionId)
@@ -232,7 +229,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                             var outputId = outputIds[k];
                             if (outputId !== -1 && !this.hasVisited(outputId))
                             {
-                                var child = new PulsePath(PulsePath.nextId, pathPower, outputId, newId);
+                                var child = new PulsePath(pathPower, outputId, newId);
                                 child.addConnection(connectionIdPulseMap, outputId);
 
                                 child.parent = this;

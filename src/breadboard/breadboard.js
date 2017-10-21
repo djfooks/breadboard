@@ -175,7 +175,6 @@ Breadboard.prototype.clear = function clearFn()
     this.simulateSteps = 0;
 
     this.connectionIdPulseMap = {};
-    this.pulsePath = new PulsePath(0, 50, this.getIndex(0, 0), -1);
 };
 
 Breadboard.state = {
@@ -320,20 +319,32 @@ Breadboard.prototype.drawGrid = function drawGrid()
     ctx.stroke();
 };
 
+Breadboard.prototype.iterateBatteryPulsePaths = function iterateBatteryPulsePaths(fn)
+{
+    var i;
+    for (i = 0; i < this.batteries.length; i += 1)
+    {
+        fn(this.batteries[i].pulsePaths[0]);
+    }
+};
+
 Breadboard.prototype.update = function update()
 {
+    var that = this;
     if (this.dirty)
     {
         this.dirtySave = true;
 
         this.connectionIdPulseMap = {};
-        this.pulsePath.rebuildPaths(this, 0);
+        this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.rebuildPaths(that); });
+        this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.recursiveBuildWireIds(that); });
+
         this.pulseReset();
-        this.pulsePath.createPulse(1);
+        this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.createPulse(1); });
     }
 
     this.gameStage.update();
-    this.pulsePath.updatePulses(this);
+    this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.updatePulses(that); });
     this.updateComponents();
     this.draw();
 

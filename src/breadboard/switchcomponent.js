@@ -16,7 +16,7 @@ function SwitchComponent(breadboard)
     Component.addHitbox(breadboard, this);
 }
 
-SwitchComponent.type = ComponentTypes.SWITCH;
+SwitchComponent.prototype.type = ComponentTypes.SWITCH;
 
 SwitchComponent.prototype.move = function move(breadboard, p, rotation)
 {
