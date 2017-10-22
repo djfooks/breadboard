@@ -40,6 +40,7 @@ Tray.prototype.isFromTray = function isFromTray(component)
     fromTray = fromTray || (component === this.battery);
     fromTray = fromTray || (component === this.switch);
     fromTray = fromTray || (component === this.relay);
+    fromTray = fromTray || (component === this.diode);
     fromTray = fromTray || (component === this.debugger);
     return fromTray;
 };
@@ -55,6 +56,7 @@ Tray.prototype.draw = function draw(ctx)
     this.battery.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.switch.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.relay.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
+    this.diode.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.debugger.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
 
     ctx.restore();
