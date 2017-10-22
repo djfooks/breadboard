@@ -38,12 +38,14 @@ DebuggerComponent.prototype.toJson = function toJson()
     return {
         type: ComponentTypes.DEBUGGER,
         p: this.p,
-        rotation: this.rotation
+        rotation: this.rotation,
+        value: this.value,
     };
 };
 
 DebuggerComponent.prototype.stateFromJson = function stateFromJson(json)
 {
+    this.value = json.value | 0;
 };
 
 DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
@@ -185,9 +187,13 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
     {
         this.value -= 1;
     }
-    else
+    else if (keyCode <= "0".charCodeAt(0) && keyCode >= "9".charCodeAt(0))
     {
         this.value = (this.value + key) | 0;
+    }
+    else
+    {
+        return;
     }
 
     if (this.value < 0 || this.value > 255)
@@ -195,16 +201,18 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
         this.value = 0;
     }
 
-    this.updateValue();
+    this.updateValue(breadboard);
 };
 
-DebuggerComponent.prototype.updateValue = function updateValue(breadboard, p)
+DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
 {
     if (this.previousValue === this.value)
     {
         return;
     }
     this.previousValue = this.value;
+
+    breadboard.dirtySave = true;
 
     var i;
     var j;
