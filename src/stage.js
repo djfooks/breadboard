@@ -9,6 +9,7 @@ function Hitbox(minX, minY, maxX, maxY)
     this.onMouseUp = null;
     this.onMouseDown = null;
     this.onMouseMove = null;
+    this.onKeyDown = null;
 }
 
 Hitbox.prototype.getWidth = function getWidth()
@@ -130,6 +131,14 @@ Stage.prototype.mouseMove = function mouseMove(e)
     }
 };
 
+Stage.prototype.keyDown = function keyDown(e)
+{
+    if (this.onKeyDown)
+    {
+        this.onKeyDown(e.key, e.keyCode);
+    }
+};
+
 Stage.prototype.wheel = function wheel(e)
 {
     this.onWheel(e.deltaY);
@@ -145,6 +154,7 @@ Stage.prototype.enable = function enable()
     c.addEventListener("mouseup", this.mouseUp.bind(this));
     c.addEventListener("mousemove", this.mouseMove.bind(this));
     c.addEventListener("wheel", this.wheel.bind(this));
+    c.addEventListener("keydown", this.keyDown.bind(this));
 };
 
 Stage.prototype.getCanvasPosition = function getCanvasPosition(e, p)

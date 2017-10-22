@@ -16,14 +16,14 @@ function DebuggerComponent(breadboard)
         this.pinP.push([-1, -1]);
     }
 
-    this.value = 13;
+    this.previousValue = 0;
+    this.value = 0;
+    this.editingValue = false;
     this.debugType = DebuggerComponent.debugType.WRITE;
 
     this.pulsePaths = [];
 
     Component.addHitbox(breadboard, this);
-
-    this.textBoxElement = null;
 }
 
 DebuggerComponent.debugType = {
@@ -140,7 +140,7 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = bgColor;
+    ctx.fillStyle = this.editingValue ? "#FF0000" : bgColor;
     var textPos = AddTransformedVector(p, rotationMatrix, [5.9, 0.3])
     ctx.textAlign="right";
     ctx.font = "bold 0.9px Courier New";
@@ -165,6 +165,72 @@ DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
     return connections;
 };
 
+DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyCode)
+{
+    if (keyCode === 13)
+    {
+        this.editingValue = false;
+        breadboard.unregisterKeyDown();
+        return;
+    }
+    if (keyCode === 8)
+    {
+        this.value = (this.value / 10) | 0;
+    }
+    else if (key === "+")
+    {
+        this.value += 1;
+    }
+    else if (key === "-")
+    {
+        this.value -= 1;
+    }
+    else
+    {
+        this.value = (this.value + key) | 0;
+    }
+
+    if (this.value < 0 || this.value > 255)
+    {
+        this.value = 0;
+    }
+
+    this.updateValue();
+};
+
+DebuggerComponent.prototype.updateValue = function updateValue(breadboard, p)
+{
+    if (this.previousValue === this.value)
+    {
+        return;
+    }
+    this.previousValue = this.value;
+
+    var i;
+    var j;
+    for (i = 0; i < this.pulsePaths.length; i += 1)
+    {
+        var child = this.pulsePaths[i];
+        for (j = 0; j < this.pinId.length; j += 1)
+        {
+            if (this.pinId[j] === child.inputId)
+            {
+                var connected = (this.value & (1 << (7 - j))) !== 0;
+                if (connected)
+                {
+                    var parent = child.parent;
+                    var parentStep = parent.idToStep[child.sourceId];
+                    child.createPulse(parent.values[parentStep]);
+                }
+                else
+                {
+                    child.createPulse(0);
+                }
+            }
+        }
+    }
+}
+
 DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
 {
     if (this.textBoxElement)
@@ -179,6 +245,8 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
     var max = [Math.max(screen0[0], screen1[0]), Math.max(screen0[1], screen1[1])];
     if (p[0] >= min[0] && p[0] <= max[0] && p[1] >= min[1] && p[1] <= max[1])
     {
+        this.editingValue = true;
+        breadboard.registerKeyDown(this.onKeyDown.bind(this));
     }
 };
 

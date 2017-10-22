@@ -78,6 +78,9 @@ function Breadboard(stage, top, left, cols, rows)
     this.stage.onMouseUp = this.onMouseUp.bind(this);
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
     this.stage.onWheel = this.onWheel.bind(this);
+    this.stage.onKeyDown = this.onKeyDown.bind(this);
+
+    this.onKeyDownFn = null;
 
     this.gameStage = new GameStage(1, 1, 601, 601);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
@@ -1100,4 +1103,22 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 Breadboard.prototype.onWheel = function onWheel(deltaY)
 {
     this.gameStage.zoomDelta(-deltaY);
+};
+
+Breadboard.prototype.onKeyDown = function onKeyDown(key, keyCode)
+{
+    if (this.onKeyDownFn)
+    {
+        this.onKeyDownFn(this, key, keyCode);
+    }
+};
+
+Breadboard.prototype.registerKeyDown = function registerKeyDown(fn)
+{
+    this.onKeyDownFn = fn;
+};
+
+Breadboard.prototype.unregisterKeyDown = function unregisterKeyDown(fn)
+{
+    this.onKeyDownFn = null;
 };
