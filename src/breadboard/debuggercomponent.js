@@ -149,10 +149,6 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
 
 DebuggerComponent.prototype.update = function update(breadboard)
 {
-    if (this.textBoxElement)
-    {
-        this.updateTextboxPosition(breadboard);
-    }
 };
 
 DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
@@ -169,50 +165,6 @@ DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
     return connections;
 };
 
-DebuggerComponent.prototype.updateTextboxPosition = function updateTextboxPosition(breadboard)
-{
-    var rotationMatrix = RotationMatrix[this.rotation];
-    var screen0 = AddTransformedVector(this.p, rotationMatrix, [1, 0]);
-    var screen1 = AddTransformedVector(this.p, rotationMatrix, [6, 0]);
-    var min = [Math.min(screen0[0], screen1[0]), Math.min(screen0[1], screen1[1])];
-    var max = [Math.max(screen0[0], screen1[0]), Math.max(screen0[1], screen1[1])];
-
-    var textBoxElement = this.textBoxElement;
-    var gamePopup = document.getElementById("gamePopup");
-    var canvas = document.getElementById("canvas");
-    var rect = canvas.getBoundingClientRect();
-    gamePopup.style.position = "absolute";
-    var border = Component.border - Component.borderLineWidth;
-    var screenMin = breadboard.gameStage.fromView([min[0] - border, min[1] - border]);
-    var screenMax = breadboard.gameStage.fromView([max[0] + border, max[1] + border]);
-    gamePopup.style.left = (rect.left + screenMin[0] - 1) + "px";
-    gamePopup.style.top = (rect.top + screenMin[1] - 1) + "px";
-    gamePopup.style.padding = "0px";
-    gamePopup.style.margin = "0px";
-    textBoxElement.style.border = "none";
-    textBoxElement.style["border-color"] = "transparent";
-    textBoxElement.style["text-align"] = "right";
-    textBoxElement.style.font = "bold Courier New";
-    textBoxElement.style.position = "absolute";
-    textBoxElement.style.padding = "0px";
-    textBoxElement.style.margin = "0px";
-    textBoxElement.style.width = (screenMax[0] - screenMin[0] - 2) + "px";
-    textBoxElement.style.height = (screenMax[1] - screenMin[1] - 2) + "px";
-
-    // var drawDebugFn = function drawDebug(ctx)
-    // {
-    //     ctx.strokeStyle = "#FF0000";
-    //     ctx.lineWidth = 1;
-    //     ctx.moveTo(screenMin[0], screenMin[1]);
-    //     ctx.lineTo(screenMin[0], screenMax[1]);
-    //     ctx.lineTo(screenMax[0], screenMax[1]);
-    //     ctx.lineTo(screenMax[0], screenMin[1]);
-    //     ctx.lineTo(screenMin[0], screenMin[1]);
-    //     ctx.stroke();
-    // };
-    // breadboard.debugDrawList.push(drawDebugFn);
-};
-
 DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
 {
     if (this.textBoxElement)
@@ -227,11 +179,6 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
     var max = [Math.max(screen0[0], screen1[0]), Math.max(screen0[1], screen1[1])];
     if (p[0] >= min[0] && p[0] <= max[0] && p[1] >= min[1] && p[1] <= max[1])
     {
-        var input = document.createElement("input");
-        input.type = "text";
-        this.textBoxElement = input;
-        this.updateTextboxPosition(breadboard);
-        gamePopup.appendChild(this.textBoxElement);
     }
 };
 
