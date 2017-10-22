@@ -18,6 +18,11 @@ function BatteryComponent(breadboard)
 
 BatteryComponent.prototype.type = ComponentTypes.BATTERY;
 
+BatteryComponent.prototype.createPulsePath = function createPulsePath()
+{
+    this.pulsePaths = [new PulsePath(this.strength, this.id1, -1)];
+};
+
 BatteryComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
@@ -30,7 +35,6 @@ BatteryComponent.prototype.move = function move(breadboard, p, rotation)
     this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
 
-    this.pulsePaths = [new PulsePath(this.strength, this.id1, -1)];
     Component.updateHitbox(this, p, this.p1);
 };
 

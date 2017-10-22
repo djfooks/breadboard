@@ -345,6 +345,18 @@ Breadboard.prototype.update = function update()
         this.dirtySave = true;
 
         this.connectionIdPulseMap = {};
+
+        var componentsList = this.componentsList;
+        var i;
+        for (i = 0; i < componentsList.length; i += 1)
+        {
+            componentsList[i].pulsePaths = [];
+        }
+        for (i = 0; i < this.batteries.length; i += 1)
+        {
+            this.batteries[i].createPulsePath();
+        }
+
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.rebuildPaths(that); });
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.recursiveBuildWireIds(that); });
 
