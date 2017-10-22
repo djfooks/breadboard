@@ -111,9 +111,12 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     var radius = Component.connectionBgRadius;
     ctx.fillStyle = bgColor;
 
-    ctx.beginPath();
-    ctx.arc(p[0], p[1], radius, 0, Math.PI * 2.0);
-    ctx.fill();
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    {
+        ctx.beginPath();
+        ctx.arc(p[0], p[1], radius, 0, Math.PI * 2.0);
+        ctx.fill();
+    }
 
     for (i = 0; i < 8; i += 1)
     {
@@ -126,8 +129,11 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.stroke();
 
     var color;
-    var value0 = drawOptions.getConnectionValue(this.powerId);
-    Component.drawFgNode(ctx, fgColor, value0, p);
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    {
+        var value0 = drawOptions.getConnectionValue(this.powerId);
+        Component.drawFgNode(ctx, fgColor, value0, p);
+    }
 
     for (i = 0; i < 8; i += 1)
     {
@@ -147,10 +153,70 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.textAlign="right";
     ctx.font = "bold 0.9px Courier New";
     ctx.fillText(this.value, textPos[0], textPos[1]);
+
+    var cogP = AddTransformedVector(p, rotationMatrix, [7, 0]);
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.arc(cogP[0], cogP[1], 0.35, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(cogP[0], cogP[1], 0.3, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    var innerRadius = 0.15;
+    var outerRadius = 0.25;
+    var teeth = 8;
+    var inSize = 0.3;
+    var teethSize = 0.15;
+    ctx.beginPath();
+    ctx.lineCap = "round";
+    var firstPos = null;
+    for (i = 0; i < teeth; i += 1)
+    {
+        var angle = (Math.PI * 2 / teeth) * i + 0.3;
+        var inAngle0 = angle - inSize;
+        var inAngle1 = angle + inSize;
+        var in0 = [cogP[0] + Math.sin(inAngle0) * innerRadius, cogP[1] + Math.cos(inAngle0) * innerRadius];
+        var in1 = [cogP[0] + Math.sin(inAngle1) * innerRadius, cogP[1] + Math.cos(inAngle1) * innerRadius];
+        var toothAngle0 = angle - teethSize;
+        var toothAngle1 = angle + teethSize;
+        var tooth0 = [cogP[0] + Math.sin(toothAngle0) * outerRadius, cogP[1] + Math.cos(toothAngle0) * outerRadius];
+        var tooth1 = [cogP[0] + Math.sin(toothAngle1) * outerRadius, cogP[1] + Math.cos(toothAngle1) * outerRadius];
+        if (!firstPos)
+        {
+            ctx.moveTo(in0[0], in0[1]);
+            firstPos = in0;
+        }
+        else
+        {
+            ctx.lineTo(in0[0], in0[1]);
+        }
+        ctx.lineTo(tooth0[0], tooth0[1]);
+        ctx.lineTo(tooth1[0], tooth1[1]);
+        ctx.lineTo(in1[0], in1[1]);
+    }
+    ctx.lineTo(firstPos[0], firstPos[1]);
+    ctx.stroke();
+    ctx.lineCap = "butt";
 };
 
 DebuggerComponent.prototype.update = function update(breadboard)
 {
+    if (this.debugType === DebuggerComponent.debugType.READ)
+    {
+        this.value = 0;
+        var i;
+        for (i = 0; i < 8; i += 1)
+        {
+            if (breadboard.connections[this.pinId[i]].isOn())
+            {
+                this.value |= (1 << (7 - i));
+            }
+        }
+        this.previousValue = this.value;
+    }
 };
 
 DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
@@ -160,9 +226,12 @@ DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
     var i;
     for (i = 0; i < 8; i += 1)
     {
+        connections.push(this.pinId[0]);
+    }
+    for (i = 0; i < 7; i += 1)
+    {
         var screenP = AddTransformedVector(this.p, rotationMatrix, [i + 1, 0]);
         connections.push(breadboard.getIndex(screenP[0], screenP[1]));
-        connections.push(this.pinId[0]);
     }
     return connections;
 };
@@ -212,6 +281,7 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
     }
     this.previousValue = this.value;
 
+    var write = (this.debugType === DebuggerComponent.debugType.WRITE);
     breadboard.dirtySave = true;
 
     var i;
@@ -224,7 +294,7 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
             if (this.pinId[j] === child.inputId)
             {
                 var connected = (this.value & (1 << (7 - j))) !== 0;
-                if (connected)
+                if (connected && write)
                 {
                     var parent = child.parent;
                     var parentStep = parent.idToStep[child.sourceId];
@@ -247,6 +317,30 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
     }
 
     var rotationMatrix = RotationMatrix[this.rotation];
+    var configure = AddTransformedVector(this.p, rotationMatrix, [7, 0]);
+    if (p[0] === configure[0] && p[1] === configure[1])
+    {
+        if (this.debugType === DebuggerComponent.debugType.WRITE)
+        {
+            this.debugType = DebuggerComponent.debugType.READ;
+            this.editingValue = false;
+            breadboard.unregisterKeyDown();
+            this.value = 0;
+            this.updateValue(breadboard);
+        }
+        else
+        {
+            this.debugType = DebuggerComponent.debugType.WRITE;
+        }
+        breadboard.dirty = true;
+        return;
+    }
+
+    if (this.debugType === DebuggerComponent.debugType.READ)
+    {
+        return;
+    }
+
     var screen0 = AddTransformedVector(this.p, rotationMatrix, [1, 0]);
     var screen1 = AddTransformedVector(this.p, rotationMatrix, [6, 0]);
     var min = [Math.min(screen0[0], screen1[0]), Math.min(screen0[1], screen1[1])];
@@ -286,6 +380,11 @@ DebuggerComponent.prototype.getOutputs = function getOutputs(id)
 
 DebuggerComponent.prototype.isConnected = function isConnected(id0, id1)
 {
+    if (this.debugType === DebuggerComponent.debugType.READ)
+    {
+        return false;
+    }
+
     var otherId;
     if (id0 === this.powerId)
     {
