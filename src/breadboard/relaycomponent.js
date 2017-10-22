@@ -140,7 +140,8 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     }
     ctx.stroke();
 
-    Component.drawContainer(drawOptions, ctx, bgColor, outP0, signalP);
+    Component.containerPath(drawOptions, ctx, bgColor, outP0, signalP);
+    ctx.stroke();
 
     var color;
     var value0 = drawOptions.getConnectionValue(this.outId0);

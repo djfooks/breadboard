@@ -4,11 +4,13 @@ var ComponentTypes = {
     RELAY: 2,
     DIODE: 3,
     BATTERY: 4,
+    DEBUGGER: 5,
 };
 
 var Component = {};
 
 Component.border = 0.45;
+Component.borderLineWidth = 0.05;
 
 Component.addHitbox = function addHitbox(breadboard, component)
 {
@@ -40,7 +42,7 @@ Component.updateHitbox = function updateHitbox(component, p0, p1)
     hitbox.maxY = max[1] + border;
 };
 
-Component.drawContainer = function drawContainer(drawOptions, ctx, bgColor, p0, p1)
+Component.containerPath = function containerPath(drawOptions, ctx, bgColor, p0, p1)
 {
     var border = Component.border;
     var min = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1])];
@@ -51,14 +53,13 @@ Component.drawContainer = function drawContainer(drawOptions, ctx, bgColor, p0, 
     var y1 = max[1] + border;
 
     ctx.beginPath();
-    ctx.lineWidth = 0.05;
+    ctx.lineWidth = Component.borderLineWidth;
     ctx.strokeStyle = bgColor;
     ctx.moveTo(x0, y0);
     ctx.lineTo(x0, y1);
     ctx.lineTo(x1, y1);
     ctx.lineTo(x1, y0);
     ctx.lineTo(x0, y0);
-    ctx.stroke();
 };
 
 Component.connectionFgRadius = 0.25;

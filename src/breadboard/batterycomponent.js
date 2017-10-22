@@ -16,7 +16,7 @@ function BatteryComponent(breadboard)
     Component.addHitbox(breadboard, this);
 }
 
-BatteryComponent.type = ComponentTypes.BATTERY;
+BatteryComponent.prototype.type = ComponentTypes.BATTERY;
 
 BatteryComponent.prototype.move = function move(breadboard, p, rotation)
 {
@@ -124,7 +124,9 @@ BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fg
     ctx.stroke();
     ctx.lineCap = "butt";
 
-    Component.drawContainer(drawOptions, ctx, bgColor, p0, p1);
+    Component.containerPath(drawOptions, ctx, bgColor, p0, p1);
+    ctx.stroke();
+
     Component.drawFgNode(ctx, null, 1, p1);
 };
 

@@ -106,7 +106,8 @@ DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     ctx.lineTo(arrowRight0[0], arrowRight0[1]);
     ctx.stroke();
 
-    Component.drawContainer(drawOptions, ctx, bgColor, p0, p1);
+    Component.containerPath(drawOptions, ctx, bgColor, p0, p1);
+    ctx.stroke();
 
     var value0 = drawOptions.getConnectionValue(this.id0);
     var value1 = drawOptions.getConnectionValue(this.id1);

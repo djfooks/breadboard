@@ -72,6 +72,8 @@ function Breadboard(stage, top, left, cols, rows)
 {
     this.stage = stage;
 
+    this.debugDrawList = [];
+
     this.stage.onMouseDown = this.onMouseDown.bind(this);
     this.stage.onMouseUp = this.onMouseUp.bind(this);
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
@@ -280,6 +282,10 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             component = new DiodeComponent(breadboard);
         }
+        else if (componentJson.type === ComponentTypes.DEBUGGER)
+        {
+            component = new DebuggerComponent(breadboard);
+        }
         breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p, componentJson.rotation | 0);
@@ -383,7 +389,7 @@ Breadboard.prototype.pulseReset = function pulseReset()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        var outputs = componentsList[i].getConnections();
+        var outputs = componentsList[i].getConnections(this);
         var j;
         for (j = 0; j < outputs.length; j += 1)
         {
@@ -432,6 +438,12 @@ Breadboard.prototype.draw = function draw()
     else
     {
         this.drawDraggedComponents();
+    }
+
+    var i;
+    for (i = 0; i < this.debugDrawList.length; i += 1)
+    {
+        this.debugDrawList[i](ctx);
     }
 };
 
@@ -841,7 +853,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         var component = this.getComponent(q);
         if (component)
         {
-            component.toggle();
+            component.toggle(this, q);
             this.dirtySave = true;
         }
     }
@@ -940,7 +952,7 @@ Breadboard.prototype.rotateComponent = function rotateComponent(component)
 Breadboard.prototype.addComponent = function addComponent(component)
 {
     this.componentsList.push(component);
-    var outputs = component.getConnections();
+    var outputs = component.getConnections(this);
     var i;
     for (i = 0; i < outputs.length; i += 1)
     {
@@ -990,7 +1002,7 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
         removeObjectFromList(this.batteries, component);
     }
 
-    var outputs = component.getConnections();
+    var outputs = component.getConnections(this);
     for (i = 0; i < outputs.length; i += 1)
     {
         this.connections[outputs[i]].components.component = null;
