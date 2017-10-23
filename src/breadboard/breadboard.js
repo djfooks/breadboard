@@ -106,18 +106,18 @@ function Breadboard(stage, top, left, cols, rows)
     var buttons = this.buttons = [];
     var that = this;
     this.imagesRequested = 0;
-    function addButton(texture, x, y, state, first)
+    function addButton(texture, x, y, state, subState, first)
     {
         var button = new Button(x, y, 30, 30);
         function onClick()
         {
             that.disableButtons();
             that.state = state;
+            that.subState = subState;
             that.enableButton(button);
         }
         button.hitbox.onMouseUp = onClick;
-        button.disabledTexture = texture + ".png";
-        button.enabledTexture = texture + "-enabled.png";
+        button.texture = texture + ".png";
         button.enabled = false;
 
         stage.addButton(button);
@@ -130,9 +130,10 @@ function Breadboard(stage, top, left, cols, rows)
         return button;
     }
 
-    this.addWireButton    = addButton("jack-plug",   655, 0,  Breadboard.state.ADD_WIRE, true);
-    this.removeWireButton = addButton("cancel",      655, 40, Breadboard.state.REMOVE_WIRE);
-    this.moveButton       = addButton("move",        655, 80, Breadboard.state.MOVE);
+    this.addBlackWireButton = addButton("jack-plug-black",   655, 10,  Breadboard.state.ADD_WIRE, 0, true);
+    this.addBlueWireButton  = addButton("jack-plug-blue",    655, 50,  Breadboard.state.ADD_WIRE, 1);
+    this.removeWireButton   = addButton("cancel",            655, 90,  Breadboard.state.REMOVE_WIRE);
+    this.moveButton         = addButton("move",              655, 130, Breadboard.state.MOVE);
 
     this.tray = new Tray(this);
     this.tray.gameStage.onMouseDown = this.onMouseDown.bind(this);
@@ -148,8 +149,7 @@ Breadboard.prototype.postLoad = function postLoad()
     for (i = 0; i < buttons.length; i += 1)
     {
         var button = buttons[i];
-        button.enabledTexture = TextureManager.get(button.enabledTexture);
-        button.disabledTexture = TextureManager.get(button.disabledTexture);
+        button.texture = TextureManager.get(button.texture);
     }
 }
 
@@ -210,12 +210,20 @@ Breadboard.prototype.drawButtons = function drawButtons()
     var ctx = this.stage.ctx;
     var i;
     var buttons = this.buttons;
+    ctx.lineWidth = 2;
     for (i = 0; i < buttons.length; i += 1)
     {
         var button = buttons[i];
-        var texture = button.enabled ? button.enabledTexture : button.disabledTexture;
         var hitbox = button.hitbox;
-        ctx.drawImage(texture, hitbox.minX, hitbox.minY, hitbox.getWidth(), hitbox.getHeight());
+        ctx.strokeStyle = button.enabled ? "#FF0000" : "#000000";
+        ctx.beginPath();
+        ctx.moveTo(hitbox.minX, hitbox.minY);
+        ctx.lineTo(hitbox.minX, hitbox.maxY);
+        ctx.lineTo(hitbox.maxX, hitbox.maxY);
+        ctx.lineTo(hitbox.maxX, hitbox.minY);
+        ctx.lineTo(hitbox.minX, hitbox.minY);
+        ctx.stroke();
+        ctx.drawImage(button.texture, hitbox.minX, hitbox.minY, hitbox.getWidth(), hitbox.getHeight());
     }
 };
 

@@ -67,12 +67,10 @@ var App = function ()
     document.body.onmousedown = function(e) { if (e.button === 1) return false; }
 
     this.loading = true;
-    TextureManager.request("jack-plug.png");
-    TextureManager.request("jack-plug-enabled.png");
+    TextureManager.request("jack-plug-black.png");
+    TextureManager.request("jack-plug-blue.png");
     TextureManager.request("cancel.png");
-    TextureManager.request("cancel-enabled.png");
     TextureManager.request("move.png");
-    TextureManager.request("move-enabled.png");
 };
 
 App.prototype.update = function update()
