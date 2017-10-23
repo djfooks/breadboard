@@ -256,7 +256,7 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
     {
         this.value -= 1;
     }
-    else if (keyCode <= "0".charCodeAt(0) && keyCode >= "9".charCodeAt(0))
+    else if (key === "0" || (key | 0) !== 0)
     {
         this.value = (this.value + key) | 0;
     }
