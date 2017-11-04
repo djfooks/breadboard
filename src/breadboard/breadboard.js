@@ -685,7 +685,7 @@ Breadboard.prototype.wireRemoveUpdate = function wirePlaceUpdate(p, virtual)
     else
     {
         var id = this.getIndex(p[0], p[1]);
-        var wires = this.connections[id].components.wires;
+        var wires = this.connections[id].wires;
         while (wires.length)
         {
             this.removeWire(wires[0]);
@@ -930,7 +930,7 @@ Breadboard.prototype.getComponent = function getComponent(p)
     }
 
     var id0 = this.getIndex(p[0], p[1]);
-    return this.connections[id0].components.component;
+    return this.connections[id0].component;
 };
 
 Breadboard.prototype.removeComponent = function removeComponent(component)

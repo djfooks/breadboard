@@ -1,12 +1,9 @@
 
 function Connection()
 {
-    // TODO rename this to wireBits and get rid of components struct
-    this.wires = 0;
-    this.components = {
-        wires: [],
-        component: null
-    };
+    this.wireBits = 0;
+    this.wires = [];
+    this.component = null;
     var pulsePaths = this.pulsePaths = new Array(4);
     var pulsePathSteps = this.pulsePathSteps = new Array(4);
     this.reset();
@@ -117,44 +114,44 @@ Connection.prototype.reset = function reset()
 
 Connection.prototype.addWire = function addWire(id, direction)
 {
-    this.wires |= direction;
+    this.wireBits |= direction;
     this.updateHasDot(id);
 };
 
 Connection.prototype.removeWire = function removeWire(id, direction)
 {
-    this.wires &= ~direction;
+    this.wireBits &= ~direction;
     this.updateHasDot(id);
 };
 
 Connection.prototype.addWireComponent = function addWireComponent(id, component)
 {
-    this.components.wires.push(component);
+    this.wires.push(component);
     this.updateHasDot(id);
 };
 
 Connection.prototype.removeWireComponent = function removeWireComponent(id, component)
 {
-    var index = this.components.wires.indexOf(component);
-    this.components.wires.splice(index, 1);
+    var index = this.wires.indexOf(component);
+    this.wires.splice(index, 1);
     this.updateHasDot(id);
 };
 
 Connection.prototype.setComponent = function setComponent(id, component)
 {
-    this.components.component = component;
+    this.component = component;
     this.updateHasDot(id);
 };
 
 Connection.prototype.updateHasDot = function updateHasDot(id)
 {
-    if (this.components.component)
+    if (this.component)
     {
         this.hasDot = true;
         return;
     }
     var i;
-    var wires = this.components.wires;
+    var wires = this.wires;
     for (i = 0; i < wires.length; i += 1)
     {
         if (id === wires[i].id0 || id === wires[i].id1)

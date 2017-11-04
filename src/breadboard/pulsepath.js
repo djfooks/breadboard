@@ -247,7 +247,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                 idToDirectionsVisited[newId] |= (1 << (directionIndex % 4));
             }
             connection.addPulsePathStep(directionIndex, that, stepIndex);
-            var component = connection.components.component;
+            var component = connection.component;
             if (component)
             {
                 var outputIds = component.getOutputs(newId);
@@ -292,7 +292,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
             var dirBit = 1;
             for (j = 0; j < 8; j += 1)
             {
-                if ((connection.wires & dirBit) > 0)
+                if ((connection.wireBits & dirBit) > 0)
                 {
                     flowOut(id, j);
                 }
@@ -329,7 +329,7 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
             if (children)
             {
                 var connection = breadboard.connections[id];
-                var component = connection.components.component;
+                var component = connection.component;
                 for (k = 0; k < children.length; k += 1)
                 {
                     var child = children[k];
