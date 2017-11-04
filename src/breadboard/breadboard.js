@@ -464,7 +464,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
 
     var that = this;
     var connections = this.connections;
-    var circlesDrawn = {};
+    var circles = {};
 
     for (i = 0; i < wires.length; i += 1)
     {
@@ -483,16 +483,15 @@ Breadboard.prototype.drawWires = function drawWires(wires)
                 removing = true;
             }
             var connection = connections[id];
-            if (circlesDrawn[id] || !connection.hasDot)
+            if (!circles[id] && connection.hasDot)
             {
-                return;
-            }
-            circlesDrawn[id] = true;
+                circles[id] = [x, y];
 
-            ctx.fillStyle = "#000000";
-            ctx.beginPath();
-            ctx.arc(x, y, 0.2, 0, Math.PI * 2);
-            ctx.fill();
+                ctx.fillStyle = "#000000";
+                ctx.beginPath();
+                ctx.arc(x, y, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
         });
 
         ctx.strokeStyle = "#000000";
@@ -506,32 +505,19 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         ctx.moveTo(x0, y0);
         ctx.lineTo(x1, y1);
         ctx.stroke();
-    }
 
-    var circlesDrawn = {};
-    for (i = 0; i < wires.length; i += 1)
-    {
-        var wire = wires[i];
         var start = [wire.x0, wire.y0];
         var connection = connections[wire.id0];
         if (!connection)
         {
             continue;
         }
-        var value = connection.getValue();
+
         wire.iterate(function wireIterateCurrent(x, y)
         {
             var id = that.getIndex(x, y);
             var connection = connections[id];
             var connectionValue = connection.getDirectionValue(wire.directionId);
-            if (circlesDrawn[id] || connection.hasDot)
-            {
-                circlesDrawn[id] = true;
-                ctx.fillStyle = Wire.getColor(connectionValue);
-                ctx.beginPath();
-                ctx.arc(x, y, 0.15, 0, Math.PI * 2);
-                ctx.fill();
-            }
             if (value !== connectionValue)
             {
                 ctx.strokeStyle = Wire.getColor(value);
@@ -554,6 +540,28 @@ Breadboard.prototype.drawWires = function drawWires(wires)
             ctx.moveTo(start[0], start[1]);
             ctx.lineTo(wire.x1, wire.y1);
             ctx.stroke();
+        }
+    }
+
+    var id;
+    for (id in circles)
+    {
+        if (circles.hasOwnProperty(id))
+        {
+            id = id | 0;
+            var x = circles[id][0];
+            var y = circles[id][1];
+            var connection = connections[id];
+            if (!connection)
+            {
+                continue;
+            }
+            var value = connection.getValue();
+
+            ctx.fillStyle = Wire.getColor(value);
+            ctx.beginPath();
+            ctx.arc(x, y, 0.15, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 };
