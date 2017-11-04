@@ -238,7 +238,6 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
             idToStep[newId] = stepIndex;
             that.addConnection(connectionIdPulseMap, newId);
             var connection = connections[newId];
-            connection.updateHasDot(newId);
             if (connection.hasDot)
             {
                 idToDirectionsVisited[newId] = 15;
@@ -288,7 +287,6 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
         console.log(id);
         var connection = connections[id];
 
-        connection.updateHasDot(id);
         if (connection.hasDot)
         {
             var dirBit = 1;

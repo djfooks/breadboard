@@ -140,7 +140,12 @@ Connection.prototype.removeWireComponent = function removeWireComponent(id, comp
     this.updateHasDot(id);
 };
 
-// TODO need to add add/removeComponent fns that update hasDot
+Connection.prototype.setComponent = function setComponent(id, component)
+{
+    this.components.component = component;
+    this.updateHasDot(id);
+};
+
 Connection.prototype.updateHasDot = function updateHasDot(id)
 {
     if (this.components.component)

@@ -746,16 +746,6 @@ Breadboard.prototype.getConnectionValue = function getConnectionValue(id)
     return this.connections[id].getValue();
 };
 
-Breadboard.prototype.getComponent = function getComponent(p)
-{
-    if (!this.validPosition(p))
-    {
-        return true;
-    }
-    var id = this.getIndex(p[0], p[1]);
-    return this.connections[id].components.component;
-};
-
 Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, q, button)
 {
     var fromTray = this.tray.isFromTray(component);
@@ -922,7 +912,7 @@ Breadboard.prototype.addComponent = function addComponent(component)
     var i;
     for (i = 0; i < outputs.length; i += 1)
     {
-        this.connections[outputs[i]].components.component = component;
+        this.connections[outputs[i]].setComponent(outputs[i], component);
     }
     this.dirty = true;
 
@@ -971,7 +961,7 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     var outputs = component.getConnections(this);
     for (i = 0; i < outputs.length; i += 1)
     {
-        this.connections[outputs[i]].components.component = null;
+        this.connections[outputs[i]].setComponent(outputs[i], null);
     }
     this.dirty = true;
     return true;
