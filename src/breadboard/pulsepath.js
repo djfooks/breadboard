@@ -8,40 +8,59 @@ function PulsePath(pathPower, inputId, sourceId)
     this.parent = null;
     this.wireId = -1;
 
-    this.reset();
+    this.init();
 }
 
-PulsePath.prototype.reset = function reset()
+PulsePath.prototype.init = function init()
 {
     var pathPower = this.pathPower;
     var stepToEdges = this.stepToEdges = new Array(pathPower);
+    var stepToEdgesDir = this.stepToEdgesDir = new Array(pathPower);
     var i;
     for (i = 0; i < pathPower; i += 1)
     {
         this.values[i] = 0;
         stepToEdges[i] = [];
+        stepToEdgesDir[i] = [];
     }
     this.children = [];
     this.nextStepChildren = [];
     this.idToChild = {};
     this.idToStep = {};
+    this.idToDirectionsVisited = {};
 
     this.onPulses = [];
     this.offPulses = [];
 
+    // set all direction bits to true for the inputId
+    this.idToDirectionsVisited[this.inputId] = 15;
+
     this.idToStep[this.inputId] = 0;
     this.stepToEdges[0].push(this.inputId);
+    this.stepToEdgesDir[0].push(-1);
 }
 
-PulsePath.prototype.hasVisited = function hasVisited(id)
+PulsePath.prototype.reset = function reset(breadboard)
 {
-    if (this.idToStep.hasOwnProperty(id))
+    this.init();
+
+    var connection = breadboard.connections[this.inputId];
+    connection.addPulsePathStep(0, this, 0);
+}
+
+PulsePath.prototype.hasVisited = function hasVisited(dir, id)
+{
+    var directionsVisited = this.idToDirectionsVisited[id];
+    if (directionsVisited !== undefined)
     {
-        return true;
+        if (directionsVisited & (1 << (dir % 4)))
+        {
+            return true;
+        }
     }
     if (this.parent)
     {
-        return this.parent.hasVisited(id);
+        return this.parent.hasVisited(dir, id);
     }
     return false;
 };
@@ -51,7 +70,7 @@ PulsePath.prototype.rebuildPaths = function rebuildPaths(breadboard)
 {
     PulsePath.nextId = 1;
 
-    this.reset();
+    this.reset(breadboard);
 
     this.addConnection(breadboard.connectionIdPulseMap, this.inputId);
 
@@ -189,8 +208,11 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
     {
         return false;
     }
+    var stepToEdgesDir = this.stepToEdgesDir;
+    var edgesDir = stepToEdgesDir[stepIndex - 1];
 
     var idToStep = this.idToStep;
+    var idToDirectionsVisited = this.idToDirectionsVisited;
     var idToChild = this.idToChild;
     var connections = breadboard.connections;
     var connectionIdPulseMap = breadboard.connectionIdPulseMap;
@@ -200,57 +222,88 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
     var i;
     var j;
     var k;
-    for (i = 0; i < edges.length; i += 1)
+    var that = this;
+    function flowOut(id, directionIndex)
     {
-        var id = edges[i];
-        var connection = connections[id];
-        var dirBit = 1;
-        for (j = 0; j < 8; j += 1)
+        var delta = Connection.directionVector[directionIndex];
+        var p = breadboard.getPositionFromIndex(id);
+        var x = p[0] + delta[0];
+        var y = p[1] + delta[1];
+        var newId = breadboard.getIndex(x, y);
+        if (!that.hasVisited(directionIndex, newId))
         {
-            if ((connection.wires & dirBit) > 0)
+            updated = true;
+            stepToEdges[stepIndex].push(newId);
+            stepToEdgesDir[stepIndex].push(directionIndex);
+            idToStep[newId] = stepIndex;
+            that.addConnection(connectionIdPulseMap, newId);
+            var connection = connections[newId];
+            connection.updateHasDot(newId);
+            if (connection.hasDot)
             {
-                var delta = Connection.directionVector[j];
-                var p = breadboard.getPositionFromIndex(id);
-                var x = p[0] + delta[0];
-                var y = p[1] + delta[1];
-                var newId = breadboard.getIndex(x, y);
-                if (!this.hasVisited(newId))
+                idToDirectionsVisited[newId] = 15;
+            }
+            else
+            {
+                idToDirectionsVisited[newId] |= (1 << (directionIndex % 4));
+            }
+            connection.addPulsePathStep(directionIndex, that, stepIndex);
+            var component = connection.components.component;
+            if (component)
+            {
+                var outputIds = component.getOutputs(newId);
+                for (k = 0; k < outputIds.length; k += 1)
                 {
-                    updated = true;
-                    stepToEdges[stepIndex].push(newId);
-                    idToStep[newId] = stepIndex;
-                    this.addConnection(connectionIdPulseMap, newId);
-                    var component = connections[newId].components.component;
-                    if (component)
+                    var outputId = outputIds[k];
+                    if (outputId !== -1 && !that.hasVisited(0, outputId))
                     {
-                        var outputIds = component.getOutputs(newId);
-                        for (k = 0; k < outputIds.length; k += 1)
+                        var child = new PulsePath(pathPower, outputId, newId);
+                        child.addConnection(connectionIdPulseMap, outputId);
+
+                        var outputConnection = connections[outputId];
+                        outputConnection.addPulsePathStep(15, child, 0);
+
+                        child.parent = that;
+                        that.nextStepChildren.push(child);
+                        component.pulsePaths.push(child);
+                        if (idToChild.hasOwnProperty(newId))
                         {
-                            var outputId = outputIds[k];
-                            if (outputId !== -1 && !this.hasVisited(outputId))
-                            {
-                                var child = new PulsePath(pathPower, outputId, newId);
-                                child.addConnection(connectionIdPulseMap, outputId);
-
-                                child.parent = this;
-                                this.nextStepChildren.push(child);
-                                component.pulsePaths.push(child);
-                                if (idToChild.hasOwnProperty(newId))
-                                {
-                                    idToChild[newId].push(child);
-                                }
-                                else
-                                {
-                                    idToChild[newId] = [child];
-                                }
-
-                                PulsePath.nextId += 1;
-                            }
+                            idToChild[newId].push(child);
                         }
+                        else
+                        {
+                            idToChild[newId] = [child];
+                        }
+
+                        PulsePath.nextId += 1;
                     }
                 }
             }
-            dirBit = dirBit << 1;
+        }
+    }
+
+    for (i = 0; i < edges.length; i += 1)
+    {
+        var id = edges[i];
+        console.log(id);
+        var connection = connections[id];
+
+        connection.updateHasDot(id);
+        if (connection.hasDot)
+        {
+            var dirBit = 1;
+            for (j = 0; j < 8; j += 1)
+            {
+                if ((connection.wires & dirBit) > 0)
+                {
+                    flowOut(id, j);
+                }
+                dirBit = dirBit << 1;
+            }
+        }
+        else if (edgesDir[i] !== -1)
+        {
+            flowOut(id, edgesDir[i]);
         }
     }
     return updated;
@@ -273,12 +326,11 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
         for (j = 0; j < edges.length; j += 1)
         {
             var id = edges[j];
-            var connection = breadboard.connections[id]
-            connection.setPulseValue(this.wireId, value);
 
             var children = this.idToChild[id];
             if (children)
             {
+                var connection = breadboard.connections[id];
                 var component = connection.components.component;
                 for (k = 0; k < children.length; k += 1)
                 {

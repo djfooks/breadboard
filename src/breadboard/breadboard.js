@@ -1,61 +1,3 @@
-
-function Wire(x0, y0, x1, y1, id0, id1)
-{
-    this.x0 = x0;
-    this.y0 = y0;
-    this.x1 = x1;
-    this.y1 = y1;
-
-    this.id0 = id0;
-    this.id1 = id1;
-
-    var dx = x1 - x0;
-    this.dx = dx < 0 ? -1 : (dx > 0 ? 1 : 0);
-    var dy = y1 - y0;
-    this.dy = dy < 0 ? -1 : (dy > 0 ? 1 : 0);
-
-    this.bit0 = Connection.getDirectionFlag( this.dx,  this.dy);
-    this.bit1 = Connection.getDirectionFlag(-this.dx, -this.dy);
-}
-
-Wire.prototype.iterate = function iterate(fn)
-{
-    var x = this.x0;
-    var y = this.y0;
-    var x1 = this.x1;
-    var y1 = this.y1;
-    var dx = this.dx;
-    var dy = this.dy;
-    while (x !== x1 || y !== y1)
-    {
-        fn(x, y);
-        x += dx;
-        y += dy;
-    }
-    fn(x, y);
-};
-
-Wire.prototype.toJson = function toJson()
-{
-    return [this.x0, this.y0, this.x1, this.y1];
-};
-
-Wire.getColor = function getColor(count)
-{
-    if (count > 1)
-    {
-        return "#FF0000";
-    }
-    else if (count > 0)
-    {
-        return "#FF8888";
-    }
-    else
-    {
-        return "#FFFFFF";
-    }
-};
-
 function DrawOptions(breadboard)
 {
     if (breadboard)
@@ -279,7 +221,6 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         else if (componentJson.type === ComponentTypes.BATTERY)
         {
             component = new BatteryComponent(breadboard);
-            breadboard.batteries.push(component);
         }
         else if (componentJson.type === ComponentTypes.DIODE)
         {
@@ -346,6 +287,9 @@ Breadboard.prototype.update = function update()
 
         this.connectionIdPulseMap = {};
 
+        // TODO reset entire connection map
+        this.pulseReset();
+
         var componentsList = this.componentsList;
         var i;
         for (i = 0; i < componentsList.length; i += 1)
@@ -360,7 +304,6 @@ Breadboard.prototype.update = function update()
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.rebuildPaths(that); });
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.recursiveBuildWireIds(that); });
 
-        this.pulseReset();
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.createPulse(1); });
     }
 
@@ -540,7 +483,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
                 removing = true;
             }
             var connection = connections[id];
-            if (circlesDrawn[id] || !connection.hasDot())
+            if (circlesDrawn[id] || !connection.hasDot)
             {
                 return;
             }
@@ -580,8 +523,8 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         {
             var id = that.getIndex(x, y);
             var connection = connections[id];
-            var connectionValue = connection.getValue();
-            if (circlesDrawn[id] || connection.hasDot())
+            var connectionValue = connection.getDirectionValue(wire.directionId);
+            if (circlesDrawn[id] || connection.hasDot)
             {
                 circlesDrawn[id] = true;
                 ctx.fillStyle = Wire.getColor(connectionValue);
@@ -662,14 +605,14 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     while (x !== x1 || y !== y1)
     {
         id = this.getIndex(x, y);
-        connections[id].removeWire(bit0);
-        connections[id].removeWireComponent(wire);
+        connections[id].removeWire(id, bit0);
+        connections[id].removeWireComponent(id, wire);
         x += dx;
         y += dy;
         id = this.getIndex(x, y);
-        connections[id].removeWire(bit1);
+        connections[id].removeWire(id, bit1);
     }
-    connections[id].removeWireComponent(wire);
+    connections[id].removeWireComponent(id, wire);
 };
 
 Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
@@ -703,14 +646,14 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
         while (x !== x1 || y !== y1)
         {
             id = this.getIndex(x, y);
-            connections[id].addWire(bit0);
-            connections[id].addWireComponent(newWire);
+            connections[id].addWire(id, bit0);
+            connections[id].addWireComponent(id, newWire);
             x += dx;
             y += dy;
             id = this.getIndex(x, y);
-            connections[id].addWire(bit1);
+            connections[id].addWire(id, bit1);
         }
-        connections[id].addWireComponent(newWire);
+        connections[id].addWireComponent(id, newWire);
     }
 };
 

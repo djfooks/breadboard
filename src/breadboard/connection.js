@@ -1,12 +1,15 @@
 
 function Connection()
 {
+    // TODO rename this to wireBits and get rid of components struct
     this.wires = 0;
     this.components = {
         wires: [],
         component: null
     };
-    this.values = new Uint32Array(8);
+    var pulsePaths = this.pulsePaths = new Array(4);
+    var pulsePathSteps = this.pulsePathSteps = new Array(4);
+    this.reset();
 }
 
 Connection.directionVector = [
@@ -19,6 +22,21 @@ Connection.directionVector = [
     [-1,  0],    // WEST
     [-1, -1]     // NORTH_WEST
 ];
+
+Connection.getDirectionId = function getDirectionId(dx, dy)
+{
+    var dv = Connection.directionVector;
+    var i;
+    for (i = 0; i < 8; i += 1)
+    {
+        if (dx == dv[i][0] && dy == dv[i][1])
+        {
+            return i;
+        }
+    }
+    return -1;
+};
+
 Connection.getDirectionFlag = function getDirectionFlag(dx, dy)
 {
     var dv = Connection.directionVector;
@@ -33,12 +51,53 @@ Connection.getDirectionFlag = function getDirectionFlag(dx, dy)
     return -1;
 };
 
+Connection.prototype.addPulsePathStep = function addPulsePathStep(dir, pulsePath, stepId)
+{
+    dir = dir % 4;
+    this.pulsePaths[dir].push(pulsePath);
+    this.pulsePathSteps[dir].push(stepId);
+};
+
+Connection.prototype._getDirectionValueInternal = function _getDirectionValueInternal(dir)
+{
+    var i;
+    var count = 0;
+    var pulsePaths = this.pulsePaths[dir];
+    for (i = 0; i < pulsePaths.length; i += 1)
+    {
+        count += pulsePaths[i].values[this.pulsePathSteps[dir][i]];
+    }
+    return count;
+}
+
+Connection.prototype.getDirectionValue = function getDirectionValue(dir)
+{
+    if (this.hasDot)
+    {
+        return this.getValue();
+    }
+    dir = dir % 4;
+    return this._getDirectionValueInternal(dir);
+};
+
+Connection.prototype.getValue = function getValue()
+{
+    var i;
+    var count = 0;
+    for (i = 0; i < 4; i += 1)
+    {
+        count += this._getDirectionValueInternal(i);
+    }
+    return count;
+}
+
 Connection.prototype.isOn = function isOn()
 {
     var i;
-    for (i = 0; i < this.values.length; i += 1)
+    var count = 0;
+    for (i = 0; i < 4; i += 1)
     {
-        if (this.values[i] > 0)
+        if (this._getDirectionValueInternal(i))
         {
             return true;
         }
@@ -46,89 +105,59 @@ Connection.prototype.isOn = function isOn()
     return false;
 };
 
-Connection.prototype.getValue = function getValue()
-{
-    var j;
-    var count = 0;
-    for (j = 0; j < this.values.length; j += 1)
-    {
-        var i = this.values[j];
-        i = i - ((i >> 1) & 0x55555555);
-        i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-        count += (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
-    }
-    return count;
-}
-
-Connection.prototype.setPulseValue = function setPulseValue(wireId, value)
-{
-    var i = wireId >> 5;
-    var bit = wireId & 31;
-    if (value)
-    {
-        this.values[i] |= 1 << bit;
-    }
-    else
-    {
-        this.values[i] &= ~(1 << bit);
-    }
-};
-
 Connection.prototype.reset = function reset()
 {
     var i;
-    for (i = 0; i < this.values.length; i += 1)
+    for (i = 0; i < 4; i += 1)
     {
-        this.values[i] = 0;
+        this.pulsePaths[i] = [];
+        this.pulsePathSteps[i] = [];
     }
 };
 
-Connection.prototype.addWire = function addWire(direction)
+Connection.prototype.addWire = function addWire(id, direction)
 {
     this.wires |= direction;
+    this.updateHasDot(id);
 };
 
-Connection.prototype.removeWire = function removeWire(direction)
+Connection.prototype.removeWire = function removeWire(id, direction)
 {
     this.wires &= ~direction;
+    this.updateHasDot(id);
 };
 
-Connection.prototype.addWireComponent = function addWireComponent(component)
+Connection.prototype.addWireComponent = function addWireComponent(id, component)
 {
     this.components.wires.push(component);
+    this.updateHasDot(id);
 };
 
-Connection.prototype.removeWireComponent = function removeWireComponent(component)
+Connection.prototype.removeWireComponent = function removeWireComponent(id, component)
 {
     var index = this.components.wires.indexOf(component);
     this.components.wires.splice(index, 1);
+    this.updateHasDot(id);
 };
 
-Connection.prototype.hasDot = function hasDot(component)
+// TODO need to add add/removeComponent fns that update hasDot
+Connection.prototype.updateHasDot = function updateHasDot(id)
 {
     if (this.components.component)
     {
-        return true;
+        this.hasDot = true;
+        return;
     }
     var i;
-    var lastWire = -1;
-    var numWires = 0;
-    for (i = 0; i < 8; i += 1)
+    var wires = this.components.wires;
+    for (i = 0; i < wires.length; i += 1)
     {
-        if (this.wires & (1 << i))
+        if (id === wires[i].id0 || id === wires[i].id1)
         {
-            numWires += 1;
-            if (lastWire !== -1)
-            {
-                if ((lastWire % 4) === (i % 4))
-                {
-                    // wire in and out are in the same direction
-                    continue;
-                }
-                return true;
-            }
-            lastWire = i;
+            this.hasDot = true;
+            return;
         }
     }
-    return (numWires == 1);
+    this.hasDot = false;
+    return;
 };
