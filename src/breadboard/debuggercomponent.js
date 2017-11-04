@@ -40,12 +40,14 @@ DebuggerComponent.prototype.toJson = function toJson()
         p: this.p,
         rotation: this.rotation,
         value: this.value,
+        debugType: this.debugType
     };
 };
 
 DebuggerComponent.prototype.stateFromJson = function stateFromJson(json)
 {
     this.value = json.value | 0;
+    this.debugType = json.debugType || DebuggerComponent.debugType.WRITE;
 };
 
 DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
