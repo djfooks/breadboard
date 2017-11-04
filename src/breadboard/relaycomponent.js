@@ -174,7 +174,7 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
 
 RelayComponent.prototype.update = function update(breadboard)
 {
-    var signalValue = breadboard.connections[this.signalId].isOn();
+    var signalValue = breadboard.getConnection(this.signalId).isOn();
     if (this.signalValue !== signalValue)
     {
         this.signalValue = signalValue;

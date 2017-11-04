@@ -48,6 +48,11 @@ Connection.getDirectionFlag = function getDirectionFlag(dx, dy)
     return -1;
 };
 
+Connection.prototype.empty = function empty()
+{
+    return this.wires.length === 0 && !this.component;
+};
+
 Connection.prototype.addPulsePathStep = function addPulsePathStep(dir, pulsePath, stepId)
 {
     dir = dir % 4;

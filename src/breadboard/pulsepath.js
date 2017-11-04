@@ -44,7 +44,7 @@ PulsePath.prototype.reset = function reset(breadboard)
 {
     this.init();
 
-    var connection = breadboard.connections[this.inputId];
+    var connection = breadboard.getConnection(this.inputId);
     connection.addPulsePathStep(0, this, 0);
 }
 
@@ -214,7 +214,6 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
     var idToStep = this.idToStep;
     var idToDirectionsVisited = this.idToDirectionsVisited;
     var idToChild = this.idToChild;
-    var connections = breadboard.connections;
     var connectionIdPulseMap = breadboard.connectionIdPulseMap;
 
     var updated = false;
@@ -237,7 +236,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
             stepToEdgesDir[stepIndex].push(directionIndex);
             idToStep[newId] = stepIndex;
             that.addConnection(connectionIdPulseMap, newId);
-            var connection = connections[newId];
+            var connection = breadboard.getConnection(newId);
             if (connection.hasDot)
             {
                 idToDirectionsVisited[newId] = 15;
@@ -259,7 +258,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
                         var child = new PulsePath(pathPower, outputId, newId);
                         child.addConnection(connectionIdPulseMap, outputId);
 
-                        var outputConnection = connections[outputId];
+                        var outputConnection = breadboard.getConnection(outputId);
                         outputConnection.addPulsePathStep(15, child, 0);
 
                         child.parent = that;
@@ -284,8 +283,7 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
     for (i = 0; i < edges.length; i += 1)
     {
         var id = edges[i];
-        console.log(id);
-        var connection = connections[id];
+        var connection = breadboard.getConnection(id);
 
         if (connection.hasDot)
         {
@@ -328,7 +326,7 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
             var children = this.idToChild[id];
             if (children)
             {
-                var connection = breadboard.connections[id];
+                var connection = breadboard.getConnection(id);
                 var component = connection.component;
                 for (k = 0; k < children.length; k += 1)
                 {

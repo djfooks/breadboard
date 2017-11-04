@@ -212,7 +212,7 @@ DebuggerComponent.prototype.update = function update(breadboard)
         var i;
         for (i = 0; i < 8; i += 1)
         {
-            if (breadboard.connections[this.pinId[i]].isOn())
+            if (breadboard.getConnection(this.pinId[i]).isOn())
             {
                 this.value |= (1 << (7 - i));
             }
@@ -228,7 +228,7 @@ DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
     var i;
     for (i = 0; i < 8; i += 1)
     {
-        connections.push(this.pinId[0]);
+        connections.push(this.pinId[i]);
     }
     for (i = 0; i < 7; i += 1)
     {
