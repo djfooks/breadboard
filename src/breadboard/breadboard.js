@@ -351,8 +351,6 @@ Breadboard.prototype.update = function update()
         }
 
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.rebuildPaths(that); });
-        this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.recursiveBuildWireIds(that); });
-
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.createPulse(1); });
     }
 
