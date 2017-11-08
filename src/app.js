@@ -73,6 +73,8 @@ var App = function ()
     TextureManager.request("cancel-enabled.png");
     TextureManager.request("move.png");
     TextureManager.request("move-enabled.png");
+    TextureManager.request("truck.png");
+    TextureManager.request("truck-enabled.png");
 };
 
 App.prototype.update = function update()

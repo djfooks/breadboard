@@ -3,6 +3,7 @@ function Connection()
 {
     this.wireBits = 0;
     this.wires = [];
+    this.buses = [];
     this.component = null;
     var pulsePaths = this.pulsePaths = new Array(4);
     var pulsePathSteps = this.pulsePathSteps = new Array(4);
@@ -50,7 +51,7 @@ Connection.getDirectionFlag = function getDirectionFlag(dx, dy)
 
 Connection.prototype.empty = function empty()
 {
-    return this.wires.length === 0 && !this.component;
+    return this.wires.length === 0 && this.buses.length === 0 && !this.component;
 };
 
 Connection.prototype.addPulsePathStep = function addPulsePathStep(dir, pulsePath, stepId)
@@ -117,28 +118,47 @@ Connection.prototype.reset = function reset()
     }
 };
 
-Connection.prototype.addWire = function addWire(id, direction)
+Connection.prototype.addWire = function addWire(id, direction, type)
 {
-    this.wireBits |= direction;
+    if (type === Breadboard.wireType.WIRE)
+    {
+        this.wireBits |= direction;
+    }
     this.updateHasDot(id);
 };
 
-Connection.prototype.removeWire = function removeWire(id, direction)
+Connection.prototype.removeWire = function removeWire(id, direction, type)
 {
-    this.wireBits &= ~direction;
+    if (type === Breadboard.wireType.WIRE)
+    {
+        this.wireBits &= ~direction;
+    }
     this.updateHasDot(id);
+};
+
+Connection.prototype.getWireArray = function addWireComponent(type)
+{
+    if (type == Breadboard.wireType.WIRE)
+    {
+        return this.wires;
+    }
+    else /*if (type === Breadboard.wireType.BUS)*/
+    {
+        return this.buses;
+    }
 };
 
 Connection.prototype.addWireComponent = function addWireComponent(id, component)
 {
-    this.wires.push(component);
+    this.getWireArray(component.type).push(component);
     this.updateHasDot(id);
 };
 
 Connection.prototype.removeWireComponent = function removeWireComponent(id, component)
 {
-    var index = this.wires.indexOf(component);
-    this.wires.splice(index, 1);
+    var wireArray = this.getWireArray(component.type);
+    var index = wireArray.indexOf(component);
+    wireArray.splice(index, 1);
     this.updateHasDot(id);
 };
 
@@ -155,16 +175,19 @@ Connection.prototype.updateHasDot = function updateHasDot(id)
         this.hasDot = true;
         return;
     }
-    var i;
-    var wires = this.wires;
-    for (i = 0; i < wires.length; i += 1)
+    function wiresHasDot(wireArray)
     {
-        if (id === wires[i].id0 || id === wires[i].id1)
+        var i;
+        for (i = 0; i < wireArray.length; i += 1)
         {
-            this.hasDot = true;
-            return;
+            if (id === wireArray[i].id0 || id === wireArray[i].id1)
+            {
+                return true;
+            }
         }
+        return false;
     }
-    this.hasDot = false;
+    this.hasDot = wiresHasDot(this.wires) ||
+                  wiresHasDot(this.buses);
     return;
 };

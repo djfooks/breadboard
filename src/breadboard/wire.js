@@ -1,6 +1,7 @@
 
-function Wire(x0, y0, x1, y1, id0, id1)
+function Wire(x0, y0, x1, y1, id0, id1, type)
 {
+    this.type = type;
     this.x0 = x0;
     this.y0 = y0;
     this.x1 = x1;
