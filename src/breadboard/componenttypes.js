@@ -5,6 +5,8 @@ var ComponentTypes = {
     DIODE: 3,
     BATTERY: 4,
     DEBUGGER: 5,
+    BUS_INPUT: 6,
+    BUS_OUTPUT: 7,
 };
 
 var Component = {};

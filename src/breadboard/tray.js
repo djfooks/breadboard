@@ -32,6 +32,10 @@ Tray.prototype.resetComponents = function resetComponents()
     this.debugger = new DebuggerComponent(this.breadboard);
     this.gameStage.addHitbox(this.debugger.hitbox);
     this.debugger.move(this.breadboard, [2, 6], 0);
+
+    this.busInput = new BusInputComponent(this.breadboard);
+    this.gameStage.addHitbox(this.busInput.hitbox);
+    this.busInput.move(this.breadboard, [2, 9], 0);
 };
 
 Tray.prototype.isFromTray = function isFromTray(component)
@@ -42,6 +46,7 @@ Tray.prototype.isFromTray = function isFromTray(component)
     fromTray = fromTray || (component === this.relay);
     fromTray = fromTray || (component === this.diode);
     fromTray = fromTray || (component === this.debugger);
+    fromTray = fromTray || (component === this.busInput);
     return fromTray;
 };
 
@@ -58,6 +63,7 @@ Tray.prototype.draw = function draw(ctx)
     this.relay.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.diode.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
     this.debugger.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
+    this.busInput.draw(drawOptions, ctx, null, "#000000", "#FFFFFF");
 
     ctx.restore();
 };

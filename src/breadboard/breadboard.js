@@ -245,6 +245,10 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             component = new DebuggerComponent(breadboard);
         }
+        else if (componentJson.type === ComponentTypes.BUS_INPUT)
+        {
+            component = new BusInputComponent(breadboard);
+        }
         breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p, componentJson.rotation | 0);
@@ -697,6 +701,7 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
     ctx.fillStyle = "teal";
     ctx.lineCap = "square";
     ctx.lineWidth = 0.15;
+    var diamondWidth = 0.15;
     var id;
     for (id in diamonds)
     {
@@ -713,11 +718,11 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
             value = connection.getValue();
 
             ctx.beginPath();
-            ctx.moveTo(x + 0.2, y);
-            ctx.lineTo(x, y + 0.2);
-            ctx.lineTo(x - 0.2, y);
-            ctx.lineTo(x, y - 0.2);
-            ctx.lineTo(x + 0.2, y);
+            ctx.moveTo(x + diamondWidth, y);
+            ctx.lineTo(x, y + diamondWidth);
+            ctx.lineTo(x - diamondWidth, y);
+            ctx.lineTo(x, y - diamondWidth);
+            ctx.lineTo(x + diamondWidth, y);
             ctx.stroke();
             ctx.fill();
         }

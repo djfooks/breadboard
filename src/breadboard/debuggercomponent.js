@@ -309,15 +309,10 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
             }
         }
     }
-}
+};
 
 DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
 {
-    if (this.textBoxElement)
-    {
-        return;
-    }
-
     var rotationMatrix = RotationMatrix[this.rotation];
     var configure = AddTransformedVector(this.p, rotationMatrix, [7, 0]);
     if (p[0] === configure[0] && p[1] === configure[1])
