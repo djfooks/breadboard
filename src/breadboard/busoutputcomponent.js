@@ -1,5 +1,5 @@
 
-function BusInputComponent(breadboard)
+function BusOutputComponent(breadboard)
 {
     this.p = [-1, -1];
 
@@ -9,32 +9,35 @@ function BusInputComponent(breadboard)
     this.settingId = -1;
     this.settingP = [-1, -1];
 
-    this.signalId = -1;
-    this.signalP = [-1, -1];
+    this.inId = -1;
+    this.inP = [-1, -1];
+
+    this.outId = -1;
+    this.outP = [-1, -1];
 
     this.busKey = "0";
 
     Component.addHitbox(breadboard, this);
 }
 
-BusInputComponent.prototype.type = ComponentTypes.BUS_INPUT;
+BusOutputComponent.prototype.type = ComponentTypes.BUS_OUTPUT;
 
-BusInputComponent.prototype.toJson = function toJson()
+BusOutputComponent.prototype.toJson = function toJson()
 {
     return {
-        type: ComponentTypes.BUS_INPUT,
+        type: ComponentTypes.BUS_OUTPUT,
         p: this.p,
         rotation: this.rotation,
         busKey: this.busKey
     };
 };
 
-BusInputComponent.prototype.stateFromJson = function stateFromJson(json)
+BusOutputComponent.prototype.stateFromJson = function stateFromJson(json)
 {
     this.busKey = json.busKey || "0";
 };
 
-BusInputComponent.prototype.move = function move(breadboard, p, rotation)
+BusOutputComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
@@ -46,44 +49,51 @@ BusInputComponent.prototype.move = function move(breadboard, p, rotation)
     this.settingP = AddTransformedVector(p, matrix, [0, 1]);
     this.settingId = breadboard.getIndex(this.settingP[0], this.settingP[1]);
 
-    this.signalP = AddTransformedVector(p, matrix, [0, 2]);
-    this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
+    this.inP = AddTransformedVector(p, matrix, [0, 2]);
+    this.inId = breadboard.getIndex(this.inP[0], this.inP[1]);
 
-    Component.updateHitbox(this, p, this.signalP);
+    this.outP = AddTransformedVector(p, matrix, [0, 3]);
+    this.outId = breadboard.getIndex(this.outP[0], this.outP[1]);
+
+    Component.updateHitbox(this, p, this.outP);
 };
 
-BusInputComponent.prototype.clone = function clone(breadboard)
+BusOutputComponent.prototype.clone = function clone(breadboard)
 {
-    var cloneComponent = new BusInputComponent(breadboard);
+    var cloneComponent = new BusOutputComponent(breadboard);
     cloneComponent.move(breadboard, this.p, this.rotation);
     return cloneComponent;
 };
 
-BusInputComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
+BusOutputComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
 {
     var rotationMatrix = RotationMatrix[rotation];
 
     var p1 = AddTransformedVector(p0, rotationMatrix, [0, 1]);
     var p2 = AddTransformedVector(p0, rotationMatrix, [0, 2]);
+    var p3 = AddTransformedVector(p0, rotationMatrix, [0, 3]);
 
     var p0Component = breadboard.getComponent(p0);
     var p1Component = breadboard.getComponent(p1);
     var p2Component = breadboard.getComponent(p2);
+    var p3Component = breadboard.getComponent(p3);
 
     var isValid = true;
     isValid = isValid && breadboard.validPosition(p0) && (!p0Component || p0Component === this);
     isValid = isValid && breadboard.validPosition(p1) && (!p1Component || p1Component === this);
     isValid = isValid && breadboard.validPosition(p2) && (!p2Component || p2Component === this);
+    isValid = isValid && breadboard.validPosition(p3) && (!p3Component || p3Component === this);
     return isValid;
 };
 
-BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
 {
     var rotationMatrix = RotationMatrix[this.rotation];
 
     var busP = this.busP;
     var settingP = this.settingP;
-    var signalP = this.signalP;
+    var inP = this.inP;
+    var outP = this.outP;
 
     if (!p)
     {
@@ -93,7 +103,8 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     {
         busP = p;
         settingP = AddTransformedVector(p, rotationMatrix, [0, 1]);
-        signalP = AddTransformedVector(p, rotationMatrix, [0, 2]);
+        inP = AddTransformedVector(p, rotationMatrix, [0, 2]);
+        outP = AddTransformedVector(p, rotationMatrix, [0, 3]);
     }
   
     var radius = Component.connectionBgRadius;
@@ -111,12 +122,16 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.stroke();
     ctx.fill();
 
-    ctx.fillStyle = "#00FF00"; // green
+    ctx.fillStyle = bgColor;
     ctx.beginPath();
-    ctx.arc(signalP[0], signalP[1], radius, 0, Math.PI * 2.0);
+    ctx.arc(inP[0], inP[1], radius, 0, Math.PI * 2.0);
     ctx.fill();
 
-    Component.containerPath(drawOptions, ctx, bgColor, busP, signalP);
+    ctx.beginPath();
+    ctx.arc(outP[0], outP[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    Component.containerPath(drawOptions, ctx, bgColor, busP, outP);
     ctx.stroke();
 
     ctx.fillStyle = "#FFFFFF";
@@ -131,21 +146,23 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.fillText(this.busKey, textPos[0], textPos[1]);
 
     var color;
-    var valueSignal = drawOptions.getConnectionValue(this.signalId);
+    var valueIn = drawOptions.getConnectionValue(this.inId);
+    var valueOut = drawOptions.getConnectionValue(this.outId);
 
-    Component.drawFgNode(ctx, fgColor, valueSignal, signalP);
+    Component.drawFgNode(ctx, fgColor, valueIn, inP);
+    Component.drawFgNode(ctx, fgColor, valueOut, outP);
 };
 
-BusInputComponent.prototype.update = function update(breadboard)
+BusOutputComponent.prototype.update = function update(breadboard)
 {
 };
 
-BusInputComponent.prototype.getConnections = function getConnections()
+BusOutputComponent.prototype.getConnections = function getConnections()
 {
-    return [this.busId, this.settingId, this.signalId];
+    return [this.busId, this.settingId, this.inId, this.outId];
 };
 
-BusInputComponent.prototype.toggle = function toggle(breadboard, p)
+BusOutputComponent.prototype.toggle = function toggle(breadboard, p)
 {
     var settingP = this.settingP;
     if (p[0] === settingP[0] && p[1] === settingP[1])
@@ -155,17 +172,17 @@ BusInputComponent.prototype.toggle = function toggle(breadboard, p)
     }
 };
 
-BusInputComponent.prototype.getOutputs = function getOutputs(id)
+BusOutputComponent.prototype.getOutputs = function getOutputs(id)
 {
     return [];
 };
 
-BusInputComponent.prototype.isConnected = function isConnected(id0, id1)
+BusOutputComponent.prototype.isConnected = function isConnected(id0, id1)
 {
     return false;
 };
 
-BusInputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyCode)
+BusOutputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyCode)
 {
     if (keyCode === 13)
     {
@@ -178,7 +195,7 @@ BusInputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
     this.updateValue(breadboard);
 };
 
-BusInputComponent.prototype.updateValue = function updateValue(breadboard)
+BusOutputComponent.prototype.updateValue = function updateValue(breadboard)
 {
     breadboard.dirtySave = true;
 }

@@ -249,6 +249,10 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             component = new BusInputComponent(breadboard);
         }
+        else if (componentJson.type === ComponentTypes.BUS_OUTPUT)
+        {
+            component = new BusOutputComponent(breadboard);
+        }
         breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p, componentJson.rotation | 0);
