@@ -183,6 +183,7 @@ Breadboard.prototype.toJson = function toJson()
         cols: this.cols,
         rows: this.rows,
         wires: [],
+        buses: [],
         componentsList: []
     };
     var i;
@@ -191,6 +192,13 @@ Breadboard.prototype.toJson = function toJson()
     for (i = 0; i < wiresLength; i += 1)
     {
         out.wires.push(wires[i].toJson());
+    }
+
+    var buses = this.buses;
+    var busesLength = buses.length;
+    for (i = 0; i < busesLength; i += 1)
+    {
+        out.buses.push(buses[i].toJson());
     }
 
     var componentsList = this.componentsList;
@@ -205,14 +213,27 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
 {
     var breadboard = new Breadboard(stage, top, left, 1001, 1001);
 
+    var i;
     var wires = json.wires;
     var wiresLength = wires.length;
-    var i;
     for (i = 0; i < wiresLength; i += 1)
     {
         var w = wires[i];
         breadboard.addWire(w[0], w[1], w[2], w[3], false);
     }
+
+    var buses = json.buses;
+    if (buses)
+    {
+        breadboard.wireType = Breadboard.wireType.BUS;
+        var busesLength = buses.length;
+        for (i = 0; i < busesLength; i += 1)
+        {
+            var w = buses[i];
+            breadboard.addWire(w[0], w[1], w[2], w[3], false);
+        }
+    }
+    breadboard.wireType = Breadboard.wireType.WIRE;
 
     var componentsList = json.componentsList;
     if (!componentsList)
