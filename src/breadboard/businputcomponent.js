@@ -13,6 +13,9 @@ function BusInputComponent(breadboard)
     this.signalP = [-1, -1];
 
     this.busKey = "0";
+    this.bus = null;
+
+    this.signalValue = false;
 
     Component.addHitbox(breadboard, this);
 }
@@ -95,13 +98,15 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
         settingP = AddTransformedVector(p, rotationMatrix, [0, 1]);
         signalP = AddTransformedVector(p, rotationMatrix, [0, 2]);
     }
-  
+
     var radius = Component.connectionBgRadius;
     ctx.strokeStyle = bgColor;
 
     var diamondSize = 0.33;
 
+    ctx.lineCap = "square";
     ctx.fillStyle = "#FFFFFF";
+    ctx.lineWidth = 0.1;
     ctx.beginPath();
     ctx.moveTo(busP[0] + diamondSize, busP[1]);
     ctx.lineTo(busP[0], busP[1] + diamondSize);
@@ -110,6 +115,7 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.lineTo(busP[0] + diamondSize, busP[1]);
     ctx.stroke();
     ctx.fill();
+    ctx.lineCap = "butt";
 
     ctx.fillStyle = "#00FF00"; // green
     ctx.beginPath();
@@ -125,10 +131,10 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.stroke();
 
     ctx.fillStyle = this.editingValue ? "#FF0000" : bgColor;
-    var textPos = AddTransformedVector(settingP, rotationMatrix, [0.0, 0.3])
     ctx.textAlign="center";
+    ctx.textBaseline="middle";
     ctx.font = "bold 0.9px Courier New";
-    ctx.fillText(this.busKey, textPos[0], textPos[1]);
+    ctx.fillText(this.busKey, settingP[0], settingP[1]);
 
     var color;
     var valueSignal = drawOptions.getConnectionValue(this.signalId);
@@ -136,8 +142,20 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     Component.drawFgNode(ctx, fgColor, valueSignal, signalP);
 };
 
+BusInputComponent.prototype.reset = function reset()
+{
+    this.bus = null;
+    this.signalValue = false;
+};
+
 BusInputComponent.prototype.update = function update(breadboard)
 {
+    var signalValue = breadboard.getConnection(this.signalId).isOn();
+    if (this.bus && signalValue !== this.signalValue)
+    {
+        this.signalValue = signalValue;
+        this.bus.addValue(this.busKey, signalValue ? 1 : -1);
+    }
 };
 
 BusInputComponent.prototype.getConnections = function getConnections()
@@ -181,4 +199,9 @@ BusInputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
 BusInputComponent.prototype.updateValue = function updateValue(breadboard)
 {
     breadboard.dirtySave = true;
-}
+};
+
+BusInputComponent.prototype.getBusPosition = function getBusPosition()
+{
+    return this.busP;
+};

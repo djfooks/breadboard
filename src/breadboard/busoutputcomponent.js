@@ -16,6 +16,9 @@ function BusOutputComponent(breadboard)
     this.outP = [-1, -1];
 
     this.busKey = "0";
+    this.bus = null;
+
+    this.signalValue = false;
 
     Component.addHitbox(breadboard, this);
 }
@@ -106,13 +109,15 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
         inP = AddTransformedVector(p, rotationMatrix, [0, 2]);
         outP = AddTransformedVector(p, rotationMatrix, [0, 3]);
     }
-  
+
     var radius = Component.connectionBgRadius;
     ctx.strokeStyle = bgColor;
 
     var diamondSize = 0.33;
 
+    ctx.lineCap = "square";
     ctx.fillStyle = "#FFFFFF";
+    ctx.lineWidth = 0.1;
     ctx.beginPath();
     ctx.moveTo(busP[0] + diamondSize, busP[1]);
     ctx.lineTo(busP[0], busP[1] + diamondSize);
@@ -121,6 +126,7 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
     ctx.lineTo(busP[0] + diamondSize, busP[1]);
     ctx.stroke();
     ctx.fill();
+    ctx.lineCap = "butt";
 
     ctx.fillStyle = bgColor;
     ctx.beginPath();
@@ -131,6 +137,16 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
     ctx.arc(outP[0], outP[1], radius, 0, Math.PI * 2.0);
     ctx.fill();
 
+    ctx.strokeStyle = bgColor;
+    if (this.signalValue)
+    {
+        ctx.beginPath();
+        ctx.lineWidth = 0.3;
+        ctx.moveTo(inP[0], inP[1]);
+        ctx.lineTo(outP[0], outP[1]);
+        ctx.stroke();
+    }
+
     Component.containerPath(drawOptions, ctx, bgColor, busP, outP);
     ctx.stroke();
 
@@ -140,10 +156,10 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
     ctx.stroke();
 
     ctx.fillStyle = this.editingValue ? "#FF0000" : bgColor;
-    var textPos = AddTransformedVector(settingP, rotationMatrix, [0.0, 0.3])
-    ctx.textAlign="center";
+    ctx.textAlign = "center";
+    ctx.textBaseline="middle";
     ctx.font = "bold 0.9px Courier New";
-    ctx.fillText(this.busKey, textPos[0], textPos[1]);
+    ctx.fillText(this.busKey, settingP[0], settingP[1]);
 
     var color;
     var valueIn = drawOptions.getConnectionValue(this.inId);
@@ -151,10 +167,52 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
 
     Component.drawFgNode(ctx, fgColor, valueIn, inP);
     Component.drawFgNode(ctx, fgColor, valueOut, outP);
+
+    ctx.beginPath();
+    if (this.signalValue)
+    {
+        var color = fgColor || Wire.getColor(Math.min(valueIn, valueOut));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 0.2;
+        ctx.moveTo(inP[0], inP[1]);
+        ctx.lineTo(outP[0], outP[1]);
+        ctx.stroke();
+    }
+};
+
+BusOutputComponent.prototype.reset = function reset()
+{
+    this.bus = null;
+    this.signalValue = false;
 };
 
 BusOutputComponent.prototype.update = function update(breadboard)
 {
+    var signalValue;
+    if (this.bus)
+    {
+        this.signalValue = signalValue = this.bus.isOn(this.busKey);
+    }
+    else
+    {
+        this.signalValue = signalValue = false;
+    }
+
+    var i;
+    for (i = 0; i < this.pulsePaths.length; i += 1)
+    {
+        var child = this.pulsePaths[i];
+        if (this.signalValue)
+        {
+            var parent = child.parent;
+            var parentStep = parent.idToStep[child.sourceId];
+            child.createPulse(parent.values[parentStep]);
+        }
+        else
+        {
+            child.createPulse(0);
+        }
+    }
 };
 
 BusOutputComponent.prototype.getConnections = function getConnections()
@@ -174,12 +232,32 @@ BusOutputComponent.prototype.toggle = function toggle(breadboard, p)
 
 BusOutputComponent.prototype.getOutputs = function getOutputs(id)
 {
+    if (id === this.inId)
+    {
+        return [this.outId];
+    }
+    else if (id === this.outId)
+    {
+        return [this.inId];
+    }
     return [];
 };
 
 BusOutputComponent.prototype.isConnected = function isConnected(id0, id1)
 {
-    return false;
+    if (!this.signalValue)
+    {
+        return false;
+    }
+    if (id0 === this.inId && id1 === this.outId)
+    {
+        return true;
+    }
+    else if (id0 === this.outId && id1 === this.inId)
+    {
+        return true;
+    }
+    throw new Error();
 };
 
 BusOutputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyCode)
@@ -198,4 +276,9 @@ BusOutputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, key
 BusOutputComponent.prototype.updateValue = function updateValue(breadboard)
 {
     breadboard.dirtySave = true;
-}
+};
+
+BusOutputComponent.prototype.getBusPosition = function getBusPosition()
+{
+    return this.busP;
+};

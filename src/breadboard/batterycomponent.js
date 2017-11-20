@@ -134,6 +134,10 @@ BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fg
     Component.drawFgNode(ctx, null, 1, p1);
 };
 
+BatteryComponent.prototype.reset = function reset()
+{
+};
+
 BatteryComponent.prototype.update = function update()
 {
 };
@@ -155,4 +159,9 @@ BatteryComponent.prototype.getOutputs = function getOutputs(id)
 BatteryComponent.prototype.isConnected = function isConnected(id0, id1)
 {
     return false;
+};
+
+BatteryComponent.prototype.getBusPosition = function getBusPosition()
+{
+    return null;
 };

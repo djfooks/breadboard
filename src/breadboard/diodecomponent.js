@@ -116,6 +116,10 @@ DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     Component.drawFgNode(ctx, fgColor, value1, p1);
 };
 
+DiodeComponent.prototype.reset = function reset()
+{
+};
+
 DiodeComponent.prototype.update = function update()
 {
 };
@@ -153,4 +157,9 @@ DiodeComponent.prototype.isConnected = function isConnected(id0, id1)
         return false;
     }
     throw new Error();
+};
+
+DiodeComponent.prototype.getBusPosition = function getBusPosition()
+{
+    return null;
 };

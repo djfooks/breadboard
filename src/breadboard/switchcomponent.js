@@ -133,6 +133,10 @@ SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgC
     }
 };
 
+SwitchComponent.prototype.reset = function reset()
+{
+};
+
 SwitchComponent.prototype.update = function update()
 {
 };
@@ -191,4 +195,9 @@ SwitchComponent.prototype.isConnected = function isConnected(id0, id1)
         return true;
     }
     throw new Error();
+};
+
+SwitchComponent.prototype.getBusPosition = function getBusPosition()
+{
+    return null;
 };

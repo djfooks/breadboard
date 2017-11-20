@@ -172,13 +172,14 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     ctx.stroke();
 };
 
+RelayComponent.prototype.reset = function reset()
+{
+};
+
 RelayComponent.prototype.update = function update(breadboard)
 {
     var signalValue = breadboard.getConnection(this.signalId).isOn();
-    if (this.signalValue !== signalValue)
-    {
-        this.signalValue = signalValue;
-    }
+    this.signalValue = signalValue;
 
     var i;
     for (i = 0; i < this.pulsePaths.length; i += 1)
@@ -268,4 +269,9 @@ RelayComponent.prototype.isConnected = function isConnected(id0, id1)
         }
     }
     return false;
+};
+
+RelayComponent.prototype.getBusPosition = function getBusPosition()
+{
+    return null;
 };

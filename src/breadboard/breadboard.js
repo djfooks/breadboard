@@ -392,11 +392,14 @@ Breadboard.prototype.update = function update()
         for (i = 0; i < componentsList.length; i += 1)
         {
             componentsList[i].pulsePaths = [];
+            componentsList[i].reset();
         }
         for (i = 0; i < this.batteries.length; i += 1)
         {
             this.batteries[i].createPulsePath();
         }
+
+        Bus.buildPaths(this);
 
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.rebuildPaths(that); });
         this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.createPulse(1); });
@@ -781,6 +784,16 @@ Breadboard.prototype.getLayerPosition = function getLayerPosition(p)
     return [x, y];
 };
 
+Breadboard.prototype.findConnection = function findConnection(id)
+{
+    var connection = this._connections[id];
+    if (connection)
+    {
+        return connection;
+    }
+    return null;
+};
+
 Breadboard.prototype.getConnection = function getConnection(id)
 {
     var connection = this._connections[id];
@@ -816,12 +829,15 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     this.dirty = true;
 
     var index = this.buses.indexOf(wire);
+    var wireType;
     if (index !== -1)
     {
+        wireType = Breadboard.wireType.BUS;
         this.buses.splice(index, 1);
     }
     else
     {
+        wireType = Breadboard.wireType.WIRE;
         index = this.wires.indexOf(wire);
         this.wires.splice(index, 1);
     }
@@ -840,14 +856,14 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     {
         id = this.getIndex(x, y);
         connection = this.getConnection(id);
-        connection.removeWire(id, bit0);
+        connection.removeWire(id, bit0, wireType);
         connection.removeWireComponent(id, wire);
         this.dirtyConnection(id, connection);
         x += dx;
         y += dy;
         id = this.getIndex(x, y);
         connection = this.getConnection(id);
-        connection.removeWire(id, bit1);
+        connection.removeWire(id, bit1, wireType);
     }
     connection.removeWireComponent(id, wire);
     this.dirtyConnection(id, connection);
