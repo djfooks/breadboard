@@ -47,6 +47,7 @@ DebuggerComponent.prototype.toJson = function toJson()
 DebuggerComponent.prototype.stateFromJson = function stateFromJson(json)
 {
     this.value = json.value | 0;
+    this.previousValue = this.value;
     this.debugType = json.debugType || DebuggerComponent.debugType.WRITE;
 };
 

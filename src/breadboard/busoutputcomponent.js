@@ -276,6 +276,7 @@ BusOutputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, key
 BusOutputComponent.prototype.updateValue = function updateValue(breadboard)
 {
     breadboard.dirtySave = true;
+    breadboard.dirty = true;
 };
 
 BusOutputComponent.prototype.getBusPosition = function getBusPosition()

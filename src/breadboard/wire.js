@@ -124,19 +124,20 @@ function Bus(breadboard, p)
                 var j;
                 for (j = 0; j < otherBuses.length; j += 1)
                 {
-                    if (otherBuses[j] === bus)
+                    var otherBus = otherBuses[j];
+                    if (otherBus === bus)
                     {
                         continue;
                     }
-                    if (bus.x0 === x &&
-                        bus.y0 === y)
+                    if (otherBus.x0 === x &&
+                        otherBus.y0 === y)
                     {
-                        edges.push([bus.x0, bus.y0]);
+                        edges.push([x, y]);
                     }
-                    else if (bus.x1 === x &&
-                             bus.y1 === y)
+                    else if (otherBus.x1 === x &&
+                             otherBus.y1 === y)
                     {
-                        edges.push([bus.x1, bus.y1]);
+                        edges.push([x, y]);
                     }
                 }
             });

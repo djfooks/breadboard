@@ -199,6 +199,7 @@ BusInputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
 BusInputComponent.prototype.updateValue = function updateValue(breadboard)
 {
     breadboard.dirtySave = true;
+    breadboard.dirty = true;
 };
 
 BusInputComponent.prototype.getBusPosition = function getBusPosition()
