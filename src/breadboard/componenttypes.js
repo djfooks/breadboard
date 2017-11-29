@@ -7,6 +7,7 @@ var ComponentTypes = {
     DEBUGGER: 5,
     BUS_INPUT: 6,
     BUS_OUTPUT: 7,
+    LATCH: 8,
 };
 
 var Component = {};

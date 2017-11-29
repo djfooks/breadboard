@@ -92,6 +92,8 @@ function Breadboard(stage, top, left, cols, rows)
     this.tray.gameStage.onMouseUp = this.onMouseUp.bind(this);
     this.tray.gameStage.onMouseMove = this.onMouseMove.bind(this, false);
     this.stage.addHitbox(this.tray.gameStage.gameStageHitbox);
+
+    this.frame = 0;
 }
 
 Breadboard.prototype.postLoad = function postLoad()
@@ -274,6 +276,10 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             component = new BusOutputComponent(breadboard);
         }
+        else if (componentJson.type === ComponentTypes.LATCH)
+        {
+            component = new LatchComponent(breadboard);
+        }
         breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p, componentJson.rotation | 0);
@@ -377,6 +383,8 @@ Breadboard.prototype.iterateBatteryPulsePaths = function iterateBatteryPulsePath
 
 Breadboard.prototype.update = function update()
 {
+    this.frame += 1;
+
     var that = this;
     if (this.dirty)
     {

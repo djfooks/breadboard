@@ -1,5 +1,5 @@
 
-function RelayComponent(breadboard)
+function LatchComponent(breadboard)
 {
     this.p = [-1, -1];
 
@@ -12,32 +12,36 @@ function RelayComponent(breadboard)
     this.outId1 = -1;
     this.outP1 = [-1, -1];
 
-    this.signalId = -1;
-    this.signalP = [-1, -1];
+    this.signalId0 = -1;
+    this.signalP0 = [-1, -1];
+
+    this.signalId1 = -1;
+    this.signalP1 = [-1, -1];
 
     this.signalValue = false;
+    this.countSignalValue = 0;
 
     this.pulsePaths = [];
 
     Component.addHitbox(breadboard, this);
 }
 
-RelayComponent.prototype.type = ComponentTypes.RELAY;
+LatchComponent.prototype.type = ComponentTypes.LATCH;
 
-RelayComponent.prototype.toJson = function toJson()
+LatchComponent.prototype.toJson = function toJson()
 {
     return {
-        type: ComponentTypes.RELAY,
+        type: ComponentTypes.LATCH,
         p: this.p,
         rotation: this.rotation
     };
 };
 
-RelayComponent.prototype.stateFromJson = function stateFromJson(json)
+LatchComponent.prototype.stateFromJson = function stateFromJson(json)
 {
 };
 
-RelayComponent.prototype.move = function move(breadboard, p, rotation)
+LatchComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
@@ -46,33 +50,37 @@ RelayComponent.prototype.move = function move(breadboard, p, rotation)
     this.outP0 = [p[0], p[1]];
     this.outId0 = breadboard.getIndex(p[0], p[1]);
 
+    this.signalP0 = AddTransformedVector(p, matrix, [1, 0]);
+    this.signalId0 = breadboard.getIndex(this.signalP0[0], this.signalP0[1]);
+
     this.baseP = AddTransformedVector(p, matrix, [0, 1]);
     this.baseId = breadboard.getIndex(this.baseP[0], this.baseP[1]);
 
     this.outP1 = AddTransformedVector(p, matrix, [0, 2]);
     this.outId1 = breadboard.getIndex(this.outP1[0], this.outP1[1]);
 
-    this.signalP = AddTransformedVector(p, matrix, [0, 3]);
-    this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
+    this.signalP1 = AddTransformedVector(p, matrix, [1, 2]);
+    this.signalId1 = breadboard.getIndex(this.signalP1[0], this.signalP1[1]);
 
     this.pulsePaths = [];
-    Component.updateHitbox(this, p, this.signalP);
+    Component.updateHitbox(this, p, this.signalP1);
 };
 
-RelayComponent.prototype.clone = function clone(breadboard)
+LatchComponent.prototype.clone = function clone(breadboard)
 {
-    var cloneComponent = new RelayComponent(breadboard);
+    var cloneComponent = new LatchComponent(breadboard);
     cloneComponent.move(breadboard, this.p, this.rotation);
     return cloneComponent;
 };
 
-RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
+LatchComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
 {
     var rotationMatrix = RotationMatrix[rotation];
 
-    var p1 = AddTransformedVector(p0, rotationMatrix, [0, 1]);
-    var p2 = AddTransformedVector(p0, rotationMatrix, [0, 2]);
-    var p3 = AddTransformedVector(p0, rotationMatrix, [0, 3]);
+    var p1 = AddTransformedVector(p0, rotationMatrix, [1, 0]);
+    var p2 = AddTransformedVector(p0, rotationMatrix, [0, 1]);
+    var p3 = AddTransformedVector(p0, rotationMatrix, [0, 2]);
+    var p4 = AddTransformedVector(p0, rotationMatrix, [1, 2]);
 
     var p0Component = breadboard.getComponent(p0);
     var p1Component = breadboard.getComponent(p1);
@@ -87,12 +95,13 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
 {
     var outP0 = this.outP0;
+    var signalP0 = this.signalP0;
     var baseP = this.baseP;
     var outP1 = this.outP1;
-    var signalP = this.signalP;
+    var signalP1 = this.signalP1;
 
     if (!p)
     {
@@ -102,9 +111,10 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     {
         var rotationMatrix = RotationMatrix[this.rotation];
         outP0 = p;
+        signalP0 = AddTransformedVector(p, rotationMatrix, [1, 0]);
         baseP = AddTransformedVector(p, rotationMatrix, [0, 1]);
         outP1 = AddTransformedVector(p, rotationMatrix, [0, 2]);
-        signalP = AddTransformedVector(p, rotationMatrix, [0, 3]);
+        signalP1 = AddTransformedVector(p, rotationMatrix, [1, 2]);
     }
 
     var radius = Component.connectionBgRadius;
@@ -124,7 +134,11 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
 
     ctx.fillStyle = "#00FF00"; // green
     ctx.beginPath();
-    ctx.arc(signalP[0], signalP[1], radius, 0, Math.PI * 2.0);
+    ctx.arc(signalP0[0], signalP0[1], radius, 0, Math.PI * 2.0);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(signalP1[0], signalP1[1], radius, 0, Math.PI * 2.0);
     ctx.fill();
 
     ctx.beginPath();
@@ -141,19 +155,21 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     }
     ctx.stroke();
 
-    Component.containerPath(drawOptions, ctx, bgColor, outP0, signalP);
+    Component.containerPath(drawOptions, ctx, bgColor, outP0, signalP1);
     ctx.stroke();
 
     var color;
     var value0 = drawOptions.getConnectionValue(this.outId0);
     var valueBase = drawOptions.getConnectionValue(this.baseId);
     var value1 = drawOptions.getConnectionValue(this.outId1);
-    var valueSignal = drawOptions.getConnectionValue(this.signalId);
+    var valueSignal0 = drawOptions.getConnectionValue(this.signalId0);
+    var valueSignal1 = drawOptions.getConnectionValue(this.signalId1);
 
     Component.drawFgNode(ctx, fgColor, value0, outP0);
     Component.drawFgNode(ctx, fgColor, valueBase, baseP);
     Component.drawFgNode(ctx, fgColor, value1, outP1);
-    Component.drawFgNode(ctx, fgColor, valueSignal, signalP);
+    Component.drawFgNode(ctx, fgColor, valueSignal0, signalP0);
+    Component.drawFgNode(ctx, fgColor, valueSignal1, signalP1);
 
     ctx.beginPath();
     ctx.lineWidth = 0.2;
@@ -173,14 +189,35 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     ctx.stroke();
 };
 
-RelayComponent.prototype.reset = function reset()
+LatchComponent.prototype.reset = function reset()
 {
 };
 
-RelayComponent.prototype.update = function update(breadboard)
+LatchComponent.prototype.update = function update(breadboard)
 {
-    var signalValue = breadboard.getConnection(this.signalId).isOn();
-    this.signalValue = signalValue;
+    var signalValue0 = breadboard.getConnection(this.signalId0).isOn();
+    var signalValue1 = breadboard.getConnection(this.signalId1).isOn();
+    if (!signalValue0 && !signalValue1)
+    {
+        return;
+    }
+
+    if (signalValue0 && signalValue1)
+    {
+        if (this.invalidSignalFrame < breadboard.frame - 1)
+        {
+            this.signalValue = Math.random() > 0.5;
+        }
+        this.invalidSignalFrame = breadboard.frame;
+    }
+    else if (signalValue0)
+    {
+        this.signalValue = false;
+    }
+    else if (signalValue1)
+    {
+        this.signalValue = true;
+    }
 
     var i;
     for (i = 0; i < this.pulsePaths.length; i += 1)
@@ -207,7 +244,7 @@ RelayComponent.prototype.update = function update(breadboard)
             throw new Error();
         }
 
-        if (signalValue === isBase0Connection)
+        if (this.signalValue === isBase0Connection)
         {
             child.createPulse(0);
         }
@@ -219,16 +256,16 @@ RelayComponent.prototype.update = function update(breadboard)
     }
 };
 
-RelayComponent.prototype.getConnections = function getConnections()
+LatchComponent.prototype.getConnections = function getConnections()
 {
-    return [this.baseId, this.outId0, this.outId1, this.signalId];
+    return [this.baseId, this.outId0, this.outId1, this.signalId0, this.signalId1];
 };
 
-RelayComponent.prototype.toggle = function toggle()
+LatchComponent.prototype.toggle = function toggle()
 {
 };
 
-RelayComponent.prototype.getOutputs = function getOutputs(id)
+LatchComponent.prototype.getOutputs = function getOutputs(id)
 {
     if (id === this.baseId)
     {
@@ -238,14 +275,14 @@ RelayComponent.prototype.getOutputs = function getOutputs(id)
     {
         return [this.baseId];
     }
-    if (id === this.signalId)
+    if (id === this.signalId0 || id === this.signalId1)
     {
         return [];
     }
     throw new Error();
 };
 
-RelayComponent.prototype.isConnected = function isConnected(id0, id1)
+LatchComponent.prototype.isConnected = function isConnected(id0, id1)
 {
     if (this.signalValue)
     {
@@ -272,7 +309,7 @@ RelayComponent.prototype.isConnected = function isConnected(id0, id1)
     return false;
 };
 
-RelayComponent.prototype.getBusPosition = function getBusPosition()
+LatchComponent.prototype.getBusPosition = function getBusPosition()
 {
     return null;
 };
