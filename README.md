@@ -7,6 +7,7 @@ https://cdn.rawgit.com/djfooks/breadboard/master/index.html
 
 Change log:
 
+- Added a latch component. Allows memory and counters without having to deal with tricky timing issues.
 - Added buses! Wires that can carry multiple signals. They also allow communication over long distances instantly.
 - Increase the breadboard size 20x.
 - Save debugger type.
