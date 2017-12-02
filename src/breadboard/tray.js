@@ -15,23 +15,23 @@ Tray.prototype.resetComponents = function resetComponents()
 {
     this.battery = new BatteryComponent(this.breadboard);
     this.gameStage.addHitbox(this.battery.hitbox);
-    this.battery.move(this.breadboard, [0, 6], 0);
+    this.battery.move(this.breadboard, [0, 9], 0);
 
     this.switch = new SwitchComponent(this.breadboard);
     this.gameStage.addHitbox(this.switch.hitbox);
-    this.switch.move(this.breadboard, [0, 9], 0);
+    this.switch.move(this.breadboard, [0, 12], 0);
 
     this.relay = new RelayComponent(this.breadboard);
     this.gameStage.addHitbox(this.relay.hitbox);
-    this.relay.move(this.breadboard, [0, 12], 0);
+    this.relay.move(this.breadboard, [0, 15], 0);
 
     this.diode = new DiodeComponent(this.breadboard);
     this.gameStage.addHitbox(this.diode.hitbox);
-    this.diode.move(this.breadboard, [0, 17], 0);
+    this.diode.move(this.breadboard, [0, 20], 0);
 
     this.debugger = new DebuggerComponent(this.breadboard);
     this.gameStage.addHitbox(this.debugger.hitbox);
-    this.debugger.move(this.breadboard, [2, 6], 0);
+    this.debugger.move(this.breadboard, [-1, 23], 0);
 
     this.busInput = new BusInputComponent(this.breadboard);
     this.gameStage.addHitbox(this.busInput.hitbox);
@@ -43,7 +43,7 @@ Tray.prototype.resetComponents = function resetComponents()
 
     this.latch = new LatchComponent(this.breadboard);
     this.gameStage.addHitbox(this.latch.hitbox);
-    this.latch.move(this.breadboard, [2, 17], 0);
+    this.latch.move(this.breadboard, [2, 18], 0);
 };
 
 Tray.prototype.isFromTray = function isFromTray(component)
