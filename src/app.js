@@ -75,6 +75,8 @@ var App = function ()
     TextureManager.request("move-enabled.png");
     TextureManager.request("truck.png");
     TextureManager.request("truck-enabled.png");
+    TextureManager.request("select.png");
+    TextureManager.request("select-enabled.png");
 };
 
 App.prototype.update = function update()

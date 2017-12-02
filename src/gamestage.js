@@ -68,6 +68,10 @@ GameStage.prototype.zoomDelta = function zoomDelta(deltaY)
 
 GameStage.prototype.addHitbox = function addHitbox(hitbox)
 {
+    if (!hitbox)
+    {
+        throw new Error("Invalid hitbox");
+    }
     this.hitboxes.push(hitbox);
 };
 
