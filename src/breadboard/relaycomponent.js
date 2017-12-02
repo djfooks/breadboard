@@ -1,7 +1,7 @@
 
 function RelayComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
 
     this.baseId = -1;
     this.baseP = [-1, -1];
@@ -28,7 +28,7 @@ RelayComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.RELAY,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation
     };
 };
@@ -41,7 +41,7 @@ RelayComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
 
     this.outP0 = [p[0], p[1]];
     this.outId0 = breadboard.getIndex(p[0], p[1]);
@@ -62,7 +62,7 @@ RelayComponent.prototype.move = function move(breadboard, p, rotation)
 RelayComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new RelayComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -96,7 +96,7 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
 
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {

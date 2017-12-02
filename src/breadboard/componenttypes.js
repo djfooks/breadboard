@@ -13,6 +13,7 @@ var ComponentTypes = {
 var Component = {};
 
 Component.border = 0.45;
+Component.selectionBorder = 0.5;
 Component.borderLineWidth = 0.05;
 
 Component.addHitbox = function addHitbox(breadboard, component)
@@ -45,9 +46,13 @@ Component.updateHitbox = function updateHitbox(component, p0, p1)
     hitbox.maxY = max[1] + border;
 };
 
-Component.containerPath = function containerPath(drawOptions, ctx, bgColor, p0, p1)
+Component.selectionContainerPath = function selectionContainerPath(drawOptions, ctx, bgColor, p0, p1)
 {
-    var border = Component.border;
+    this.drawContainerPath(drawOptions, ctx, bgColor, p0, p1, Component.selectionBorder);
+};
+
+Component.drawContainerPath = function containerPath(drawOptions, ctx, bgColor, p0, p1, border)
+{
     var min = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1])];
     var max = [Math.max(p0[0], p1[0]), Math.max(p0[1], p1[1])];
     var x0 = min[0] - border;
@@ -65,6 +70,11 @@ Component.containerPath = function containerPath(drawOptions, ctx, bgColor, p0, 
     ctx.lineTo(x0, y0);
 };
 
+Component.containerPath = function containerPath(drawOptions, ctx, bgColor, p0, p1)
+{
+    this.drawContainerPath(drawOptions, ctx, bgColor, p0, p1, Component.border);
+};
+
 Component.connectionFgRadius = 0.25;
 Component.connectionBgRadius = 0.30;
 
@@ -79,5 +89,5 @@ Component.drawFgNode = function drawFgNode(ctx, fgColor, value0, p)
 
 Component.getGrabPoint = function getGrabPoint(component, p)
 {
-    return [component.p[0] - p[0], component.p[1] - p[1]];
+    return [component.p0[0] - p[0], component.p0[1] - p[1]];
 };

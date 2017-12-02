@@ -21,7 +21,7 @@ DraggingComponent.areAllValid = function areAllValid(breadboard, draggingCompone
         }
         else
         {
-            q = component.p;
+            q = component.p0;
         }
 
         if (!breadboard.validPosition(q) ||

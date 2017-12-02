@@ -130,6 +130,8 @@ Breadboard.prototype.clear = function clearFn()
     this.draggingComponents = [];
     this.draggingFromTray = false;
     this.wireStart = [-1, -1];
+    this.selectStart = [-1, -1];
+    this.gameSpaceMouse = [-1, -1];
 
     this.simulateSteps = 0;
 
@@ -283,7 +285,7 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         }
         breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
-        component.move(breadboard, componentJson.p, componentJson.rotation | 0);
+        component.move(breadboard, componentJson.p0 || componentJson.p, componentJson.rotation | 0);
         breadboard.addComponent(component);
     }
     return breadboard;
@@ -499,6 +501,8 @@ Breadboard.prototype.draw = function draw()
         this.drawBuses(this.virtualWires);
     }
 
+    this.drawSelection();
+
     if (this.debugDrawHitboxes)
     {
         this.gameStage.drawHitboxes(ctx);
@@ -523,6 +527,34 @@ Breadboard.prototype.draw = function draw()
     {
         this.debugDrawList[i](ctx);
     }
+};
+
+Breadboard.prototype.drawSelection = function drawSelection()
+{
+    if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
+    {
+        return;
+    }
+
+    var x0 = this.selectStart[0];
+    var y0 = this.selectStart[1];
+    var x1 = this.gameSpaceMouse[0];
+    var y1 = this.gameSpaceMouse[1];
+
+    var ctx = this.stage.ctx;
+
+    ctx.beginPath();
+    ctx.lineWidth = Component.borderLineWidth;
+    ctx.setLineDash([0.1, 0.15]);
+    ctx.strokeStyle = "#000000";
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x0, y1);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x1, y0);
+    ctx.lineTo(x0, y0);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
 };
 
 Breadboard.prototype.drawComponents = function drawComponents()
@@ -1193,7 +1225,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         var valid;
         if (this.state !== Breadboard.state.DRAG_COMPONENT)
         {
-            valid = component.isValid(this, component.p, newRotation)
+            valid = component.isValid(this, component.p0, newRotation)
             if (!valid)
             {
                 return;
@@ -1203,7 +1235,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         draggingComponent.grabPoint = [draggingComponent.grabPoint[1], -draggingComponent.grabPoint[0]];
 
         this.removeComponent(component);
-        component.move(this, component.p, newRotation);
+        component.move(this, component.p0, newRotation);
         if (this.state !== Breadboard.state.DRAG_COMPONENT && valid)
         {
             this.addComponent(component);
@@ -1298,7 +1330,15 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
     }
 
     p = this.gameStage.toView(p);
+    if (this.state === Breadboard.state.SELECT)
+    {
+        if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
+        {
+            this.selectStart = [p[0], p[1]];
+        }
+    }
     p = this.getPosition(p);
+
     if (this.state !== Breadboard.state.ADD_WIRE)
     {
         return;
@@ -1330,7 +1370,16 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
     }
 
     p = this.gameStage.toView(p);
-    if (this.state === Breadboard.state.PLACING_WIRE)
+
+    if (this.state === Breadboard.state.SELECT)
+    {
+        if (this.selectStart[0] !== -1 &&
+            this.selectStart[1] !== -1)
+        {
+            this.selectStart = [-1, -1];
+        }
+    }
+    else if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.wirePlaceUpdate(p, false);
         this.state = Breadboard.state.ADD_WIRE;
@@ -1345,6 +1394,8 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 {
     this.mouseOverGameStage = gameSpace;
 
+    this.gameSpaceMouse = this.gameStage.toView(p);
+
     if (this.isScrolling)
     {
         var delta = [p[0] - this.scrollGrab[0], p[1] - this.scrollGrab[1]];
@@ -1354,13 +1405,11 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
-        p = this.gameStage.toView(p);
-        this.wirePlaceUpdate(p, true);
+        this.wirePlaceUpdate(this.gameSpaceMouse, true);
     }
     else if (this.state === Breadboard.state.REMOVE_WIRE)
     {
-        p = this.gameStage.toView(p);
-        this.wireRemoveUpdate(p, true);
+        this.wireRemoveUpdate(this.gameSpaceMouse, true);
     }
     else if (this.state === Breadboard.state.DRAG_COMPONENT)
     {

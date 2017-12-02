@@ -1,10 +1,9 @@
 
 function BatteryComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
 
     this.id0 = -1;
-    this.p0 = [-1, -1];
 
     this.id1 = -1;
     this.p1 = [-1, -1];
@@ -26,7 +25,6 @@ BatteryComponent.prototype.createPulsePath = function createPulsePath()
 BatteryComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
-    this.p = [p[0], p[1]];
     var matrix = RotationMatrix[this.rotation];
 
     this.p0 = [p[0], p[1]];
@@ -41,7 +39,7 @@ BatteryComponent.prototype.move = function move(breadboard, p, rotation)
 BatteryComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new BatteryComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -49,7 +47,7 @@ BatteryComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.BATTERY,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation
     };
 };
@@ -81,7 +79,7 @@ BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fg
     var rotationMatrix = RotationMatrix[this.rotation];
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {

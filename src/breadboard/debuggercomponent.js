@@ -1,7 +1,7 @@
 
 function DebuggerComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
 
     this.powerId = [];
     this.powerP = [-1, -1];
@@ -37,7 +37,7 @@ DebuggerComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.DEBUGGER,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation,
         value: this.value,
         debugType: this.debugType
@@ -55,7 +55,7 @@ DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
 
     this.powerP = [p[0], p[1]];
     this.powerId = breadboard.getIndex(p[0], p[1]);
@@ -74,7 +74,7 @@ DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
 DebuggerComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new DebuggerComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -100,7 +100,7 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
 
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {
@@ -238,7 +238,7 @@ DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
     }
     for (i = 0; i < 7; i += 1)
     {
-        var screenP = AddTransformedVector(this.p, rotationMatrix, [i + 1, 0]);
+        var screenP = AddTransformedVector(this.p0, rotationMatrix, [i + 1, 0]);
         connections.push(breadboard.getIndex(screenP[0], screenP[1]));
     }
     return connections;
@@ -320,7 +320,7 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
 DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
 {
     var rotationMatrix = RotationMatrix[this.rotation];
-    var configure = AddTransformedVector(this.p, rotationMatrix, [7, 0]);
+    var configure = AddTransformedVector(this.p0, rotationMatrix, [7, 0]);
     if (p[0] === configure[0] && p[1] === configure[1])
     {
         if (this.debugType === DebuggerComponent.debugType.WRITE)
@@ -344,8 +344,8 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
         return;
     }
 
-    var screen0 = AddTransformedVector(this.p, rotationMatrix, [1, 0]);
-    var screen1 = AddTransformedVector(this.p, rotationMatrix, [6, 0]);
+    var screen0 = AddTransformedVector(this.p0, rotationMatrix, [1, 0]);
+    var screen1 = AddTransformedVector(this.p0, rotationMatrix, [6, 0]);
     var min = [Math.min(screen0[0], screen1[0]), Math.min(screen0[1], screen1[1])];
     var max = [Math.max(screen0[0], screen1[0]), Math.max(screen0[1], screen1[1])];
     if (p[0] >= min[0] && p[0] <= max[0] && p[1] >= min[1] && p[1] <= max[1])
