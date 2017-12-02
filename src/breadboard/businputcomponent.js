@@ -2,6 +2,7 @@
 function BusInputComponent(breadboard)
 {
     this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.busId = -1;
     this.busP = [-1, -1];
@@ -51,6 +52,8 @@ BusInputComponent.prototype.move = function move(breadboard, p, rotation)
 
     this.signalP = AddTransformedVector(p, matrix, [0, 2]);
     this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
+
+    this.p1 = this.signalP;
 
     Component.updateHitbox(this, p, this.signalP);
 };
@@ -122,11 +125,11 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.arc(signalP[0], signalP[1], radius, 0, Math.PI * 2.0);
     ctx.fill();
 
-    Component.containerPath(drawOptions, ctx, bgColor, busP, signalP);
+    Component.containerPath(ctx, bgColor, busP, signalP);
     ctx.stroke();
 
     ctx.fillStyle = "#FFFFFF";
-    Component.containerPath(drawOptions, ctx, bgColor, settingP, settingP);
+    Component.containerPath(ctx, bgColor, settingP, settingP);
     ctx.fill();
     ctx.stroke();
 

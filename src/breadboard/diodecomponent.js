@@ -1,8 +1,6 @@
 
 function DiodeComponent(breadboard)
 {
-    this.p0 = [-1, -1];
-
     this.id0 = -1;
     this.p0 = [-1, -1];
 
@@ -106,7 +104,7 @@ DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     ctx.lineTo(arrowRight0[0], arrowRight0[1]);
     ctx.stroke();
 
-    Component.containerPath(drawOptions, ctx, bgColor, p0, p1);
+    Component.containerPath(ctx, bgColor, p0, p1);
     ctx.stroke();
 
     var value0 = drawOptions.getConnectionValue(this.id0);

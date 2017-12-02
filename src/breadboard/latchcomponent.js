@@ -2,6 +2,7 @@
 function LatchComponent(breadboard)
 {
     this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.baseId = -1;
     this.baseP = [-1, -1];
@@ -61,6 +62,8 @@ LatchComponent.prototype.move = function move(breadboard, p, rotation)
 
     this.signalP1 = AddTransformedVector(p, matrix, [1, 2]);
     this.signalId1 = breadboard.getIndex(this.signalP1[0], this.signalP1[1]);
+
+    this.p1 = this.signalP1;
 
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.signalP1);
@@ -155,7 +158,7 @@ LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     }
     ctx.stroke();
 
-    Component.containerPath(drawOptions, ctx, bgColor, outP0, signalP1);
+    Component.containerPath(ctx, bgColor, outP0, signalP1);
     ctx.stroke();
 
     var color;

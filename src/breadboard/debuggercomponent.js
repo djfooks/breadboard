@@ -2,6 +2,7 @@
 function DebuggerComponent(breadboard)
 {
     this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.powerId = [];
     this.powerP = [-1, -1];
@@ -67,6 +68,8 @@ DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
         this.pinId[i] = breadboard.getIndex(this.pinP[i][0], this.pinP[i][1]);
     }
 
+    this.p1 = this.pinP[7];
+
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.pinP[7]);
 };
@@ -128,7 +131,7 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
         ctx.fill();
     }
 
-    Component.containerPath(drawOptions, ctx, bgColor, p, pinP[7]);
+    Component.containerPath(ctx, bgColor, p, pinP[7]);
     ctx.stroke();
 
     var color;
@@ -147,7 +150,7 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.fillStyle = "#FFFFFF";
     var textBox0 = AddTransformedVector(p, rotationMatrix, [6, 0]);
     var textBox1 = AddTransformedVector(p, rotationMatrix, [1, 0]);
-    Component.containerPath(drawOptions, ctx, bgColor, textBox0, textBox1);
+    Component.containerPath(ctx, bgColor, textBox0, textBox1);
     ctx.fill();
     ctx.stroke();
 

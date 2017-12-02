@@ -2,12 +2,10 @@
 function SwitchComponent(breadboard)
 {
     this.p0 = [-1, -1];
+    this.p1 = [-1, -1];
 
     this.id0 = -1;
-    this.p0 = [-1, -1];
-
     this.id1 = -1;
-    this.p1 = [-1, -1];
 
     this.connected = false;
     this.rotation = 0;
@@ -29,7 +27,6 @@ SwitchComponent.prototype.move = function move(breadboard, p, rotation)
 
     this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
-
 
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.p1);
@@ -112,7 +109,7 @@ SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgC
         ctx.stroke();
     }
 
-    Component.containerPath(drawOptions, ctx, bgColor, p0, p1);
+    Component.containerPath(ctx, bgColor, p0, p1);
     ctx.stroke();
 
     var value0 = drawOptions.getConnectionValue(this.id0);

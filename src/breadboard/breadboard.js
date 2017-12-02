@@ -531,6 +531,16 @@ Breadboard.prototype.draw = function draw()
 
 Breadboard.prototype.drawSelection = function drawSelection()
 {
+    var ctx = this.stage.ctx;
+
+    var draggingComponents = this.draggingComponents;
+    for (var i = 0; i < draggingComponents.length; i += 1)
+    {
+        var component = draggingComponents[i].component;
+        Component.selectionContainerPath(ctx, "#BDB76B", component.p0, component.p1);
+        ctx.stroke();
+    }
+
     if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
     {
         return;
@@ -540,8 +550,6 @@ Breadboard.prototype.drawSelection = function drawSelection()
     var y0 = this.selectStart[1];
     var x1 = this.gameSpaceMouse[0];
     var y1 = this.gameSpaceMouse[1];
-
-    var ctx = this.stage.ctx;
 
     ctx.beginPath();
     ctx.lineWidth = Component.borderLineWidth;
@@ -1261,6 +1269,45 @@ Breadboard.prototype.addComponent = function addComponent(component)
     }
 };
 
+Breadboard.prototype.selectComponents = function selectComponents()
+{
+    var p0 = this.gameSpaceMouse;
+
+    var p1 = this.selectStart;
+    if (p1[0] === -1 && p1[1] === -1)
+    {
+        p1 = [p0[0], p0[1]];
+    }
+
+    var border = Component.border + Component.borderLineWidth * 0.5;
+
+    var x0 = Math.ceil(Math.min(p0[0], p1[0]) - border);
+    var y0 = Math.ceil(Math.min(p0[1], p1[1]) - border);
+    var x1 = Math.floor(Math.max(p0[0], p1[0]) + border);
+    var y1 = Math.floor(Math.max(p0[1], p1[1]) + border);
+
+    this.draggingComponents = [];
+    var noGrabPoint = [-1, -1];
+
+    var x;
+    var y;
+    for (x = x0; x <= x1; x += 1)
+    for (y = y0; y <= y1; y += 1)
+    {
+        var p = [x, y];
+        if (!this.validPosition(p))
+        {
+            continue;
+        }
+
+        var component = this.getComponent(p);
+        if (component)
+        {
+            this.draggingComponents.push(new DraggingComponent(component, noGrabPoint));
+        }
+    }
+};
+
 Breadboard.prototype.getComponent = function getComponent(p)
 {
     if (!this.validPosition(p))
@@ -1370,14 +1417,12 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
     }
 
     p = this.gameStage.toView(p);
+    this.gameSpaceMouse = [p[0], p[1]];
 
     if (this.state === Breadboard.state.SELECT)
     {
-        if (this.selectStart[0] !== -1 &&
-            this.selectStart[1] !== -1)
-        {
-            this.selectStart = [-1, -1];
-        }
+        this.selectComponents();
+        this.selectStart = [-1, -1];
     }
     else if (this.state === Breadboard.state.PLACING_WIRE)
     {

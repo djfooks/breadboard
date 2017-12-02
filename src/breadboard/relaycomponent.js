@@ -2,6 +2,7 @@
 function RelayComponent(breadboard)
 {
     this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.baseId = -1;
     this.baseP = [-1, -1];
@@ -54,6 +55,8 @@ RelayComponent.prototype.move = function move(breadboard, p, rotation)
 
     this.signalP = AddTransformedVector(p, matrix, [0, 3]);
     this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
+
+    this.p1 = this.signalP;
 
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.signalP);
@@ -141,7 +144,7 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     }
     ctx.stroke();
 
-    Component.containerPath(drawOptions, ctx, bgColor, outP0, signalP);
+    Component.containerPath(ctx, bgColor, outP0, signalP);
     ctx.stroke();
 
     var color;

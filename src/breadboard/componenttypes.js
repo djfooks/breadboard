@@ -46,12 +46,12 @@ Component.updateHitbox = function updateHitbox(component, p0, p1)
     hitbox.maxY = max[1] + border;
 };
 
-Component.selectionContainerPath = function selectionContainerPath(drawOptions, ctx, bgColor, p0, p1)
+Component.selectionContainerPath = function selectionContainerPath(ctx, bgColor, p0, p1)
 {
-    this.drawContainerPath(drawOptions, ctx, bgColor, p0, p1, Component.selectionBorder);
+    this.drawContainerPath(ctx, bgColor, p0, p1, Component.selectionBorder);
 };
 
-Component.drawContainerPath = function containerPath(drawOptions, ctx, bgColor, p0, p1, border)
+Component.drawContainerPath = function containerPath(ctx, bgColor, p0, p1, border)
 {
     var min = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1])];
     var max = [Math.max(p0[0], p1[0]), Math.max(p0[1], p1[1])];
@@ -70,9 +70,9 @@ Component.drawContainerPath = function containerPath(drawOptions, ctx, bgColor, 
     ctx.lineTo(x0, y0);
 };
 
-Component.containerPath = function containerPath(drawOptions, ctx, bgColor, p0, p1)
+Component.containerPath = function containerPath(ctx, bgColor, p0, p1)
 {
-    this.drawContainerPath(drawOptions, ctx, bgColor, p0, p1, Component.border);
+    this.drawContainerPath(ctx, bgColor, p0, p1, Component.border);
 };
 
 Component.connectionFgRadius = 0.25;

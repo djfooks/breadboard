@@ -2,6 +2,7 @@
 function BusOutputComponent(breadboard)
 {
     this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.busId = -1;
     this.busP = [-1, -1];
@@ -57,6 +58,8 @@ BusOutputComponent.prototype.move = function move(breadboard, p, rotation)
 
     this.outP = AddTransformedVector(p, matrix, [0, 3]);
     this.outId = breadboard.getIndex(this.outP[0], this.outP[1]);
+
+    this.p1 = this.outP;
 
     Component.updateHitbox(this, p, this.outP);
 };
@@ -147,11 +150,11 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
         ctx.stroke();
     }
 
-    Component.containerPath(drawOptions, ctx, bgColor, busP, outP);
+    Component.containerPath(ctx, bgColor, busP, outP);
     ctx.stroke();
 
     ctx.fillStyle = "#FFFFFF";
-    Component.containerPath(drawOptions, ctx, bgColor, settingP, settingP);
+    Component.containerPath(ctx, bgColor, settingP, settingP);
     ctx.fill();
     ctx.stroke();
 

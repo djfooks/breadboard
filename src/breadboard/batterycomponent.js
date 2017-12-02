@@ -2,11 +2,10 @@
 function BatteryComponent(breadboard)
 {
     this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.id0 = -1;
-
     this.id1 = -1;
-    this.p1 = [-1, -1];
 
     this.rotation = 0;
     this.pulsePaths = [];
@@ -126,7 +125,7 @@ BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fg
     ctx.stroke();
     ctx.lineCap = "butt";
 
-    Component.containerPath(drawOptions, ctx, bgColor, p0, p1);
+    Component.containerPath(ctx, bgColor, p0, p1);
     ctx.stroke();
 
     Component.drawFgNode(ctx, null, 1, p1);
