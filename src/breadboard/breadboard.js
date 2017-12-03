@@ -129,7 +129,7 @@ Breadboard.prototype.clear = function clearFn()
     this.wireType = Breadboard.wireType.WIRE;
     this.draggingStartPoint = [-1, -1];
     this.draggingPoint = [0, 0];
-    this.draggingComponents = [];
+    this.selectedComponents = [];
     this.draggingFromTray = false;
     this.wireStart = [-1, -1];
     this.selectStart = [-1, -1];
@@ -539,10 +539,10 @@ Breadboard.prototype.drawSelection = function drawSelection()
     }
     var ctx = this.stage.ctx;
 
-    var draggingComponents = this.draggingComponents;
-    for (var i = 0; i < draggingComponents.length; i += 1)
+    var selectedComponents = this.selectedComponents;
+    for (var i = 0; i < selectedComponents.length; i += 1)
     {
-        var component = draggingComponents[i].component;
+        var component = selectedComponents[i].component;
         Component.selectionContainerPath(ctx, "#BDB76B", component.p0, component.p1);
         ctx.stroke();
     }
@@ -593,16 +593,16 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
         gameStage.transformContext(ctx);
         var drawOptions = new DrawOptions(null);
         var valid = this.mouseOverGameStage &&
-                    DraggingComponent.areAllValid(this, this.draggingComponents, this.draggingPoint);
-        var draggingComponents = this.draggingComponents;
+                    DraggingComponent.areAllValid(this, this.selectedComponents, this.draggingPoint);
+        var selectedComponents = this.selectedComponents;
         var i;
-        for (i = 0; i < draggingComponents.length; i += 1)
+        for (i = 0; i < selectedComponents.length; i += 1)
         {
-            var draggingComponent = draggingComponents[i];
-            var component = draggingComponent.component;
+            var selectedComponent = selectedComponents[i];
+            var component = selectedComponent.component;
 
-            var p = [this.draggingPoint[0] + draggingComponent.grabPoint[0],
-                     this.draggingPoint[1] + draggingComponent.grabPoint[1]];
+            var p = [this.draggingPoint[0] + selectedComponent.grabPoint[0],
+                     this.draggingPoint[1] + selectedComponent.grabPoint[1]];
 
             var q = this.getPosition(p);
 
@@ -1111,12 +1111,12 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         gameStage = this.tray.gameStage;
     }
 
-    var draggingComponents = this.draggingComponents;
+    var selectedComponents = this.selectedComponents;
     var selected = false;
     var i;
-    for (i = 0; i < draggingComponents.length; i += 1)
+    for (i = 0; i < selectedComponents.length; i += 1)
     {
-        if (draggingComponents[i].component === component)
+        if (selectedComponents[i].component === component)
         {
             selected = true;
             break;
@@ -1125,15 +1125,15 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 
     if (selected)
     {
-        for (i = 0; i < draggingComponents.length; i += 1)
+        for (i = 0; i < selectedComponents.length; i += 1)
         {
-            var draggingComponent = draggingComponents[i];
-            draggingComponent.grabPoint = Component.getGrabPoint(draggingComponent.component, gameStage.toView(q));
+            var selectedComponent = selectedComponents[i];
+            selectedComponent.grabPoint = Component.getGrabPoint(selectedComponent.component, gameStage.toView(q));
         }
     }
     else
     {
-        this.draggingComponents = [
+        this.selectedComponents = [
             new DraggingComponent(component, Component.getGrabPoint(component, gameStage.toView(q)))
         ];
     }
@@ -1168,7 +1168,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         }
     }
 
-    if (this.state !== Breadboard.state.DRAG_COMPONENT || this.draggingComponents.length === 0)
+    if (this.state !== Breadboard.state.DRAG_COMPONENT || this.selectedComponents.length === 0)
     {
         this.onMouseUp(p, button);
         return;
@@ -1176,23 +1176,23 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
 
     if (!this.shouldSwitch)
     {
-        var draggingComponents = this.draggingComponents;
-        var valid = this.mouseOverGameStage && DraggingComponent.areAllValid(this, draggingComponents);
+        var selectedComponents = this.selectedComponents;
+        var valid = this.mouseOverGameStage && DraggingComponent.areAllValid(this, selectedComponents);
         var i;
         if (valid)
         {
-            for (i = 0; i < draggingComponents.length; i += 1)
+            for (i = 0; i < selectedComponents.length; i += 1)
             {
-                this.addComponent(draggingComponents[i].component);
+                this.addComponent(selectedComponents[i].component);
             }
         }
         else
         {
-            for (i = 0; i < draggingComponents.length; i += 1)
+            for (i = 0; i < selectedComponents.length; i += 1)
             {
-                Component.remove(this, draggingComponents[i].component);
+                Component.remove(this, selectedComponents[i].component);
             }
-            this.draggingComponents = [];
+            this.selectedComponents = [];
         }
     }
 
@@ -1211,7 +1211,7 @@ Breadboard.prototype.draggingComponentsUpdate = function draggingComponentsUpdat
     var i;
     var gameStage = this.draggingFromTray ? this.tray.gameStage : this.gameStage;
     this.draggingPoint = gameStage.toView(p);
-    var draggingComponents = this.draggingComponents;
+    var selectedComponents = this.selectedComponents;
     if (this.shouldSwitch)
     {
         if (p[0] != this.draggingStartPoint[0] ||
@@ -1221,9 +1221,9 @@ Breadboard.prototype.draggingComponentsUpdate = function draggingComponentsUpdat
             this.enableButton(this.moveButton);
             if (!this.draggingFromTray)
             {
-                for (i = 0; i < draggingComponents.length; i += 1)
+                for (i = 0; i < selectedComponents.length; i += 1)
                 {
-                    if (!this.removeComponent(draggingComponents[i].component))
+                    if (!this.removeComponent(selectedComponents[i].component))
                     {
                         throw new Error("Unable to remove component");
                     }
@@ -1239,31 +1239,31 @@ Breadboard.prototype.draggingComponentsUpdate = function draggingComponentsUpdat
         {
             this.draggingFromTray = false;
 
-            this.tray.gameStage.removeHitbox(draggingComponents[0].hitbox);
+            this.tray.gameStage.removeHitbox(selectedComponents[0].hitbox);
             gameStage = this.gameStage;
-            gameStage.addHitbox(draggingComponents[0].component.hitbox);
+            gameStage.addHitbox(selectedComponents[0].component.hitbox);
         }
         var grabPoint = gameStage.toView(p);
-        for (i = 0; i < draggingComponents.length; i += 1)
+        for (i = 0; i < selectedComponents.length; i += 1)
         {
-            var draggingComponent = draggingComponents[i];
-            componentGrabPoint = [grabPoint[0] + draggingComponent.grabPoint[0],
-                                  grabPoint[1] + draggingComponent.grabPoint[1]];
+            var selectedComponent = selectedComponents[i];
+            componentGrabPoint = [grabPoint[0] + selectedComponent.grabPoint[0],
+                                  grabPoint[1] + selectedComponent.grabPoint[1]];
             componentGrabPoint = this.getPosition(componentGrabPoint);
 
-            draggingComponent.component.move(this, componentGrabPoint, draggingComponent.component.rotation);
+            selectedComponent.component.move(this, componentGrabPoint, selectedComponent.component.rotation);
         }
     }
 };
 
 Breadboard.prototype.rotateComponents = function rotateComponents()
 {
-    var draggingComponents = this.draggingComponents;
+    var selectedComponents = this.selectedComponents;
     var i;
-    for (i = 0; i < draggingComponents.length; i += 1)
+    for (i = 0; i < selectedComponents.length; i += 1)
     {
-        var draggingComponent = draggingComponents[i];
-        var component = draggingComponent.component;
+        var selectedComponent = selectedComponents[i];
+        var component = selectedComponent.component;
         var newRotation = Rotate90(component.rotation);
         var valid;
         if (this.state !== Breadboard.state.DRAG_COMPONENT)
@@ -1275,7 +1275,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
             }
         }
 
-        draggingComponent.grabPoint = [draggingComponent.grabPoint[1], -draggingComponent.grabPoint[0]];
+        selectedComponent.grabPoint = [selectedComponent.grabPoint[1], -selectedComponent.grabPoint[0]];
 
         this.removeComponent(component);
         component.move(this, component.p0, newRotation);
@@ -1321,10 +1321,10 @@ Breadboard.prototype.selectComponents = function selectComponents()
     var x1 = Math.floor(Math.max(p0[0], p1[0]) + border);
     var y1 = Math.floor(Math.max(p0[1], p1[1]) + border);
 
-    this.draggingComponents = [];
+    this.selectedComponents = [];
     var noGrabPoint = [-1, -1];
 
-    var draggingComponents = this.draggingComponents;
+    var selectedComponents = this.selectedComponents;
 
     var x;
     var y;
@@ -1342,9 +1342,9 @@ Breadboard.prototype.selectComponents = function selectComponents()
         if (component)
         {
             var found = false;
-            for (i = 0; i < draggingComponents.length; i += 1)
+            for (i = 0; i < selectedComponents.length; i += 1)
             {
-                if (draggingComponents[i].component === component)
+                if (selectedComponents[i].component === component)
                 {
                     found = true;
                     break;
@@ -1354,7 +1354,7 @@ Breadboard.prototype.selectComponents = function selectComponents()
             {
                 continue;
             }
-            draggingComponents.push(new DraggingComponent(component, noGrabPoint));
+            selectedComponents.push(new DraggingComponent(component, noGrabPoint));
         }
     }
 };
