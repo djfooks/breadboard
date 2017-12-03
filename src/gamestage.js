@@ -61,6 +61,11 @@ GameStage.prototype.update = function update(deltaTime)
     this.view[1] += offsetY * centerVelocity * 0.05;
 };
 
+GameStage.prototype.clearHitboxes = function clearHitboxes()
+{
+    this.hitboxes.length = 0;
+};
+
 GameStage.prototype.zoomDelta = function zoomDelta(deltaY)
 {
     this.zoomVelocity += deltaY * 0.005;
