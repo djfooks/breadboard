@@ -533,6 +533,10 @@ Breadboard.prototype.draw = function draw()
 
 Breadboard.prototype.drawSelection = function drawSelection()
 {
+    if (this.state === Breadboard.state.DRAG_COMPONENT)
+    {
+        return;
+    }
     var ctx = this.stage.ctx;
 
     var draggingComponents = this.draggingComponents;
@@ -1108,20 +1112,30 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     }
 
     var draggingComponents = this.draggingComponents;
-    if (draggingComponents.length === 0)
+    var selected = false;
+    var i;
+    for (i = 0; i < draggingComponents.length; i += 1)
     {
-        this.draggingComponents = [
-            new DraggingComponent(component, Component.getGrabPoint(component, gameStage.toView(q)))
-        ];
+        if (draggingComponents[i].component === component)
+        {
+            selected = true;
+            break;
+        }
     }
-    else
+
+    if (selected)
     {
-        var i;
         for (i = 0; i < draggingComponents.length; i += 1)
         {
             var draggingComponent = draggingComponents[i];
             draggingComponent.grabPoint = Component.getGrabPoint(draggingComponent.component, gameStage.toView(q));
         }
+    }
+    else
+    {
+        this.draggingComponents = [
+            new DraggingComponent(component, Component.getGrabPoint(component, gameStage.toView(q)))
+        ];
     }
     this.draggingComponentsUpdate(q);
 };
@@ -1178,13 +1192,13 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
             {
                 Component.remove(this, draggingComponents[i].component);
             }
+            this.draggingComponents = [];
         }
     }
 
     this.state = Breadboard.state.MOVE;
     this.disableButtons();
     this.enableButton(this.moveButton);
-    this.draggingComponents = [];
 };
 
 Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, p, button)
