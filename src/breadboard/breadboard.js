@@ -86,7 +86,6 @@ function Breadboard(stage, top, left, cols, rows)
 
     this.removeWireButton = addButton("cancel",      655, 80,  Breadboard.state.REMOVE_WIRE);
     this.moveButton       = addButton("move",        655, 120, Breadboard.state.MOVE);
-    this.selectButton     = addButton("select",      655, 160, Breadboard.state.SELECT);
 
     this.tray = new Tray(this);
     this.tray.gameStage.onMouseDown = this.onMouseDown.bind(this);
@@ -151,7 +150,6 @@ Breadboard.state = {
     REMOVE_WIRE: 3,
     DRAG_COMPONENT: 4,
     MOVE: 5,
-    SELECT: 6,
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -1428,7 +1426,7 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
     }
 
     p = this.gameStage.toView(p);
-    if (this.state === Breadboard.state.SELECT)
+    if (this.state === Breadboard.state.MOVE)
     {
         if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
         {
@@ -1470,7 +1468,7 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
     p = this.gameStage.toView(p);
     this.gameSpaceMouse = [p[0], p[1]];
 
-    if (this.state === Breadboard.state.SELECT)
+    if (this.state === Breadboard.state.MOVE)
     {
         this.selectComponents();
         this.selectStart = [-1, -1];
