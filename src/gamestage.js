@@ -82,6 +82,10 @@ GameStage.prototype.addHitbox = function addHitbox(hitbox)
 
 GameStage.prototype.removeHitbox = function removeHitbox(hitbox)
 {
+    if (!hitbox)
+    {
+        throw new Error("Invalid hitbox");
+    }
     var i;
     for (i = 0; i < this.hitboxes.length; i += 1)
     {

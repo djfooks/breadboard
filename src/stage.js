@@ -1,4 +1,9 @@
 
+var BaseKeyCodeMap =
+{
+    SHIFT: 16
+};
+
 function Hitbox(minX, minY, maxX, maxY)
 {
     this.minX = minX;
@@ -9,7 +14,6 @@ function Hitbox(minX, minY, maxX, maxY)
     this.onMouseUp = null;
     this.onMouseDown = null;
     this.onMouseMove = null;
-    this.onKeyDown = null;
 }
 
 Hitbox.prototype.getWidth = function getWidth()
@@ -40,6 +44,11 @@ function Stage(canvas)
     this.onMouseDown = null;
     this.onMouseUp = null;
     this.onMouseMove = null;
+
+    this.onKeyDown = null;
+    this.onKeyUp = null;
+
+    this.keyCodesInput = {};
 }
 
 Stage.prototype.addHitbox = function addHitbox(hitbox)
@@ -131,11 +140,26 @@ Stage.prototype.mouseMove = function mouseMove(e)
     }
 };
 
+Stage.prototype.isKeyDown = function isKeyDown(keyCode)
+{
+    return this.keyCodesInput[keyCode] || false;
+};
+
 Stage.prototype.keyDown = function keyDown(e)
 {
+    this.keyCodesInput[e.keyCode] = true;
     if (this.onKeyDown)
     {
         this.onKeyDown(e.key, e.keyCode);
+    }
+};
+
+Stage.prototype.keyUp = function keyUp(e)
+{
+    this.keyCodesInput[e.keyCode] = false;
+    if (this.onKeyUp)
+    {
+        this.onKeyUp(e.key, e.keyCode);
     }
 };
 
@@ -155,6 +179,7 @@ Stage.prototype.enable = function enable()
     c.addEventListener("mousemove", this.mouseMove.bind(this));
     c.addEventListener("wheel", this.wheel.bind(this));
     c.addEventListener("keydown", this.keyDown.bind(this));
+    c.addEventListener("keyup", this.keyUp.bind(this));
 };
 
 Stage.prototype.getCanvasPosition = function getCanvasPosition(e, p)
