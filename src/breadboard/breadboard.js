@@ -1091,6 +1091,23 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         return;
     }
 
+    if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+    {
+        this.shouldSwitch = false;
+        var selectedComponents = this.selectedComponents;
+        for (i = 0; i < selectedComponents.length; i += 1)
+        {
+            var selectedComponent = selectedComponents[i];
+            if (selectedComponent.component === component)
+            {
+                selectedComponents.splice(i, 1);
+                return;
+            }
+        }
+        selectedComponents.push(new DraggingComponent(component, [-1, -1]));
+        return;
+    }
+
     this.draggingFromTray = this.tray.isFromTray(component);
     if (this.state !== Breadboard.state.MOVE && !this.draggingFromTray)
     {
@@ -1098,7 +1115,7 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         return;
     }
 
-    this.shouldSwitch = !this.stage.isKeyDown(BaseKeyCodeMap.SHIFT);
+    this.shouldSwitch = true;
 
     this.mouseDownComponent = component;
     this.mouseDownP = [p[0], p[1]];
@@ -1131,6 +1148,11 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
             component.toggle(this, q);
             this.dirtySave = true;
         }
+    }
+
+    if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+    {
+        return;
     }
 
     this.mouseDownComponent = null;
