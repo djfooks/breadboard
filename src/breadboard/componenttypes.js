@@ -87,7 +87,7 @@ Component.drawFgNode = function drawFgNode(ctx, fgColor, value0, p)
     ctx.fill();
 }
 
-Component.getGrabPoint = function getGrabPoint(component, p)
+Component.getGrabOffset = function getGrabOffset(component, p)
 {
     return [component.p0[0] - p[0], component.p0[1] - p[1]];
 };
