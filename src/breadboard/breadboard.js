@@ -85,8 +85,11 @@ function Breadboard(stage, top, left, cols, rows)
     this.addBusWireButton = addButton("truck",       655, 40,  Breadboard.state.ADD_WIRE, false,
         function () { that.wireType = Breadboard.wireType.BUS; });
 
-    this.removeWireButton = addButton("cancel",      655, 80,  Breadboard.state.REMOVE_WIRE);
-    this.moveButton       = addButton("move",        655, 120, Breadboard.state.MOVE);
+    this.addFastWireButton = addButton("truck",       655, 80,  Breadboard.state.ADD_WIRE, false,
+        function () { that.wireType = Breadboard.wireType.FAST; });
+
+    this.removeWireButton = addButton("cancel",      655, 120,  Breadboard.state.REMOVE_WIRE);
+    this.moveButton       = addButton("move",        655, 160, Breadboard.state.MOVE);
 
     this.tray = new Tray(this);
     this.tray.gameStage.onMouseDown = this.onMouseDown.bind(this);
@@ -145,6 +148,7 @@ Breadboard.prototype.clear = function clearFn()
 Breadboard.wireType = {
     WIRE: 1,
     BUS: 2,
+    FAST: 3,
 };
 
 Breadboard.state = {
@@ -224,10 +228,23 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
     var i;
     var wires = json.wires;
     var wiresLength = wires.length;
+    breadboard.wireType = Breadboard.wireType.WIRE;
     for (i = 0; i < wiresLength; i += 1)
     {
         var w = wires[i];
         breadboard.addWire(w[0], w[1], w[2], w[3], false);
+    }
+
+    var wiresFast = json.wiresFast;
+    if (wiresFast)
+    {
+        var wiresFastLength = wiresFast.length;
+        breadboard.wireType = Breadboard.wireType.FAST;
+        for (i = 0; i < wiresFastLength; i += 1)
+        {
+            var w = wiresFast[i];
+            breadboard.addWire(w[0], w[1], w[2], w[3], false);
+        }
     }
 
     var buses = json.buses;
@@ -495,7 +512,7 @@ Breadboard.prototype.draw = function draw()
     this.drawComponents();
     this.drawWires(this.wires);
     this.drawBuses(this.buses);
-    if (this.wireType == Breadboard.wireType.WIRE)
+    if (this.wireType != Breadboard.wireType.BUS)
     {
         this.drawWires(this.virtualWires);
     }
@@ -900,8 +917,8 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     }
     else
     {
-        wireType = Breadboard.wireType.WIRE;
         index = this.wires.indexOf(wire);
+        wireType = this.wires[index].type;
         this.wires.splice(index, 1);
     }
 
@@ -952,7 +969,7 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
     else
     {
         this.dirty = true;
-        if (type == Breadboard.wireType.WIRE)
+        if (type != Breadboard.wireType.BUS)
         {
             this.wires.push(newWire);
         }

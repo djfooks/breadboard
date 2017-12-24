@@ -2,6 +2,7 @@
 function Connection()
 {
     this.wireBits = 0;
+    this.fastBits = 0;
     this.wires = [];
     this.buses = [];
     this.component = null;
@@ -123,22 +124,31 @@ Connection.prototype.addWire = function addWire(id, direction, type)
     if (type === Breadboard.wireType.WIRE)
     {
         this.wireBits |= direction;
+        this.fastBits &= ~direction;
+    }
+    else if (type === Breadboard.wireType.FAST)
+    {
+        this.wireBits |= direction;
+        this.fastBits |= direction;
     }
     this.updateHasDot(id);
 };
 
 Connection.prototype.removeWire = function removeWire(id, direction, type)
 {
-    if (type === Breadboard.wireType.WIRE)
+    if (type === Breadboard.wireType.WIRE ||
+        type === Breadboard.wireType.FAST)
     {
         this.wireBits &= ~direction;
+        this.fastBits &= ~direction;
     }
     this.updateHasDot(id);
 };
 
 Connection.prototype.getWireArray = function addWireComponent(type)
 {
-    if (type == Breadboard.wireType.WIRE)
+    if (type === Breadboard.wireType.WIRE ||
+        type === Breadboard.wireType.FAST)
     {
         return this.wires;
     }

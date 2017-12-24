@@ -199,7 +199,14 @@ PulsePath.prototype.stepPath = function stepPath(breadboard, stepIndex)
             {
                 if ((connection.wireBits & dirBit) > 0)
                 {
-                    flowOut(id, j);
+                    if ((connection.fastBits & dirBit) > 0)
+                    {
+
+                    }
+                    else
+                    {
+                        flowOut(id, j);
+                    }
                 }
                 dirBit = dirBit << 1;
             }
