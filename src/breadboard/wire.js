@@ -42,14 +42,12 @@ Wire.prototype.boxOverlap = function boxOverlap(x0, y0, x1, y1)
     }
 
     // if p0 end is in the box
-    if (this.x0 > x0 && this.x0 < x1 &&
-        this.y0 > y0 && this.y0 < y1)
+    if (this.distance(x0, y0) == 0.0)
     {
         return true;
     }
     // if p1 end is in the box
-    if (this.x1 > x0 && this.x1 < x1 &&
-        this.y1 > y0 && this.y1 < y1)
+    if (this.distance(x1, y1) == 0.0)
     {
         return true;
     }
@@ -140,7 +138,7 @@ Wire.prototype.distance = function distance(px, py)
         var ty = -dx;
         d0 = x0 * tx + y0 * ty;
         d = px * tx + py * ty;
-        lineDistance = Math.abs(d - d0) - Wire.halfWidth;
+        lineDistance = Math.abs(d - d0) - (Wire.halfWidth + 0.02);
     }
 
     return Math.max(0.0, lineDistance);
