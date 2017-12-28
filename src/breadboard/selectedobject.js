@@ -1,17 +1,17 @@
 
-function SelectedObject(component, grabOffset)
+function SelectedObject()
 {
-    this.component = component;
-    this.grabOffset = grabOffset;
+    this.object = null;
+    this.grabOffset = [0, 0];
 }
 
-SelectedObject.areAllValid = function areAllValid(breadboard, selectedList, draggingPoint)
+SelectedObject.areAllValid = function areAllValid(breadboard, selectedComponents, draggingPoint)
 {
     var i;
-    for (i = 0; i < selectedList.length; i += 1)
+    for (i = 0; i < selectedComponents.length; i += 1)
     {
-        var selectedObj = selectedList[i];
-        var component = selectedObj.component;
+        var selectedObj = selectedComponents[i];
+        var component = selectedObj.object;
         var q;
         if (draggingPoint)
         {

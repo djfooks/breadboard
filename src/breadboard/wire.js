@@ -22,6 +22,130 @@ function Wire(x0, y0, x1, y1, id0, id1, type)
     this.bit1 = Connection.getDirectionFlag(-dx, -dy);
 }
 
+Wire.width = 0.2;
+Wire.halfWidth = Wire.width * 0.5;
+
+Wire.prototype.boxOverlap = function boxOverlap(x0, y0, x1, y1)
+{
+    var tmp;
+    if (x0 > x1)
+    {
+        tmp = x0;
+        x0 = x1;
+        x1 = tmp;
+    }
+    if (y0 > y1)
+    {
+        tmp = y0;
+        y0 = y1;
+        y1 = tmp;
+    }
+
+    // if p0 end is in the box
+    if (this.x0 > x0 && this.x0 < x1 &&
+        this.y0 > y0 && this.y0 < y1)
+    {
+        return true;
+    }
+    // if p1 end is in the box
+    if (this.x1 > x0 && this.x1 < x1 &&
+        this.y1 > y0 && this.y1 < y1)
+    {
+        return true;
+    }
+
+    if (this.lineIntersect(x0, y0, x1, y0))
+    {
+        return true;
+    }
+    if (this.lineIntersect(x1, y0, x1, y1))
+    {
+        return true;
+    }
+    if (this.lineIntersect(x1, y1, x0, y1))
+    {
+        return true;
+    }
+    if (this.lineIntersect(x0, y1, x0, y0))
+    {
+        return true;
+    }
+    return false;
+};
+
+Wire.prototype.lineIntersect = function lineIntersect(x0, y0, x1, y1)
+{
+    var CmPx = x0 - this.x0
+    var CmPy = y0 - this.y0;
+    var rx = this.x1 - this.x0
+    var ry = this.y1 - this.y0;
+    var sx = x1 - x0
+    var sy = y1 - y0;
+
+    var CmPxr = CmPx * ry - CmPy * rx;
+    var CmPxs = CmPx * sy - CmPy * sx;
+    var rxs = rx * sy - ry * sx;
+
+    if (CmPxr === 0.0)
+    {
+        // Lines are collinear, and so intersect if they have any overlap
+
+        return ((x0 - this.x0 < 0.0) != (x0 - this.x1 < 0.0))
+            || ((y0 - this.y0 < 0.0) != (y0 - this.y1 < 0.0));
+    }
+
+    if (rxs === 0.0)
+    {
+        return false; // Lines are parallel.
+    }
+
+    var rxsr = 1.0 / rxs;
+    var t = CmPxs * rxsr;
+    var u = CmPxr * rxsr;
+
+    return (t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0);
+};
+
+Wire.prototype.distance = function distance(px, py)
+{
+    var x0 = this.x0;
+    var y0 = this.y0;
+    var x1 = this.x1;
+    var y1 = this.y1;
+
+    var lineDistance = 0.0;
+
+    var dx = this.dx;
+    var dy = this.dy;
+
+    var d0;
+    var d1;
+    var d;
+
+    d0 = x0 * dx + y0 * dy;
+    d = px * dx + py * dy;
+    d1 = x1 * dx + y1 * dy;
+
+    if (d - d0 < Wire.width)
+    {
+        lineDistance = Math.sqrt((px - x0) * (px - x0) + (py - y0) * (py - y0)) - Wire.width;
+    }
+    else if (d - d1 > -Wire.width)
+    {
+        lineDistance = Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1)) - Wire.width;
+    }
+    else
+    {
+        var tx = dy;
+        var ty = -dx;
+        d0 = x0 * tx + y0 * ty;
+        d = px * tx + py * ty;
+        lineDistance = Math.abs(d - d0) - Wire.halfWidth;
+    }
+
+    return Math.max(0.0, lineDistance);
+}
+
 Wire.prototype.iterate = function iterate(fn)
 {
     var x = this.x0;
