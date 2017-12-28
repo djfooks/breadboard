@@ -1169,14 +1169,14 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
         return;
     }
 
+    this.shouldSwitch = true;
+
     this.draggingFromTray = this.tray.isFromTray(component);
     if (this.state !== Breadboard.state.MOVE && !this.draggingFromTray)
     {
         this.onMouseDown(p, button);
         return;
     }
-
-    this.shouldSwitch = true;
 
     this.mouseDownComponent = component;
     this.mouseDownP = [p[0], p[1]];
