@@ -614,7 +614,7 @@ Breadboard.prototype.drawSelection = function drawSelection()
         }
     }
 
-    ctx.lineWidth = 0.3;
+    ctx.lineWidth = 0.35;
     ctx.strokeStyle = "#AAAAAA";
 
     var wires = this.wires;
@@ -1416,11 +1416,6 @@ Breadboard.prototype.updateSelection = function updateSelection()
     var x1 = Math.floor(Math.max(p0[0], p1[0]) + border);
     var y1 = Math.floor(Math.max(p0[1], p1[1]) + border);
 
-    if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
-    {
-        this.selectedComponents.length = 0;
-        this.selectedWires.length = 0;
-    }
     var noGrabOffset = [0, 0];
 
     var selectedComponents = this.selectedComponents;
@@ -1573,6 +1568,11 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
         {
             this.selectStart = [p[0], p[1]];
+        }
+        if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+        {
+            this.selectedComponents.length = 0;
+            this.selectedWires.length = 0;
         }
     }
     p = this.getPosition(p);
