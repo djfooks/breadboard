@@ -42,11 +42,23 @@ Wire.prototype.boxOverlap = function boxOverlap(x0, y0, x1, y1)
     }
 
     // if p0 end is in the box
-    if (this.distance(x0, y0) == 0.0)
+    if (this.x0 > x0 && this.x0 < x1 &&
+        this.y0 > y0 && this.y0 < y1)
     {
         return true;
     }
     // if p1 end is in the box
+    if (this.x1 > x0 && this.x1 < x1 &&
+        this.y1 > y0 && this.y1 < y1)
+    {
+        return true;
+    }
+
+    // hack so that small x0==x1 and y0==y1 box still selects the wire
+    if (this.distance(x0, y0) == 0.0)
+    {
+        return true;
+    }
     if (this.distance(x1, y1) == 0.0)
     {
         return true;
