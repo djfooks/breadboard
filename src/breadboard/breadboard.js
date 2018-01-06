@@ -1424,13 +1424,6 @@ Breadboard.prototype.updateSelection = function updateSelection()
         return;
     }
 
-    var border = Component.border + Component.borderLineWidth * 0.5;
-
-    var x0 = Math.ceil(Math.min(p0[0], p1[0]) - border);
-    var y0 = Math.ceil(Math.min(p0[1], p1[1]) - border);
-    var x1 = Math.floor(Math.max(p0[0], p1[0]) + border);
-    var y1 = Math.floor(Math.max(p0[1], p1[1]) + border);
-
     var noGrabOffset = [0, 0];
 
     var selectedComponents = this.selectedComponents;
@@ -1455,6 +1448,13 @@ Breadboard.prototype.updateSelection = function updateSelection()
         return false;
     };
 
+    var border = Component.border + Component.borderLineWidth * 0.5;
+
+    var cx0 = Math.ceil(Math.min(x0, x1) - border);
+    var cy0 = Math.ceil(Math.min(y0, y1) - border);
+    var cx1 = Math.floor(Math.max(x0, x1) + border);
+    var cy1 = Math.floor(Math.max(y0, y1) + border);
+
     var componentsList = this.componentsList;
     for (i = 0; i < componentsList.length; i += 1)
     {
@@ -1465,8 +1465,8 @@ Breadboard.prototype.updateSelection = function updateSelection()
         var miny = Math.min(p0[1], p1[1]);
         var maxx = Math.max(p0[0], p1[0]);
         var maxy = Math.max(p0[1], p1[1]);
-        if (maxx >= x0 && x1 >= minx &&
-            maxy >= y0 && y1 >= miny)
+        if (maxx >= cx0 && cx1 >= minx &&
+            maxy >= cy0 && cy1 >= miny)
         {
             if (!hasSelectedObject(selectedComponents, component))
             {
