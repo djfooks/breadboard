@@ -282,10 +282,12 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             component = new LatchComponent(breadboard);
         }
-        breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p0 || componentJson.p, componentJson.rotation | 0);
-        breadboard.addComponent(component);
+        if (breadboard.addComponent(component))
+        {
+            breadboard.gameStage.addHitbox(component.hitbox);
+        }
     }
     return breadboard;
 };
@@ -1313,6 +1315,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                     selectedObj = new SelectedObject();
                     selectedObj.object = mouseDownComponent;
                     selectedObj.grabOffset = Component.getGrabOffset(mouseDownComponent, q);
+                    selectedComponents.length = 0;
                     selectedComponents.push(selectedObj);
                 }
             }
@@ -1369,9 +1372,18 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
 
 Breadboard.prototype.addComponent = function addComponent(component)
 {
-    this.componentsList.push(component);
     var outputs = component.getConnections(this);
     var i;
+    for (i = 0; i < outputs.length; i += 1)
+    {
+        var connection = this.findConnection(outputs[i]);
+        if (connection && connection.component)
+        {
+            throw new Error("Adding component to a connection which already has a component!");
+            return false;
+        }
+    }
+    this.componentsList.push(component);
     for (i = 0; i < outputs.length; i += 1)
     {
         this.emplaceConnection(outputs[i]).setComponent(outputs[i], component);
@@ -1382,6 +1394,7 @@ Breadboard.prototype.addComponent = function addComponent(component)
     {
         this.batteries.push(component);
     }
+    return true;
 };
 
 Breadboard.prototype.updateSelection = function updateSelection()
