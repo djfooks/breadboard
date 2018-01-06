@@ -8,6 +8,8 @@ var ComponentTypes = {
     BUS_INPUT: 6,
     BUS_OUTPUT: 7,
     LATCH: 8,
+    WIRE: 9,
+    BUS: 10,
 };
 
 var Component = {};

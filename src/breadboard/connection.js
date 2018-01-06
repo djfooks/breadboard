@@ -120,7 +120,7 @@ Connection.prototype.reset = function reset()
 
 Connection.prototype.addWire = function addWire(id, direction, type)
 {
-    if (type === Breadboard.wireType.WIRE)
+    if (type === ComponentTypes.WIRE)
     {
         this.wireBits |= direction;
     }
@@ -129,7 +129,7 @@ Connection.prototype.addWire = function addWire(id, direction, type)
 
 Connection.prototype.removeWire = function removeWire(id, direction, type)
 {
-    if (type === Breadboard.wireType.WIRE)
+    if (type === ComponentTypes.WIRE)
     {
         this.wireBits &= ~direction;
     }
@@ -138,11 +138,11 @@ Connection.prototype.removeWire = function removeWire(id, direction, type)
 
 Connection.prototype.getWireArray = function addWireComponent(type)
 {
-    if (type == Breadboard.wireType.WIRE)
+    if (type == ComponentTypes.WIRE)
     {
         return this.wires;
     }
-    else /*if (type === Breadboard.wireType.BUS)*/
+    else /*if (type === ComponentTypes.BUS)*/
     {
         return this.buses;
     }
