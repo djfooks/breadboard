@@ -13,6 +13,7 @@ function SwitchComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(SwitchComponent);
 
 SwitchComponent.prototype.type = ComponentTypes.SWITCH;
 
@@ -130,14 +131,6 @@ SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgC
     }
 };
 
-SwitchComponent.prototype.reset = function reset()
-{
-};
-
-SwitchComponent.prototype.update = function update()
-{
-};
-
 SwitchComponent.prototype.toggle = function toggle()
 {
     this.connected = !this.connected;
@@ -192,9 +185,4 @@ SwitchComponent.prototype.isConnected = function isConnected(id0, id1)
         return true;
     }
     throw new Error();
-};
-
-SwitchComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

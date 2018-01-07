@@ -26,6 +26,7 @@ function LatchComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(LatchComponent);
 
 LatchComponent.prototype.type = ComponentTypes.LATCH;
 
@@ -36,10 +37,6 @@ LatchComponent.prototype.toJson = function toJson()
         p0: this.p0,
         rotation: this.rotation
     };
-};
-
-LatchComponent.prototype.stateFromJson = function stateFromJson(json)
-{
 };
 
 LatchComponent.prototype.move = function move(breadboard, p, rotation)
@@ -192,10 +189,6 @@ LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     ctx.stroke();
 };
 
-LatchComponent.prototype.reset = function reset()
-{
-};
-
 LatchComponent.prototype.update = function update(breadboard)
 {
     var signalValue0 = breadboard.getConnection(this.signalId0).isOn();
@@ -264,10 +257,6 @@ LatchComponent.prototype.getConnections = function getConnections()
     return [this.baseId, this.outId0, this.outId1, this.signalId0, this.signalId1];
 };
 
-LatchComponent.prototype.toggle = function toggle()
-{
-};
-
 LatchComponent.prototype.getOutputs = function getOutputs(id)
 {
     if (id === this.baseId)
@@ -310,9 +299,4 @@ LatchComponent.prototype.isConnected = function isConnected(id0, id1)
         }
     }
     return false;
-};
-
-LatchComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

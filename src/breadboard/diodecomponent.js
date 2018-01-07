@@ -12,6 +12,7 @@ function DiodeComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(DiodeComponent);
 
 DiodeComponent.prototype.type = ComponentTypes.DIODE;
 
@@ -45,10 +46,6 @@ DiodeComponent.prototype.toJson = function toJson()
         p0: this.p0,
         rotation: this.rotation
     };
-};
-
-DiodeComponent.prototype.stateFromJson = function stateFromJson(json)
-{
 };
 
 DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
@@ -114,18 +111,6 @@ DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     Component.drawFgNode(ctx, fgColor, value1, p1);
 };
 
-DiodeComponent.prototype.reset = function reset()
-{
-};
-
-DiodeComponent.prototype.update = function update()
-{
-};
-
-DiodeComponent.prototype.toggle = function toggle()
-{
-};
-
 DiodeComponent.prototype.getConnections = function getConnections()
 {
     return [this.id0, this.id1];
@@ -155,9 +140,4 @@ DiodeComponent.prototype.isConnected = function isConnected(id0, id1)
         return false;
     }
     throw new Error();
-};
-
-DiodeComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

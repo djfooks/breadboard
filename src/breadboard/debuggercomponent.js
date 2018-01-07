@@ -26,6 +26,7 @@ function DebuggerComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(DebuggerComponent);
 
 DebuggerComponent.debugType = {
     WRITE: 1,
@@ -207,10 +208,6 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.lineTo(firstPos[0], firstPos[1]);
     ctx.stroke();
     ctx.lineCap = "butt";
-};
-
-DebuggerComponent.prototype.reset = function reset()
-{
 };
 
 DebuggerComponent.prototype.update = function update(breadboard)
@@ -413,9 +410,4 @@ DebuggerComponent.prototype.isConnected = function isConnected(id0, id1)
             return this.value & (1 << (7 - i));
         }
     }
-};
-
-DebuggerComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

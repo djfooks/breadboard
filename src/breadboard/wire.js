@@ -25,6 +25,26 @@ function Wire(x0, y0, x1, y1, id0, id1, type)
 Wire.width = 0.2;
 Wire.halfWidth = Wire.width * 0.5;
 
+Wire.prototype.isWire = function isWire()
+{
+    return true;
+};
+
+Wire.prototype.drawSelection = function drawSelection(ctx, color)
+{
+    ctx.lineWidth = 0.3;
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(this.x0, this.y0);
+    ctx.lineTo(this.x1, this.y1);
+    ctx.stroke();
+};
+
+Wire.prototype.getGrabOffset = function getGrabOffset(p)
+{
+    return [this.x0 - p[0], this.y0 - p[1]];
+};
+
 Wire.prototype.boxOverlap = function boxOverlap(x0, y0, x1, y1)
 {
     var tmp;
@@ -194,6 +214,10 @@ Wire.getColor = function getColor(count)
     }
 };
 
+Wire.prototype.toggle = function toggle()
+{
+};
+
 function BusKey()
 {
     this.value = 0;
@@ -336,3 +360,6 @@ Bus.prototype.isOn = function isOn(key)
     return channel.value > 0;
 };
 
+Bus.prototype.toggle = function toggle()
+{
+};

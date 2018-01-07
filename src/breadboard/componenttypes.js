@@ -48,11 +48,6 @@ Component.updateHitbox = function updateHitbox(component, p0, p1)
     hitbox.maxY = max[1] + border;
 };
 
-Component.selectionContainerPath = function selectionContainerPath(ctx, bgColor, p0, p1)
-{
-    this.drawContainerPath(ctx, bgColor, p0, p1, Component.selectionBorder);
-};
-
 Component.drawContainerPath = function containerPath(ctx, bgColor, p0, p1, border)
 {
     var min = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1])];
@@ -89,7 +84,22 @@ Component.drawFgNode = function drawFgNode(ctx, fgColor, value0, p)
     ctx.fill();
 }
 
-Component.getGrabOffset = function getGrabOffset(component, p)
+Component.addComponentFunctions = function addComponentFunctions(componentType)
 {
-    return [component.p0[0] - p[0], component.p0[1] - p[1]];
+    componentType.prototype.drawSelection = function drawSelection(ctx, color)
+    {
+        Component.drawContainerPath(ctx, color, this.p0, this.p1, Component.selectionBorder);
+        ctx.stroke();
+    };
+    componentType.prototype.getGrabOffset = function getGrabOffset(p)
+    {
+        return [this.p0[0] - p[0], this.p0[1] - p[1]];
+    };
+    componentType.prototype.isWire = function isWire() { return false; };
+    componentType.prototype.stateFromJson = function stateFromJson(json) {};
+    componentType.prototype.reset = function reset() {};
+    componentType.prototype.update = function update() {};
+    componentType.prototype.toggle = function toggle() {};
+    componentType.prototype.isConnected = function isConnected(id0, id1) { return false; };
+    componentType.prototype.getBusPosition = function getBusPosition() { return null; };
 };

@@ -13,6 +13,7 @@ function BatteryComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(BatteryComponent);
 
 BatteryComponent.prototype.type = ComponentTypes.BATTERY;
 
@@ -49,10 +50,6 @@ BatteryComponent.prototype.toJson = function toJson()
         p0: this.p0,
         rotation: this.rotation
     };
-};
-
-BatteryComponent.prototype.stateFromJson = function stateFromJson(json)
-{
 };
 
 BatteryComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
@@ -131,18 +128,6 @@ BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fg
     Component.drawFgNode(ctx, null, 1, p1);
 };
 
-BatteryComponent.prototype.reset = function reset()
-{
-};
-
-BatteryComponent.prototype.update = function update()
-{
-};
-
-BatteryComponent.prototype.toggle = function toggle()
-{
-};
-
 BatteryComponent.prototype.getConnections = function getConnections()
 {
     return [this.id0, this.id1];
@@ -151,14 +136,4 @@ BatteryComponent.prototype.getConnections = function getConnections()
 BatteryComponent.prototype.getOutputs = function getOutputs(id)
 {
     return [];
-};
-
-BatteryComponent.prototype.isConnected = function isConnected(id0, id1)
-{
-    return false;
-};
-
-BatteryComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

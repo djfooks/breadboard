@@ -22,6 +22,7 @@ function RelayComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(RelayComponent);
 
 RelayComponent.prototype.type = ComponentTypes.RELAY;
 
@@ -32,10 +33,6 @@ RelayComponent.prototype.toJson = function toJson()
         p0: this.p0,
         rotation: this.rotation
     };
-};
-
-RelayComponent.prototype.stateFromJson = function stateFromJson(json)
-{
 };
 
 RelayComponent.prototype.move = function move(breadboard, p, rotation)
@@ -176,10 +173,6 @@ RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     ctx.stroke();
 };
 
-RelayComponent.prototype.reset = function reset()
-{
-};
-
 RelayComponent.prototype.update = function update(breadboard)
 {
     var signalValue = breadboard.getConnection(this.signalId).isOn();
@@ -227,10 +220,6 @@ RelayComponent.prototype.getConnections = function getConnections()
     return [this.baseId, this.outId0, this.outId1, this.signalId];
 };
 
-RelayComponent.prototype.toggle = function toggle()
-{
-};
-
 RelayComponent.prototype.getOutputs = function getOutputs(id)
 {
     if (id === this.baseId)
@@ -273,9 +262,4 @@ RelayComponent.prototype.isConnected = function isConnected(id0, id1)
         }
     }
     return false;
-};
-
-RelayComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

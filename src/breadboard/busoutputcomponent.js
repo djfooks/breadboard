@@ -23,6 +23,7 @@ function BusOutputComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(BusOutputComponent);
 
 BusOutputComponent.prototype.type = ComponentTypes.BUS_OUTPUT;
 

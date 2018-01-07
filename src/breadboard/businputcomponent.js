@@ -20,6 +20,7 @@ function BusInputComponent(breadboard)
 
     Component.addHitbox(breadboard, this);
 }
+Component.addComponentFunctions(BusInputComponent);
 
 BusInputComponent.prototype.type = ComponentTypes.BUS_INPUT;
 
@@ -174,16 +175,6 @@ BusInputComponent.prototype.toggle = function toggle(breadboard, p)
         this.editingValue = true;
         breadboard.registerKeyDown(this.onKeyDown.bind(this));
     }
-};
-
-BusInputComponent.prototype.getOutputs = function getOutputs(id)
-{
-    return [];
-};
-
-BusInputComponent.prototype.isConnected = function isConnected(id0, id1)
-{
-    return false;
 };
 
 BusInputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyCode)
