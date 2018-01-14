@@ -25,6 +25,16 @@ function Wire(x0, y0, x1, y1, id0, id1, type)
 Wire.width = 0.2;
 Wire.halfWidth = Wire.width * 0.5;
 
+Wire.prototype.move = function move(breadboard, p/*, rotation*/)
+{
+    var ox = p[0] - this.x0;
+    var oy = p[1] - this.y0;
+    this.x0 += ox;
+    this.y0 += oy;
+    this.x1 += ox;
+    this.y1 += oy;
+};
+
 Wire.prototype.isWire = function isWire()
 {
     return true;
