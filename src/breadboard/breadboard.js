@@ -971,6 +971,11 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     this.dirtyConnection(id, connection);
 };
 
+Breadboard.prototype.copyWire = function copyWire(wire)
+{
+    this.addWire(wire.x0, wire.y0, wire.x1, wire.y1, false);
+};
+
 Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
 {
     if (x0 == x1 && y0 == y1)
@@ -1230,6 +1235,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
     }
 
     var selectedComponents = selectedObjects.components;
+    var selectedWires = selectedObjects.wires;
     var valid = this.mouseOverGameStage && SelectedObject.areAllValid(this, selectedComponents);
     var i;
     if (valid)
@@ -1238,6 +1244,10 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         {
             this.addComponent(selectedComponents[i].object);
         }
+        for (i = 0; i < selectedWires.length; i += 1)
+        {
+            this.copyWire(selectedWires[i].object);
+        }
     }
     else
     {
@@ -1245,7 +1255,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         {
             Component.remove(this, selectedComponents[i].object);
         }
-        this.selectedComponents = [];
+        this.selectedComponents.clear();
     }
 
     this.state = Breadboard.state.MOVE;
@@ -1301,7 +1311,13 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                         }
                         selectedObj.grabOffset = selectedObj.object.getGrabOffset(q);
                     }
-                    // TODO remove wires
+                    var selectedWires = selectedObjects.wires;
+                    for (i = 0; i < selectedWires.length; i += 1)
+                    {
+                        selectedObj = selectedWires[i];
+                        this.removeWire(selectedObj.object);
+                        selectedObj.grabOffset = selectedObj.object.getGrabOffset(q);
+                    }
                 }
                 else
                 {
@@ -1330,9 +1346,9 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
     {
         fromTray = this.draggingFromTray = false;
 
-        this.tray.gameStage.removeHitbox(selectedObjects[0].object.hitbox);
+        this.tray.gameStage.removeHitbox(selectedObjects.objects[0].object.hitbox);
         gameStage = this.gameStage;
-        gameStage.addHitbox(selectedObjects[0].object.hitbox);
+        gameStage.addHitbox(selectedObjects.objects[0].object.hitbox);
     }
     var grabPoint = gameStage.toView(p);
     for (i = 0; i < selectedObjects.objects.length; i += 1)
