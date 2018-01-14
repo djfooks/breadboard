@@ -38,7 +38,7 @@ function SelectedObjectSet()
     this.clear();
 }
 
-SelectedObjectSet.prototype.indexOf = function indexOf(object)
+SelectedObjectSet.prototype.clear = function clear(object)
 {
     this.objects = [];
     this.components = [];
@@ -47,8 +47,13 @@ SelectedObjectSet.prototype.indexOf = function indexOf(object)
 
 SelectedObjectSet.prototype.addObject = function addObject(object)
 {
+    if (this.indexOf(object) != -1)
+    {
+        return null;
+    }
     var selectedObject = new SelectedObject();
     selectedObject.object = object;
+    this.objects.push(selectedObject);
     if (object.isWire())
     {
         this.wires.push(selectedObject);
@@ -57,7 +62,6 @@ SelectedObjectSet.prototype.addObject = function addObject(object)
     {
         this.components.push(selectedObject);
     }
-    this.objects.push(selectedObject);
     return selectedObject;
 };
 
@@ -88,10 +92,10 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
     return removeFromList(this.objects, object);
 };
 
-SelectedObjectSet.prototype.indexOf = function indexOf(object)
+SelectedObjectSet.prototype.indexOf = function indexOf(object, list)
 {
     var i;
-    var list = this.objects;
+    list = list || this.objects;
     for (i = 0; i < list.length; i += 1)
     {
         if (list[i].object === object)

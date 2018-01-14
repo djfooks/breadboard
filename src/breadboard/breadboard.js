@@ -1335,9 +1335,9 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
         gameStage.addHitbox(selectedObjects[0].object.hitbox);
     }
     var grabPoint = gameStage.toView(p);
-    for (i = 0; i < selectedObjects.length; i += 1)
+    for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
-        var selectedObj = selectedObjects[i];
+        var selectedObj = selectedObjects.objects[i];
         componentGrabPoint = [grabPoint[0] + selectedObj.grabOffset[0],
                               grabPoint[1] + selectedObj.grabOffset[1]];
         componentGrabPoint = this.getPosition(componentGrabPoint);
@@ -1397,43 +1397,23 @@ Breadboard.prototype.addComponent = function addComponent(component)
 
 Breadboard.prototype.updateSelection = function updateSelection()
 {
-    // TODO GOT TO HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // djfgnkjdfgnjkdfgnkdjfgnjndfngjdkfgn
-    //jndkjdnfgjkdnfjngdkjfgnkdjgfndfg
-    //jndfkgndfjgndjkgndfgjndkfgjnfdg
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // woot
     var p0 = this.gameSpaceMouse;
     var p1 = this.selectStart;
     var i;
 
-    var selectedComponents = this.selectedComponents;
+    var selectedObjects = this.selectedObjects;
+    var selectedWires = selectedObjects.wires;
     if (p1[0] === p0[0] && p1[1] === p0[1])
     {
-        for (i = 0; i < selectedComponents.length; i += 1)
+        for (i = 0; i < selectedWires.length; i += 1)
         {
-            var object = selectedComponents[i].object;
-            if (object.isWire() && object.distance(p0[0], p0[1]) == 0.0)
+            var object = selectedWires[i].object;
+            if (object.distance(p0[0], p0[1]) == 0.0)
             {
                 this.shouldSwitch = false;
                 if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
                 {
-                    selectedComponents.splice(i, 1);
+                    selectedWires.splice(i, 1);
                     return;
                 }
             }
@@ -1453,21 +1433,6 @@ Breadboard.prototype.updateSelection = function updateSelection()
     var y0 = this.selectStart[1];
     var x1 = this.gameSpaceMouse[0];
     var y1 = this.gameSpaceMouse[1];
-
-    function addSelectedObject(object)
-    {
-        var i;
-        for (i = 0; i < selectedComponents.length; i += 1)
-        {
-            if (selectedComponents[i].object === object)
-            {
-                return;
-            }
-        }
-        selectedObj = new SelectedObject();
-        selectedObj.object = object;
-        selectedComponents.push(selectedObj);
-    };
 
     var border = Component.border + Component.borderLineWidth * 0.5;
 
@@ -1489,7 +1454,7 @@ Breadboard.prototype.updateSelection = function updateSelection()
         if (maxx >= cx0 && cx1 >= minx &&
             maxy >= cy0 && cy1 >= miny)
         {
-            addSelectedObject(component);
+            selectedObjects.addObject(component);
         }
     }
 
@@ -1499,7 +1464,7 @@ Breadboard.prototype.updateSelection = function updateSelection()
         var wire = wires[i];
         if (wire.boxOverlap(x0, y0, x1, y1))
         {
-            addSelectedObject(wire);
+            selectedObjects.addObject(wire);
         }
     }
 
@@ -1509,7 +1474,7 @@ Breadboard.prototype.updateSelection = function updateSelection()
         var bus = buses[i];
         if (bus.boxOverlap(x0, y0, x1, y1))
         {
-            addSelectedObject(bus);
+            selectedObjects.addObject(bus);
         }
     }
 };
@@ -1591,7 +1556,7 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         }
         if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
         {
-            this.selectedComponents.length = 0;
+            this.selectedObjects.clear();
         }
     }
     p = this.getPosition(p);

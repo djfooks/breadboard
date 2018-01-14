@@ -167,6 +167,11 @@ BusInputComponent.prototype.getConnections = function getConnections()
     return [this.busId, this.settingId, this.signalId];
 };
 
+BusInputComponent.prototype.getOutputs = function getOutputs(id)
+{
+    return [];
+};
+
 BusInputComponent.prototype.toggle = function toggle(breadboard, p)
 {
     var settingP = this.settingP;
