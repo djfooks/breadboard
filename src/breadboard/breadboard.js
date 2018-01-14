@@ -679,14 +679,16 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
 
         wires.push(wire);
     }
-    this.drawWires(wires);
+    this.drawWires(wires, "#808080");
 
     ctx.restore();
 };
 
-Breadboard.prototype.drawWires = function drawWires(wires)
+Breadboard.prototype.drawWires = function drawWires(wires, fgColor)
 {
     var ctx = this.stage.ctx;
+
+    fgColor = fgColor || "#000000";
 
     var i;
 
@@ -716,14 +718,14 @@ Breadboard.prototype.drawWires = function drawWires(wires)
             {
                 circles[id] = [x, y];
 
-                ctx.fillStyle = "#000000";
+                ctx.fillStyle = fgColor;
                 ctx.beginPath();
                 ctx.arc(x, y, Wire.width, 0, Math.PI * 2);
                 ctx.fill();
             }
         });
 
-        ctx.strokeStyle = removing ? "#888888" : "#000000";
+        ctx.strokeStyle = removing ? "#888888" : fgColor;
 
         ctx.beginPath();
         ctx.lineWidth = Wire.width;
