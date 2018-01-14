@@ -520,7 +520,7 @@ Breadboard.prototype.draw = function draw()
     }
     else
     {
-        this.drawDraggedComponents();
+        this.drawDraggedObjects();
     }
 
     var i;
@@ -623,50 +623,65 @@ Breadboard.prototype.drawComponents = function drawComponents()
     }
 };
 
-Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
+Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
 {
     var ctx = this.stage.ctx;
     var gameStage = this.draggingFromTray ? this.tray.gameStage : this.gameStage;
-    if (this.state === Breadboard.state.DRAG)
+    if (this.state !== Breadboard.state.DRAG)
     {
-        ctx.save();
-        gameStage.transformContext(ctx);
-        var drawOptions = new DrawOptions(null);
-        var selectedComponents = this.selectedObjects.components;
-        var valid = this.mouseOverGameStage &&
-                    SelectedObject.areAllValid(this, selectedComponents, this.draggingPoint);
-        var i;
-        for (i = 0; i < selectedComponents.length; i += 1)
-        {
-            var selectedObj = selectedComponents[i];
-            var component = selectedObj.object;
-
-            var p = [this.draggingPoint[0] + selectedObj.grabOffset[0],
-                     this.draggingPoint[1] + selectedObj.grabOffset[1]];
-
-            var q = this.getPosition(p);
-
-            if (valid)
-            {
-                component.draw(drawOptions, ctx, null, "#AAAAAA", null, gameStage);
-            }
-            var color;
-            if (this.draggingFromTray)
-            {
-                color = "#000000";
-            }
-            else if (!valid || !this.mouseOverGameStage)
-            {
-                color = "#FF0000";
-            }
-            else
-            {
-                color = "#000000";
-            }
-            component.draw(drawOptions, ctx, p, color, "#FFFFFF", gameStage);
-        }
-        ctx.restore();
+        return;
     }
+
+    ctx.save();
+    gameStage.transformContext(ctx);
+    var drawOptions = new DrawOptions(null);
+    var selectedComponents = this.selectedObjects.components;
+    var valid = this.mouseOverGameStage &&
+                SelectedObject.areAllValid(this, selectedComponents, this.draggingPoint);
+    var selectedObj;
+    var i;
+    for (i = 0; i < selectedComponents.length; i += 1)
+    {
+        selectedObj = selectedComponents[i];
+        var component = selectedObj.object;
+
+        var p = [this.draggingPoint[0] + selectedObj.grabOffset[0],
+                 this.draggingPoint[1] + selectedObj.grabOffset[1]];
+
+        var q = this.getPosition(p);
+
+        if (valid)
+        {
+            component.draw(drawOptions, ctx, null, "#AAAAAA", null, gameStage);
+        }
+        var color;
+        if (this.draggingFromTray)
+        {
+            color = "#000000";
+        }
+        else if (!valid || !this.mouseOverGameStage)
+        {
+            color = "#FF0000";
+        }
+        else
+        {
+            color = "#000000";
+        }
+        component.draw(drawOptions, ctx, p, color, "#FFFFFF", gameStage);
+    }
+
+    var selectedWires = this.selectedObjects.wires;
+    var wires = [];
+    for (i = 0; i < selectedWires.length; i += 1)
+    {
+        selectedObj = selectedWires[i];
+        var wire = selectedObj.object;
+
+        wires.push(wire);
+    }
+    this.drawWires(wires);
+
+    ctx.restore();
 };
 
 Breadboard.prototype.drawWires = function drawWires(wires)
