@@ -91,9 +91,9 @@ Component.addComponentFunctions = function addComponentFunctions(componentType)
         Component.drawContainerPath(ctx, color, this.p0, this.p1, Component.selectionBorder);
         ctx.stroke();
     };
-    componentType.prototype.getGrabOffset = function getGrabOffset(p)
+    componentType.prototype.getPosition = function getPosition()
     {
-        return [this.p0[0] - p[0], this.p0[1] - p[1]];
+        return [this.p0[0], this.p0[1]];
     };
     componentType.prototype.isWire = function isWire() { return false; };
     componentType.prototype.stateFromJson = function stateFromJson(json) {};

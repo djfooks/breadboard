@@ -132,6 +132,7 @@ Breadboard.prototype.clear = function clearFn()
     this.draggingPoint = [0, 0];
     this.selectedObjects = new SelectedObjectSet(this);
     this.draggingFromTray = false;
+    this.draggingFromTrayComponent = null;
     this.wireStart = [-1, -1];
     this.selectStart = [-1, -1];
     this.gameSpaceMouse = [-1, -1];
@@ -641,17 +642,21 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
     var drawOptions = new DrawOptions(null);
 
     var selectedComponents = selectedObjects.components;
-    var valid = this.mouseOverGameStage &&
-                SelectedObject.areAllValid(this, selectedComponents, this.draggingPoint);
     var selectedObj;
+    var draggingPoint = this.draggingPoint;
+    var viewMouseDownP = gameStage.toView(this.mouseDownP);
+    var localOffset = [draggingPoint[0] - viewMouseDownP[0],
+                       draggingPoint[1] - viewMouseDownP[1]];
+    var valid = this.mouseOverGameStage &&
+                SelectedObject.areAllValid(this, selectedComponents, localOffset);
     var i;
     for (i = 0; i < selectedComponents.length; i += 1)
     {
         selectedObj = selectedComponents[i];
         var component = selectedObj.object;
 
-        var p = [this.draggingPoint[0] + selectedObj.grabOffset[0],
-                 this.draggingPoint[1] + selectedObj.grabOffset[1]];
+        var p = [localOffset[0] + selectedObj.grabbedPosition[0],
+                 localOffset[1] + selectedObj.grabbedPosition[1]];
 
         var q = this.getPosition(p);
 
@@ -1196,6 +1201,7 @@ Breadboard.prototype._onComponentMouseDown = function _onComponentMouseDown(comp
     this.mouseDownP = [p[0], p[1]];
 
     this.draggingFromTray = this.tray.isFromTray(component);
+    this.draggingFromTrayComponent = component;
     if (this.state !== Breadboard.state.MOVE && !this.draggingFromTray)
     {
         this.onMouseDown(p, button);
@@ -1254,7 +1260,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
                 selectedObjects.clear();
             }
             var selectedObj = selectedObjects.addObject(mouseDownComponent);
-            selectedObj.grabOffset = mouseDownComponent.getGrabOffset(q);
+            selectedObj.grabbedPosition = mouseDownComponent.getPosition();
         }
         else if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
         {
@@ -1299,7 +1305,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         {
             Component.remove(this, selectedComponents[i].object);
         }
-        this.selectedComponents.clear();
+        this.selectedObjects.clear();
     }
 
     this.state = Breadboard.state.MOVE;
@@ -1317,12 +1323,11 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
     var i;
     var fromTray = this.draggingFromTray;
     var gameStage = fromTray ? this.tray.gameStage : this.gameStage;
-    this.draggingPoint = gameStage.toView(p);
+    var draggingPoint = this.draggingPoint = gameStage.toView(p);
     var selectedObjects = this.selectedObjects;
     var selectedComponents = this.selectedObjects.components;
     var mouseDownP = this.mouseDownP;
     var selectedObj;
-    var q = gameStage.toView(p);
 
     if (this.shouldSwitch)
     {
@@ -1338,7 +1343,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                 this.enableButton(this.moveButton);
                 selectedObjects.clear();
                 selectedObj = selectedObjects.addObject(mouseDownComponent.clone(this));
-                selectedObj.grabOffset = mouseDownComponent.getGrabOffset(q);
+                selectedObj.grabbedPosition = mouseDownComponent.getPosition();
                 this.tray.gameStage.addHitbox(selectedObj.object.hitbox);
             }
             else
@@ -1353,14 +1358,14 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                         {
                             throw new Error("Unable to remove component");
                         }
-                        selectedObj.grabOffset = selectedObj.object.getGrabOffset(q);
+                        selectedObj.grabbedPosition = selectedObj.object.getPosition();
                     }
                     var selectedWires = selectedObjects.wires;
                     for (i = 0; i < selectedWires.length; i += 1)
                     {
                         selectedObj = selectedWires[i];
                         this.removeWire(selectedObj.object);
-                        selectedObj.grabOffset = selectedObj.object.getGrabOffset(q);
+                        selectedObj.grabbedPosition = selectedObj.object.getPosition();
                     }
                 }
                 else
@@ -1374,7 +1379,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                     }
                     selectedObjects.clear();
                     selectedObj = selectedObjects.addObject(mouseDownComponent);
-                    selectedObj.grabOffset = mouseDownComponent.getGrabOffset(q);
+                    selectedObj.grabbedPosition = mouseDownComponent.getPosition();
                 }
             }
             this.shouldSwitch = false;
@@ -1386,50 +1391,61 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
         return;
     }
 
+    var viewMouseDownP = this.gameStage.toView(mouseDownP);
+    var localOffset;
     if (fromTray && this.mouseOverGameStage)
     {
-        fromTray = this.draggingFromTray = false;
+        var selectedObject = selectedObjects.objects[0];
 
-        this.tray.gameStage.removeHitbox(selectedObjects.objects[0].object.hitbox);
+        var trayViewMouseDownP = this.tray.gameStage.toView(mouseDownP);
+        localOffset = [this.draggingFromTrayComponent.p0[0] - trayViewMouseDownP[0],
+                       this.draggingFromTrayComponent.p0[1] - trayViewMouseDownP[1]];
+
+        var newGrabbed = [viewMouseDownP[0] + localOffset[0],
+                          viewMouseDownP[1] + localOffset[1]];
+        selectedObject.grabbedPosition = this.getPosition(newGrabbed);
+
+        draggingPoint = this.draggingPoint = [selectedObject.grabbedPosition[0] - localOffset[0],
+                                              selectedObject.grabbedPosition[1] - localOffset[1]];
+
+        this.tray.gameStage.removeHitbox(selectedObject.object.hitbox);
         gameStage = this.gameStage;
-        gameStage.addHitbox(selectedObjects.objects[0].object.hitbox);
+        gameStage.addHitbox(selectedObject.object.hitbox);
+
+        fromTray = this.draggingFromTray = false;
+        this.draggingFromTrayComponent = null;
     }
 
-    var prevConnectionMapOffset = [selectedObjects.connectionMapOffset[0], selectedObjects.connectionMapOffset[1]];
+    // var prevConnectionMapOffset = [selectedObjects.connectionMapOffset[0], selectedObjects.connectionMapOffset[1]];
 
-    var viewMouseDownP = gameStage.toView(mouseDownP);
-    var localOffset = [q[0] - viewMouseDownP[0],
-                       q[1] - viewMouseDownP[1]];
-    selectedObjects.setOffset(this.getPosition(localOffset));
-    console.log("connectionMapOffset " + selectedObjects.connectionMapOffset);
+    localOffset = [draggingPoint[0] - viewMouseDownP[0],
+                   draggingPoint[1] - viewMouseDownP[1]];
+    var positionOffset = this.getPosition(localOffset);
+    selectedObjects.setOffset(positionOffset);
 
-    var changedConnectionMapOffset = (prevConnectionMapOffset[0] != selectedObjects.connectionMapOffset[0] ||
-                                      prevConnectionMapOffset[1] != selectedObjects.connectionMapOffset[1]);
-    var changedComponentMove = false;
+    // console.log("connectionMapOffset " + selectedObjects.connectionMapOffset);
+    // var changedConnectionMapOffset = (prevConnectionMapOffset[0] != selectedObjects.connectionMapOffset[0] ||
+    //                                   prevConnectionMapOffset[1] != selectedObjects.connectionMapOffset[1]);
+    // var changedComponentMove = false;
 
     var componentMovePoint;
     for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
         var selectedObj = selectedObjects.objects[i];
-        componentMovePoint = [q[0] + selectedObj.grabOffset[0],
-                              q[1] + selectedObj.grabOffset[1]];
-        componentMovePoint = this.getPosition(componentMovePoint);
+        componentMovePoint = [positionOffset[0] + selectedObj.grabbedPosition[0],
+                              positionOffset[1] + selectedObj.grabbedPosition[1]];
 
-        if (selectedObj.object.isWire())
-        {
-            changedComponentMove = (componentMovePoint[0] != selectedObj.object.x0 ||
-                                    componentMovePoint[1] != selectedObj.object.y0);
-        }
-
-        console.log("isWire " + selectedObj.object.isWire() + " move " + componentMovePoint);
+        // changedComponentMove = (componentMovePoint[0] != selectedObj.object.getPosition()[0] ||
+        //                         componentMovePoint[1] != selectedObj.object.getPosition()[1]);
+        // console.log("isWire " + selectedObj.object.isWire() + " move " + componentMovePoint);
 
         selectedObj.object.move(this, componentMovePoint, selectedObj.object.rotation);
     }
 
-    if (changedComponentMove != changedConnectionMapOffset)
-    {
-        console.log("how?");
-    }
+    // if (changedComponentMove != changedConnectionMapOffset)
+    // {
+    //     console.log("how?");
+    // }
 };
 
 Breadboard.prototype.rotateComponents = function rotateComponents()
@@ -1510,8 +1526,6 @@ Breadboard.prototype.updateSelection = function updateSelection()
         return;
     }
     this.shouldSwitch = false;
-
-    var noGrabOffset = [0, 0];
 
     var selectedObj;
 

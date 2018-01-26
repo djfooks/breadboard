@@ -2,10 +2,10 @@
 function SelectedObject()
 {
     this.object = null;
-    this.grabOffset = [0, 0];
+    this.grabbedPosition = [0, 0];
 }
 
-SelectedObject.areAllValid = function areAllValid(breadboard, selectedComponents, draggingPoint)
+SelectedObject.areAllValid = function areAllValid(breadboard, selectedComponents, localOffset)
 {
     var i;
     for (i = 0; i < selectedComponents.length; i += 1)
@@ -13,10 +13,10 @@ SelectedObject.areAllValid = function areAllValid(breadboard, selectedComponents
         var selectedObj = selectedComponents[i];
         var component = selectedObj.object;
         var q;
-        if (draggingPoint)
+        if (localOffset)
         {
-            var p = [draggingPoint[0] + selectedObj.grabOffset[0],
-                     draggingPoint[1] + selectedObj.grabOffset[1]];
+            var p = [localOffset[0] + selectedObj.grabbedPosition[0],
+                     localOffset[1] + selectedObj.grabbedPosition[1]];
             q = breadboard.getPosition(p);
         }
         else

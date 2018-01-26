@@ -50,9 +50,9 @@ Wire.prototype.drawSelection = function drawSelection(ctx, color)
     ctx.stroke();
 };
 
-Wire.prototype.getGrabOffset = function getGrabOffset(p)
+Wire.prototype.getPosition = function getPosition()
 {
-    return [this.x0 - p[0], this.y0 - p[1]];
+    return [this.x0, this.y0];
 };
 
 Wire.prototype.boxOverlap = function boxOverlap(x0, y0, x1, y1)
