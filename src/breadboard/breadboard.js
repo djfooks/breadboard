@@ -1398,15 +1398,16 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
         var selectedObject = selectedObjects.objects[0];
 
         var trayViewMouseDownP = this.tray.gameStage.toView(mouseDownP);
-        localOffset = [this.draggingFromTrayComponent.p0[0] - trayViewMouseDownP[0],
-                       this.draggingFromTrayComponent.p0[1] - trayViewMouseDownP[1]];
+        localOffset = [trayViewMouseDownP[0] - this.draggingFromTrayComponent.p0[0],
+                       trayViewMouseDownP[1] - this.draggingFromTrayComponent.p0[1]];
 
-        var newGrabbed = [viewMouseDownP[0] + localOffset[0],
-                          viewMouseDownP[1] + localOffset[1]];
-        selectedObject.grabbedPosition = this.getPosition(newGrabbed);
+        draggingPoint = this.draggingPoint = this.gameStage.toView(p);
+        selectedObject.grabbedPosition = this.getPosition(draggingPoint);
 
-        draggingPoint = this.draggingPoint = [selectedObject.grabbedPosition[0] - localOffset[0],
-                                              selectedObject.grabbedPosition[1] - localOffset[1]];
+        var newMouseDownView = [selectedObject.grabbedPosition[0] + localOffset[0],
+                                selectedObject.grabbedPosition[1] + localOffset[1]];
+
+        this.mouseDownP = this.gameStage.fromView(newMouseDownView);
 
         this.tray.gameStage.removeHitbox(selectedObject.object.hitbox);
         gameStage = this.gameStage;
