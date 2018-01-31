@@ -1648,29 +1648,40 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         return;
     }
 
-    p = this.gameStage.toView(p);
+    var q = this.gameStage.toView(p);
     if (this.state === Breadboard.state.MOVE)
     {
+        var wires = this.wires;
+        for (var i = 0; i < wires.length; i += 1)
+        {
+            var wire = wires[i];
+            if (wire.distance(q[0], q[1]) == 0.0)
+            {
+                this._onComponentMouseDown(wire, p, button);
+                return;
+            }
+        }
+
         if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
         {
-            this.selectStart = [p[0], p[1]];
+            this.selectStart = [q[0], q[1]];
         }
         if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
         {
             this.selectedObjects.clear();
         }
     }
-    p = this.getPosition(p);
+    q = this.getPosition(q);
 
     if (this.state !== Breadboard.state.ADD_WIRE)
     {
         return;
     }
 
-    if (this.validPosition(p))
+    if (this.validPosition(q))
     {
         this.state = Breadboard.state.PLACING_WIRE;
-        this.wireStart = p;
+        this.wireStart = q;
     }
 };
 
