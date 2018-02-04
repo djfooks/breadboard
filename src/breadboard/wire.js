@@ -33,6 +33,9 @@ Wire.prototype.move = function move(breadboard, p/*, rotation*/)
     this.y0 += oy;
     this.x1 += ox;
     this.y1 += oy;
+
+    this.id0 = breadboard.getIndex(this.x0, this.y0);
+    this.id1 = breadboard.getIndex(this.x1, this.y1);
 };
 
 Wire.prototype.isWire = function isWire()
