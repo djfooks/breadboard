@@ -761,7 +761,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
             var connection = connections[id];
             if (!circles[id] && params.hasDotFn(connection, x, y))
             {
-                circles[id] = [x, y];
+                circles[id] = [x + offset[0], y + offset[1]];
 
                 ctx.fillStyle = fgColor;
                 ctx.beginPath();
@@ -824,15 +824,18 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
             var x = circles[id][0];
             var y = circles[id][1];
             var connection = connections[id];
-            if (!connection)
+            if (connection)
             {
-                continue;
+                value = connection.getValue();
             }
-            value = connection.getValue();
+            else
+            {
+                value = 0;
+            }
 
             ctx.fillStyle = Wire.getColor(value);
             ctx.beginPath();
-            ctx.arc(x + offset[0], y + offset[1], 0.15, 0, Math.PI * 2);
+            ctx.arc(x, y, 0.15, 0, Math.PI * 2);
             ctx.fill();
         }
     }
