@@ -687,18 +687,31 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
     {
         return (connection && connection.hasDot) || selectedObjects.hasDot(x, y);
     };
+    this.drawWires(selectedObjects.wireObjects, "#808080", greyDrawParameters);
 
     var draggedDrawParameters = new WireDrawParameters();
     draggedDrawParameters.hasDotFn = function (connection, x, y)
     {
         return selectedObjects.hasDot(x, y);
     };
+    // var wireOffset = [this.draggingPoint[0] - this.mouseDownP[0],
+    //                   this.draggingPoint[1] - this.mouseDownP[1]];
+    // wireOffset = this.gameStage.toView(wireOffset);
+    // console.log(wireOffset);
+    localOffset[0] = localOffset[0] - Math.round(localOffset[0]);
+    localOffset[1] = localOffset[1] - Math.round(localOffset[1]);
     draggedDrawParameters.offsetFn = function (offset, index)
     {
-        return selectedWires[index].grabOffset;
+        var selectedObj = selectedWires[index];
+
+        var p = [localOffset[0] + selectedObj.grabbedPosition[0],
+                 localOffset[1] + selectedObj.grabbedPosition[1]];
+
+        offset[0] = localOffset[0];
+        offset[1] = localOffset[1];
     };
 
-    this.drawWires(selectedObjects.wireObjects, "#808080", greyDrawParameters);
+    this.drawWires(selectedObjects.wireObjects, "#000000", draggedDrawParameters);
 
     ctx.restore();
 };
@@ -761,8 +774,8 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
 
         ctx.beginPath();
         ctx.lineWidth = Wire.width;
-        ctx.moveTo(x0 + offset[0], y0 +  + offset[1]);
-        ctx.lineTo(x1 + offset[0], y1 +  + offset[1]);
+        ctx.moveTo(x0 + offset[0], y0 + offset[1]);
+        ctx.lineTo(x1 + offset[0], y1 + offset[1]);
         ctx.stroke();
 
         var start = [wire.x0, wire.y0];
@@ -783,8 +796,8 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
                 ctx.lineWidth = 0.1;
                 value = connectionValue;
                 ctx.beginPath();
-                ctx.moveTo(start[0] +  + offset[0], start[1] +  + offset[1]);
-                ctx.lineTo(x +  + offset[0], y +  + offset[1]);
+                ctx.moveTo(start[0] + offset[0], start[1] + offset[1]);
+                ctx.lineTo(x + offset[0], y + offset[1]);
                 ctx.stroke();
                 start[0] = x;
                 start[1] = y;
