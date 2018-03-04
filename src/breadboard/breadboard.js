@@ -532,7 +532,8 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(drawOptions, ctx, null, "#000000", null, this.gameStage);
+        var component = componentsList[i];
+        component.draw(drawOptions, ctx, null, "#000000", null, this.focusComponent === component);
     }
 };
 
@@ -555,7 +556,7 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
         var component = this.draggingComponent;
         if (valid)
         {
-            component.draw(drawOptions, ctx, null, "#AAAAAA", null, gameStage);
+            component.draw(drawOptions, ctx, null, "#AAAAAA", null, false);
         }
         var color;
         if (this.draggingFromTray)
@@ -570,7 +571,7 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
         {
             color = "#000000";
         }
-        component.draw(drawOptions, ctx, p, color, "#FFFFFF", gameStage);
+        component.draw(drawOptions, ctx, p, color, "#FFFFFF", false);
         ctx.restore();
     }
 };
@@ -1350,12 +1351,18 @@ Breadboard.prototype.onKeyDown = function onKeyDown(key, keyCode)
     }
 };
 
-Breadboard.prototype.registerKeyDown = function registerKeyDown(fn)
+Breadboard.prototype.takeFocus = function takeFocus(component, fn)
 {
+    if (this.focusComponent && this.focusComponent.removeFocus)
+    {
+        this.focusComponent.removeFocus();
+    }
+    this.focusComponent = component;
     this.onKeyDownFn = fn;
 };
 
-Breadboard.prototype.unregisterKeyDown = function unregisterKeyDown(fn)
+Breadboard.prototype.removeFocus = function removeFocus(fn)
 {
+    this.focusComponent = null;
     this.onKeyDownFn = null;
 };

@@ -18,7 +18,6 @@ function DebuggerComponent(breadboard)
 
     this.previousValue = 0;
     this.value = 0;
-    this.editingValue = false;
     this.debugType = DebuggerComponent.debugType.WRITE;
 
     this.pulsePaths = [];
@@ -92,7 +91,7 @@ DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboar
     return isValid;
 };
 
-DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var rotationMatrix = RotationMatrix[this.rotation];
     var pinP = this.pinP;
@@ -151,7 +150,7 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = this.editingValue ? "#FF0000" : bgColor;
+    ctx.fillStyle = hasFocus ? "#FF0000" : bgColor;
     var textPos = AddTransformedVector(p, rotationMatrix, [5.9, 0.0])
     ctx.textAlign="right";
     ctx.textBaseline="middle";
@@ -248,8 +247,7 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
 {
     if (keyCode === 13)
     {
-        this.editingValue = false;
-        breadboard.unregisterKeyDown();
+        breadboard.removeFocus();
         return;
     }
     if (keyCode === 8)
@@ -326,8 +324,7 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
         if (this.debugType === DebuggerComponent.debugType.WRITE)
         {
             this.debugType = DebuggerComponent.debugType.READ;
-            this.editingValue = false;
-            breadboard.unregisterKeyDown();
+            breadboard.removeFocus();
             this.value = 0;
             this.updateValue(breadboard);
         }
@@ -350,8 +347,7 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
     var max = [Math.max(screen0[0], screen1[0]), Math.max(screen0[1], screen1[1])];
     if (p[0] >= min[0] && p[0] <= max[0] && p[1] >= min[1] && p[1] <= max[1])
     {
-        this.editingValue = true;
-        breadboard.registerKeyDown(this.onKeyDown.bind(this));
+        breadboard.takeFocus(this, this.onKeyDown.bind(this));
     }
 };
 
