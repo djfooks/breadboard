@@ -12,3 +12,5 @@ Change log:
 - Increase the breadboard size 20x.
 - Save debugger type.
 - Wires can now be overlapped.
+- Added focus to text entry on components.
+- Debugger is now readable in all rotations.
