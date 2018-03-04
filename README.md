@@ -10,6 +10,8 @@ Known issues:
 
 Change log:
 
+- Added focus to text entry on components.
+- Debugger is now readable in all rotations.
 - Added Ctrl-c and Ctrl-v to copy paste selection.
 - Added backspace/delete key to remove selection.
 - Added multi component selection movement and rotation with shift click to add/remove from selection.
