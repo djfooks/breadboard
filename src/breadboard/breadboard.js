@@ -1689,6 +1689,12 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
 
 Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
 {
+    if (button === 1)
+    {
+        this.isScrolling = false;
+        return;
+    }
+
     if (this.state === Breadboard.state.DRAG)
     {
         this.onComponentMouseUp(p, button);
