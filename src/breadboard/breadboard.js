@@ -1421,7 +1421,15 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
 
 Breadboard.prototype.rotateComponents = function rotateComponents()
 {
-    var selectedComponents = this.selectedComponents;
+    var fromTray = this.draggingFromTray;
+    var gameStage = fromTray ? this.tray.gameStage : this.gameStage;
+
+    var draggingPoint = this.draggingPoint;
+    var mouseDownP = this.mouseDownP;
+    var viewMouseDownP = gameStage.toView(mouseDownP);
+
+    var selectedObjects = this.selectedObjects;
+    var selectedComponents = selectedObjects.components;
     var i;
     for (i = 0; i < selectedComponents.length; i += 1)
     {
@@ -1429,16 +1437,36 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         var component = selectedObj.object;
         var newRotation = Rotate90(component.rotation);
 
-        selectedObj.grabOffset = [selectedObj.grabOffset[1], -selectedObj.grabOffset[0]];
+        localOffset = [selectedObj.grabbedPosition[0] - viewMouseDownP[0],
+                       selectedObj.grabbedPosition[1] - viewMouseDownP[1]];
+        selectedObj.grabbedPosition = [Math.round(viewMouseDownP[0] + localOffset[1]),
+                                       Math.round(viewMouseDownP[1] - localOffset[0])];
 
-        this.removeComponent(component);
         component.move(this, component.p0, newRotation);
-        if (this.state !== Breadboard.state.DRAG && valid)
-        {
-            this.addComponent(component);
-            this.dirty = true;
-        }
     }
+
+    var selectedWires = selectedObjects.wires;
+    for (i = 0; i < selectedWires.length; i += 1)
+    {
+        var selectedObj = selectedWires[i];
+
+        localOffset = [selectedObj.grabbedPosition[0] - viewMouseDownP[0],
+                       selectedObj.grabbedPosition[1] - viewMouseDownP[1]];
+        selectedObj.grabbedPosition = [Math.round(viewMouseDownP[0] + localOffset[1]),
+                                       Math.round(viewMouseDownP[1] - localOffset[0])];
+
+        var wire = selectedObj.object;
+        wire.rotate(this);
+    }
+    selectedObjects.connectionMapDirty = true;
+
+    mvx = viewMouseDownP[0] - viewMouseDownP[1];
+    mvy = viewMouseDownP[1] + viewMouseDownP[0];
+    mvx = (mvx - Math.round(mvx));
+    mvy = (mvy - Math.round(mvy));
+    viewMouseDownP[0] -= mvx;
+    viewMouseDownP[1] -= mvy;
+    this.mouseDownP = gameStage.fromView(viewMouseDownP);
 };
 
 Breadboard.prototype.addComponent = function addComponent(component)
