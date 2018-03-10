@@ -1181,29 +1181,23 @@ Breadboard.prototype.getConnectionValue = function getConnectionValue(id)
     return connection.getValue();
 };
 
-Breadboard.prototype._onComponentMouseDown = function _onComponentMouseDown(component, p, button)
+Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, p, button)
 {
-    if (button === 1)
-    {
-        this.onMouseDown(p, button);
-        return;
-    }
-
     if (button === 2)
     {
         this.shouldSwitch = false;
-        return;
+        return true;
     }
 
-    if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+    if (this.state === Breadboard.state.MOVE && this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
     {
         this.shouldSwitch = false;
         if (this.selectedObjects.removeObject(component))
         {
-            return;
+            return true;
         }
         this.selectedObjects.addObject(component);
-        return;
+        return true;
     }
 
     this.shouldSwitch = true;
@@ -1213,43 +1207,18 @@ Breadboard.prototype._onComponentMouseDown = function _onComponentMouseDown(comp
 
     this.draggingFromTray = this.tray.isFromTray(component);
     this.draggingFromTrayComponent = component;
-    if (this.state !== Breadboard.state.MOVE && !this.draggingFromTray)
-    {
-        this.onMouseDown(p, button);
-        return;
-    }
+    return false;
 };
 
-Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, p, button)
+Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
 {
-    var wires = this.wires;
-    var q = this.gameStage.toView(p);
-    for (var i = 0; i < wires.length; i += 1)
-    {
-        var wire = wires[i];
-        if (wire.distance(q[0], q[1]) < 0.05)
-        {
-            this._onComponentMouseDown(wire, p, button);
-            return;
-        }
-    }
-    this._onComponentMouseDown(component, p, button);
-};
-
-Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, button)
-{
-    if (button === 1)
-    {
-        this.onMouseUp(p, button);
-        return;
-    }
-    else if (button === 2)
+    if (button === 2)
     {
         if (this.state === Breadboard.state.DRAG)
         {
             this.rotateComponents();
         }
-        return;
+        return true;
     }
 
     var selectedObjects = this.selectedObjects;
@@ -1263,25 +1232,28 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
             this.dirtySave = true;
         }
 
-        var selectedIndex = selectedObjects.indexOf(mouseDownComponent);
-        if (selectedIndex === -1)
+        if (this.state === Breadboard.state.MOVE)
         {
-            if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+            var selectedIndex = selectedObjects.indexOf(mouseDownComponent);
+            if (selectedIndex === -1)
             {
-                selectedObjects.clear();
+                if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+                {
+                    selectedObjects.clear();
+                }
+                var selectedObj = selectedObjects.addObject(mouseDownComponent);
+                selectedObj.grabbedPosition = mouseDownComponent.getPosition();
             }
-            var selectedObj = selectedObjects.addObject(mouseDownComponent);
-            selectedObj.grabbedPosition = mouseDownComponent.getPosition();
-        }
-        else if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
-        {
-            selectedObjects.removeObject(mouseDownComponent);
+            else if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+            {
+                selectedObjects.removeObject(mouseDownComponent);
+            }
         }
     }
 
     if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
     {
-        return;
+        return true;
     }
 
     this.mouseDownComponent = null;
@@ -1291,8 +1263,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
         this.state !== Breadboard.state.DRAG ||
         this.selectedObjects.objects.length === 0)
     {
-        this.onMouseUp(p, button);
-        return;
+        return false;
     }
 
     var selectedComponents = selectedObjects.components;
@@ -1323,11 +1294,7 @@ Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, butto
     this.state = Breadboard.state.MOVE;
     this.disableButtons();
     this.enableButton(this.moveButton);
-};
-
-Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, p, button)
-{
-    this._onComponentMouseUp(p, button);
+    return true;
 };
 
 Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpdate(p)
@@ -1340,70 +1307,74 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
     var selectedComponents = this.selectedObjects.components;
     var mouseDownP = this.mouseDownP;
     var selectedObj;
+    var canDrag = fromTray || (this.state === Breadboard.state.MOVE || this.state === Breadboard.state.DRAG);
 
     if (this.shouldSwitch)
     {
         if (p[0] != mouseDownP[0] ||
             p[1] != mouseDownP[1])
         {
-            this.state = Breadboard.state.DRAG;
-            var mouseDownComponent = this.mouseDownComponent;
+            if (canDrag)
+            {
+                this.state = Breadboard.state.DRAG;
+                var mouseDownComponent = this.mouseDownComponent;
 
-            if (fromTray)
-            {
-                this.disableButtons();
-                this.enableButton(this.moveButton);
-                selectedObjects.clear();
-                selectedObj = selectedObjects.addObject(mouseDownComponent.clone(this));
-                selectedObj.grabbedPosition = mouseDownComponent.getPosition();
-                this.tray.gameStage.addHitbox(selectedObj.object.hitbox);
-            }
-            else
-            {
-                var selectedIndex = selectedObjects.indexOf(mouseDownComponent);
-                if (selectedIndex !== -1)
+                if (fromTray)
                 {
-                    for (i = 0; i < selectedComponents.length; i += 1)
-                    {
-                        selectedObj = selectedComponents[i];
-                        if (!this.removeComponent(selectedObj.object))
-                        {
-                            throw new Error("Unable to remove component");
-                        }
-                        selectedObj.grabbedPosition = selectedObj.object.getPosition();
-                    }
-                    var selectedWires = selectedObjects.wires;
-                    for (i = 0; i < selectedWires.length; i += 1)
-                    {
-                        selectedObj = selectedWires[i];
-                        this.removeWire(selectedObj.object);
-                        selectedObj.grabbedPosition = selectedObj.object.getPosition();
-                    }
-                    selectedObjects.connectionMapDirty = true;
+                    this.disableButtons();
+                    this.enableButton(this.moveButton);
+                    selectedObjects.clear();
+                    selectedObj = selectedObjects.addObject(mouseDownComponent.clone(this));
+                    selectedObj.grabbedPosition = mouseDownComponent.getPosition();
+                    this.tray.gameStage.addHitbox(selectedObj.object.hitbox);
                 }
                 else
                 {
-                    if (mouseDownComponent.isWire())
+                    var selectedIndex = selectedObjects.indexOf(mouseDownComponent);
+                    if (selectedIndex !== -1)
                     {
-                        this.removeWire(mouseDownComponent);
+                        for (i = 0; i < selectedComponents.length; i += 1)
+                        {
+                            selectedObj = selectedComponents[i];
+                            if (!this.removeComponent(selectedObj.object))
+                            {
+                                throw new Error("Unable to remove component");
+                            }
+                            selectedObj.grabbedPosition = selectedObj.object.getPosition();
+                        }
+                        var selectedWires = selectedObjects.wires;
+                        for (i = 0; i < selectedWires.length; i += 1)
+                        {
+                            selectedObj = selectedWires[i];
+                            this.removeWire(selectedObj.object);
+                            selectedObj.grabbedPosition = selectedObj.object.getPosition();
+                        }
+                        selectedObjects.connectionMapDirty = true;
                     }
                     else
                     {
-                        if (!this.removeComponent(mouseDownComponent))
+                        if (mouseDownComponent.isWire())
                         {
-                            throw new Error("Unable to remove component");
+                            this.removeWire(mouseDownComponent);
                         }
+                        else
+                        {
+                            if (!this.removeComponent(mouseDownComponent))
+                            {
+                                throw new Error("Unable to remove component");
+                            }
+                        }
+                        selectedObjects.clear();
+                        selectedObj = selectedObjects.addObject(mouseDownComponent);
+                        selectedObj.grabbedPosition = mouseDownComponent.getPosition();
                     }
-                    selectedObjects.clear();
-                    selectedObj = selectedObjects.addObject(mouseDownComponent);
-                    selectedObj.grabbedPosition = mouseDownComponent.getPosition();
                 }
             }
             this.shouldSwitch = false;
         }
     }
 
-    if (this.shouldSwitch)
+    if (this.shouldSwitch || !canDrag)
     {
         return;
     }
@@ -1632,6 +1603,38 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     return true;
 };
 
+Breadboard.prototype.getComponentFromMouse = function getComponentFromMouse(p)
+{
+    var q;
+    if (!this.mouseOverGameStage)
+    {
+        q = this.tray.gameStage.toView(p);
+        var hitbox = this.tray.gameStage.findHitbox(q[0], q[1]);
+        if (hitbox && hitbox.data)
+        {
+            return hitbox.data;
+        }
+        return null;
+    }
+
+    q = this.gameStage.toView(p);
+    var wires = this.wires;
+    for (var i = 0; i < wires.length; i += 1)
+    {
+        var wire = wires[i];
+        if (wire.distance(q[0], q[1]) < 0.05)
+        {
+            return wire;
+        }
+    }
+    var hitbox = this.gameStage.findHitbox(q[0], q[1]);
+    if (hitbox && hitbox.data)
+    {
+        return hitbox.data;
+    }
+    return null;
+};
+
 Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
 {
     if (button === 1 && this.mouseOverGameStage)
@@ -1642,32 +1645,32 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         return;
     }
 
+    var component = this.getComponentFromMouse(p);
+    if (component)
+    {
+        if (this.onComponentMouseDown(component, p, button))
+        {
+            return;
+        }
+    }
     if (!this.mouseOverGameStage)
     {
         return;
     }
 
-    var q = this.gameStage.toView(p);
+    q = this.gameStage.toView(p);
     if (this.state === Breadboard.state.MOVE)
     {
-        var wires = this.wires;
-        for (var i = 0; i < wires.length; i += 1)
+        if (!component)
         {
-            var wire = wires[i];
-            if (wire.distance(q[0], q[1]) < 0.05)
+            if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
             {
-                this._onComponentMouseDown(wire, p, button);
-                return;
+                this.selectStart = [q[0], q[1]];
             }
-        }
-
-        if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
-        {
-            this.selectStart = [q[0], q[1]];
-        }
-        if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
-        {
-            this.selectedObjects.clear();
+            if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+            {
+                this.selectedObjects.clear();
+            }
         }
     }
     q = this.getPosition(q);
@@ -1686,15 +1689,19 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
 
 Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
 {
-    if (button === 1)
+    if (this.state === Breadboard.state.DRAG)
     {
-        this.isScrolling = false;
+        this.onComponentMouseUp(p, button);
         return;
     }
 
-    if (this.state === Breadboard.state.DRAG)
+    var component = this.getComponentFromMouse(p);
+    if (component)
     {
-        this._onComponentMouseUp(p, button);
+        if (this.onComponentMouseUp(p, button))
+        {
+            return;
+        }
     }
 
     if (!this.mouseOverGameStage)

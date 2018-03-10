@@ -153,7 +153,7 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
         {
             if (list[i].object === object)
             {
-                list.splice(i, -1);
+                list.splice(i, 1);
                 return true;
             }
         }
@@ -162,12 +162,19 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
 
     if (object.isWire())
     {
-        removeFromList(this.wires, object);
-        this.wireObjects.splice(this.wireObjects.indexOf(object), -1);
+        if (!removeFromList(this.wires, object))
+        {
+            return false;
+        }
+        var index = this.wireObjects.indexOf(object);
+        this.wireObjects.splice(index, 1);
     }
     else
     {
-        removeFromList(this.components, object);
+        if (!removeFromList(this.components, object))
+        {
+            return false;
+        }
     }
     return removeFromList(this.objects, object);
 };

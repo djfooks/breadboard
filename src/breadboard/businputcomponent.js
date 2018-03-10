@@ -18,7 +18,7 @@ function BusInputComponent(breadboard)
 
     this.signalValue = false;
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
 Component.addComponentFunctions(BusInputComponent);
 

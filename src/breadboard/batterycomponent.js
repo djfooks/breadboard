@@ -11,7 +11,7 @@ function BatteryComponent(breadboard)
     this.pulsePaths = [];
     this.strength = 50;
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
 Component.addComponentFunctions(BatteryComponent);
 

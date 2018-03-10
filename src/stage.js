@@ -4,12 +4,13 @@ var BaseKeyCodeMap =
     SHIFT: 16
 };
 
-function Hitbox(minX, minY, maxX, maxY)
+function Hitbox(minX, minY, maxX, maxY, data)
 {
     this.minX = minX;
     this.minY = minY;
     this.maxX = maxX;
     this.maxY = maxY;
+    this.data = data;
 
     this.onMouseUp = null;
     this.onMouseDown = null;
@@ -31,7 +32,7 @@ function Button(x, y, width, height)
     this.enabledTexture = null;
     this.disabledTexture = null;
     this.enabled = true;
-    this.hitbox = new Hitbox(x, y, x + width, y + height);
+    this.hitbox = new Hitbox(x, y, x + width, y + height, null);
 };
 
 function Stage(canvas)
@@ -216,7 +217,7 @@ Stage.test = function test()
     var stage = new Stage(canvas);
     stage.enable();
 
-    var hitbox = new Hitbox(0, 0, canvas.width, canvas.height);
+    var hitbox = new Hitbox(0, 0, canvas.width, canvas.height, null);
     stage.addHitbox(hitbox);
 
     hitbox.mouseMove = function (x, y)

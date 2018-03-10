@@ -10,7 +10,7 @@ function DiodeComponent(breadboard)
     this.rotation = 0;
     this.pulsePaths = [];
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
 Component.addComponentFunctions(DiodeComponent);
 

@@ -24,7 +24,7 @@ function DebuggerComponent(breadboard)
 
     this.pulsePaths = [];
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
 Component.addComponentFunctions(DebuggerComponent);
 

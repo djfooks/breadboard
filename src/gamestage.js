@@ -6,7 +6,7 @@ function GameStage(minX, minY, maxX, maxY)
     this.maxX = maxX;
     this.maxY = maxY;
 
-    this.gameStageHitbox = new Hitbox(minX, minY, maxX, maxY);
+    this.gameStageHitbox = new Hitbox(minX, minY, maxX, maxY, this);
 
     this.gameStageHitbox.onMouseDown = this.mouseDown.bind(this);
     this.gameStageHitbox.onMouseUp = this.mouseUp.bind(this);

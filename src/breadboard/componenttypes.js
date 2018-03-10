@@ -18,14 +18,6 @@ Component.border = 0.45;
 Component.selectionBorder = 0.55;
 Component.borderLineWidth = 0.05;
 
-Component.addHitbox = function addHitbox(breadboard, component)
-{
-    var hitbox = component.hitbox = new Hitbox(0, 0, 0, 0);
-
-    hitbox.onMouseDown = breadboard.onComponentMouseDown.bind(breadboard, component);
-    hitbox.onMouseUp = breadboard.onComponentMouseUp.bind(breadboard, component);
-};
-
 Component.remove = function remove(breadboard, component)
 {
     breadboard.stage.removeHitbox(component.hitbox);
