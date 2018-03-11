@@ -397,6 +397,12 @@ Breadboard.prototype.update = function update()
         this.removeSelectedObjects();
     }
 
+    if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) ||
+        this.stage.isKeyDown(BaseKeyCodeMap.KEY_C))
+    {
+        this.copySelectedObjects();
+    }
+
     var that = this;
     if (this.dirty)
     {
@@ -1030,6 +1036,11 @@ Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
         }
     }
     this.selectedObjects.clear();
+};
+
+
+Breadboard.prototype.copySelectedObjects = function copySelectedObjects()
+{
 };
 
 Breadboard.prototype.removeWire = function removeWire(wire)
