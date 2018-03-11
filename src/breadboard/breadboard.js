@@ -131,6 +131,8 @@ Breadboard.prototype.clear = function clearFn()
     this.wireType = ComponentTypes.WIRE;
     this.draggingPoint = [0, 0];
     this.selectedObjects = new SelectedObjectSet(this);
+    this.copiedObjects = [];
+    this.copiedObjectsMouse = [0, 0];
     this.draggingFromTray = false;
     this.draggingFromTrayComponent = null;
     this.wireStart = [-1, -1];
@@ -397,10 +399,16 @@ Breadboard.prototype.update = function update()
         this.removeSelectedObjects();
     }
 
-    if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) ||
+    if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
         this.stage.isKeyDown(BaseKeyCodeMap.KEY_C))
     {
         this.copySelectedObjects();
+    }
+
+    if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
+        this.stage.isKeyDown(BaseKeyCodeMap.KEY_V))
+    {
+        this.pasteSelectedObjects();
     }
 
     var that = this;
@@ -1038,9 +1046,57 @@ Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
     this.selectedObjects.clear();
 };
 
-
 Breadboard.prototype.copySelectedObjects = function copySelectedObjects()
 {
+    var selectedObjects = this.selectedObjects.objects;
+    var copiedObjects = this.copiedObjects;
+    this.copiedObjectsMouse = [this.gameSpaceMouse[0], this.gameSpaceMouse[1]];
+    copiedObjects.length = 0;
+    var i;
+    for (i = 0; i < selectedObjects.length; i += 1)
+    {
+        var selectedObject = selectedObjects[i];
+        var copyObject = selectedObject.object.clone(this);
+        copiedObjects.push(copyObject);
+    }
+};
+
+Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
+{
+    if (!this.copiedObjects.length)
+    {
+        return;
+    }
+
+    this.state = Breadboard.state.DRAG;
+
+    this.shouldSwitch = false;
+
+    var viewMouseDownP = this.getPosition(this.gameSpaceMouse);
+    this.mouseDownP = this.gameStage.fromView(this.gameSpaceMouse);
+
+    this.draggingFromTray = false;
+    this.draggingFromTrayComponent = null;
+
+    var selectedObjects = this.selectedObjects;
+    selectedObjects.clear();
+    var copiedObjectsMouse = this.getPosition(this.copiedObjectsMouse);
+
+    var copiedObjects = this.copiedObjects;
+    var i;
+    for (i = 0; i < copiedObjects.length; i += 1)
+    {
+        var object = copiedObjects[i].clone(this);
+
+        selectedObj = selectedObjects.addObject(object);
+
+        var ox = object.getPosition()[0] - copiedObjectsMouse[0];
+        var oy = object.getPosition()[1] - copiedObjectsMouse[1];
+        selectedObj.grabbedPosition = [viewMouseDownP[0] + ox, viewMouseDownP[1] + oy];
+    }
+    selectedObjects.connectionMapDirty = true;
+
+    this.mouseDownComponent = selectedObjects.objects[0].object;
 };
 
 Breadboard.prototype.removeWire = function removeWire(wire)

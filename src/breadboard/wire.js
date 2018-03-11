@@ -22,6 +22,11 @@ function Wire(x0, y0, x1, y1, id0, id1, type)
     this.bit1 = Connection.getDirectionFlag(-dx, -dy);
 }
 
+Wire.prototype.clone = function clone()
+{
+    return new Wire(this.x0, this.y0, this.x1, this.y1, this.id0, this.id1, this.type);
+};
+
 Wire.width = 0.2;
 Wire.halfWidth = Wire.width * 0.5;
 
