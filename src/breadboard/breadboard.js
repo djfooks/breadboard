@@ -1095,6 +1095,12 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
         selectedObj.grabbedPosition = [viewMouseDownP[0] + ox, viewMouseDownP[1] + oy];
     }
     selectedObjects.connectionMapDirty = true;
+    selectedObjects.setOffset([0, 0]);
+    for (i = 0; i < selectedObjects.objects.length; i += 1)
+    {
+        selectedObj = selectedObjects.objects[i];
+        selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
+    }
 
     this.mouseDownComponent = selectedObjects.objects[0].object;
 };

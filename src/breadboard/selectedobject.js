@@ -112,7 +112,7 @@ SelectedObjectSet.prototype.updateConnectionMap = function updateConnectionMap()
     for (i = 0; i < components.length; i += 1)
     {
         var component = components[i].object;
-        var connectionIds = component.getConnections(this);
+        var connectionIds = component.getConnections(breadboard);
         for (j = 0; j < connectionIds.length; j += 1)
         {
             var id = connectionIds[j];
@@ -123,6 +123,11 @@ SelectedObjectSet.prototype.updateConnectionMap = function updateConnectionMap()
 
 SelectedObjectSet.prototype.addObject = function addObject(object)
 {
+    if (!object)
+    {
+        throw new Error("Adding invalid object");
+    }
+
     this.connectionMapDirty = true;
     if (this.indexOf(object) != -1)
     {
