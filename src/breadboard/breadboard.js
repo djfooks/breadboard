@@ -220,11 +220,12 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
     var breadboard = new Breadboard(stage, top, left, 1001, 1001);
 
     var i;
+    var w;
     var wires = json.wires;
     var wiresLength = wires.length;
     for (i = 0; i < wiresLength; i += 1)
     {
-        var w = wires[i];
+        w = wires[i];
         breadboard.addWire(w[0], w[1], w[2], w[3], false);
     }
 
@@ -235,7 +236,7 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         var busesLength = buses.length;
         for (i = 0; i < busesLength; i += 1)
         {
-            var w = buses[i];
+            w = buses[i];
             breadboard.addWire(w[0], w[1], w[2], w[3], false);
         }
     }
@@ -247,7 +248,6 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         return breadboard;
     }
     var componentsLength = componentsList.length;
-    var i;
     for (i = 0; i < componentsLength; i += 1)
     {
         var componentJson = componentsList[i];
@@ -391,9 +391,10 @@ Breadboard.prototype.update = function update()
 {
     this.frame += 1;
 
-    if (this.stage.isKeyDown(BaseKeyCodeMap.DELETE))
+    if (this.stage.isKeyDown(BaseKeyCodeMap.DELETE) ||
+        this.stage.isKeyDown(BaseKeyCodeMap.BACKSPACE))
     {
-        this.delete();
+        this.removeSelectedObjects();
     }
 
     var that = this;
@@ -461,7 +462,6 @@ Breadboard.prototype.pulseReset = function pulseReset()
     }
 
     var componentsList = this.componentsList;
-    var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
         var outputs = componentsList[i].getConnections(this);
@@ -595,7 +595,6 @@ Breadboard.prototype.drawSelection = function drawSelection()
     var cy1 = Math.floor(Math.max(y0, y1) + border);
 
     var componentsList = this.componentsList;
-    var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
         component = componentsList[i];
@@ -616,7 +615,7 @@ Breadboard.prototype.drawSelection = function drawSelection()
     ctx.strokeStyle = "#AAAAAA";
 
     var wires = this.wires;
-    for (var i = 0; i < wires.length; i += 1)
+    for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
         if (wire.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
@@ -756,6 +755,49 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
     var value;
 
     var offset = [0, 0];
+    function wireIterate(x, y)
+    {
+        var id = that.getIndex(x, y);
+        if (id == that.removeWireId)
+        {
+            removing = true;
+        }
+        var connection = connections[id];
+        if (!circles[id] && params.hasDotFn(connection, x, y))
+        {
+            circles[id] = [x + offset[0], y + offset[1]];
+
+            ctx.fillStyle = fgColor;
+            ctx.beginPath();
+            ctx.arc(x + offset[0], y + offset[1], Wire.width, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function wireIterateCurrent(x, y)
+    {
+        var id = that.getIndex(x, y);
+        var connection = connections[id];
+        var connectionValue = 0;
+        if (connection)
+        {
+            connectionValue = connection.getDirectionValue(wire.directionId);
+        }
+        if (value !== connectionValue)
+        {
+            ctx.strokeStyle = Wire.getColor(value);
+            ctx.lineWidth = 0.1;
+            value = connectionValue;
+            ctx.beginPath();
+            ctx.moveTo(start[0] + offset[0], start[1] + offset[1]);
+            ctx.lineTo(x + offset[0], y + offset[1]);
+            ctx.stroke();
+            start[0] = x;
+            start[1] = y;
+        }
+    }
+
+    var connection;
     for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
@@ -766,24 +808,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
         params.offsetFn(offset, i);
 
         var removing = false;
-        wire.iterate(function wireIterate(x, y)
-        {
-            var id = that.getIndex(x, y);
-            if (id == that.removeWireId)
-            {
-                removing = true;
-            }
-            var connection = connections[id];
-            if (!circles[id] && params.hasDotFn(connection, x, y))
-            {
-                circles[id] = [x + offset[0], y + offset[1]];
-
-                ctx.fillStyle = fgColor;
-                ctx.beginPath();
-                ctx.arc(x + offset[0], y + offset[1], Wire.width, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
+        wire.iterate(wireIterate);
 
         ctx.strokeStyle = removing ? "#888888" : fgColor;
 
@@ -794,30 +819,9 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
         ctx.stroke();
 
         var start = [wire.x0, wire.y0];
-        var connection = connections[wire.id0];
+        connection = connections[wire.id0];
 
-        wire.iterate(function wireIterateCurrent(x, y)
-        {
-            var id = that.getIndex(x, y);
-            var connection = connections[id];
-            var connectionValue = 0;
-            if (connection)
-            {
-                connectionValue = connection.getDirectionValue(wire.directionId);
-            }
-            if (value !== connectionValue)
-            {
-                ctx.strokeStyle = Wire.getColor(value);
-                ctx.lineWidth = 0.1;
-                value = connectionValue;
-                ctx.beginPath();
-                ctx.moveTo(start[0] + offset[0], start[1] + offset[1]);
-                ctx.lineTo(x + offset[0], y + offset[1]);
-                ctx.stroke();
-                start[0] = x;
-                start[1] = y;
-            }
-        });
+        wire.iterate(wireIterateCurrent);
 
         if (start[0] !== wire.x1 || start[1] !== wire.y1)
         {
@@ -838,7 +842,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
             id = id | 0;
             var x = circles[id][0];
             var y = circles[id][1];
-            var connection = connections[id];
+            connection = connections[id];
             if (connection)
             {
                 value = connection.getValue();
@@ -867,6 +871,20 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
     var diamonds = {};
     var value;
 
+    function busIterate(x, y)
+    {
+        var id = that.getIndex(x, y);
+        if (id == that.removeWireId)
+        {
+            removing = true;
+        }
+        var connection = connections[id];
+        if (!diamonds[id] && connection && connection.hasDot)
+        {
+            diamonds[id] = [x, y];
+        }
+    }
+
     for (i = 0; i < buses.length; i += 1)
     {
         var bus = buses[i];
@@ -876,19 +894,7 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
         var y1 = bus.y1;
 
         var removing = false;
-        bus.iterate(function busIterate(x, y)
-        {
-            var id = that.getIndex(x, y);
-            if (id == that.removeWireId)
-            {
-                removing = true;
-            }
-            var connection = connections[id];
-            if (!diamonds[id] && connection && connection.hasDot)
-            {
-                diamonds[id] = [x, y];
-            }
-        });
+        bus.iterate(busIterate);
 
         ctx.beginPath();
         ctx.moveTo(x0, y0);
@@ -1006,11 +1012,11 @@ Breadboard.prototype.dirtyConnection = function dirtyConnection(id, connection)
     }
 };
 
-Breadboard.prototype.delete = function delete()
+Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
 {
     var selectedObjects = this.selectedObjects.objects;
     var i;
-    for (i = 0; i < selectedObjects.size(); i += 1)
+    for (i = 0; i < selectedObjects.length; i += 1)
     {
         var selectedObject = selectedObjects[i].object;
         if (selectedObject.isWire())
@@ -1020,6 +1026,7 @@ Breadboard.prototype.delete = function delete()
         else
         {
             this.removeComponent(selectedObject);
+            Component.remove(this, selectedObject);
         }
     }
     this.selectedObjects.clear();
@@ -1411,6 +1418,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
 
     if (this.shouldSwitch || !canDrag)
     {
+        this.mouseDownComponent = null;
         return;
     }
 
@@ -1447,7 +1455,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
     var componentMovePoint;
     for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
-        var selectedObj = selectedObjects.objects[i];
+        selectedObj = selectedObjects.objects[i];
         componentMovePoint = [positionOffset[0] + selectedObj.grabbedPosition[0],
                               positionOffset[1] + selectedObj.grabbedPosition[1]];
         selectedObj.object.move(this, componentMovePoint, selectedObj.object.rotation);
@@ -1471,10 +1479,11 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
     var offsetY = draggingPoint[1] - viewMouseDownP[1];
 
     var selectedComponents = selectedObjects.components;
+    var selectedObj;
     var i;
     for (i = 0; i < selectedComponents.length; i += 1)
     {
-        var selectedObj = selectedComponents[i];
+        selectedObj = selectedComponents[i];
         var component = selectedObj.object;
         var newRotation = Rotate90(component.rotation);
 
@@ -1489,7 +1498,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
     var selectedWires = selectedObjects.wires;
     for (i = 0; i < selectedWires.length; i += 1)
     {
-        var selectedObj = selectedWires[i];
+        selectedObj = selectedWires[i];
 
         localOffset = [selectedObj.grabbedPosition[0] - viewMouseDownP[0],
                        selectedObj.grabbedPosition[1] - viewMouseDownP[1]];
@@ -1508,7 +1517,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
     selectedObjects.setOffset([0, 0]);
     for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
-        var selectedObj = selectedObjects.objects[i];
+        selectedObj = selectedObjects.objects[i];
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
     }
     selectedObjects.connectionMapDirty = true;
@@ -1524,7 +1533,6 @@ Breadboard.prototype.addComponent = function addComponent(component)
         if (connection && connection.component)
         {
             throw new Error("Adding component to a connection which already has a component!");
-            return false;
         }
     }
     this.componentsList.push(component);
@@ -1589,12 +1597,12 @@ Breadboard.prototype.updateSelection = function updateSelection()
     for (i = 0; i < componentsList.length; i += 1)
     {
         component = componentsList[i];
-        var p0 = component.p0;
-        var p1 = component.p1;
-        var minx = Math.min(p0[0], p1[0]);
-        var miny = Math.min(p0[1], p1[1]);
-        var maxx = Math.max(p0[0], p1[0]);
-        var maxy = Math.max(p0[1], p1[1]);
+        var c0 = component.p0;
+        var c1 = component.p1;
+        var minx = Math.min(c0[0], c1[0]);
+        var miny = Math.min(c0[1], c1[1]);
+        var maxx = Math.max(c0[0], c1[0]);
+        var maxy = Math.max(c0[1], c1[1]);
         if (maxx >= cx0 && cx1 >= minx &&
             maxy >= cy0 && cy1 >= miny)
         {
@@ -1603,7 +1611,7 @@ Breadboard.prototype.updateSelection = function updateSelection()
     }
 
     var wires = this.wires;
-    for (var i = 0; i < wires.length; i += 1)
+    for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
         if (wire.boxOverlap(x0, y0, x1, y1))
@@ -1679,10 +1687,11 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
 Breadboard.prototype.getComponentFromMouse = function getComponentFromMouse(p)
 {
     var q;
+    var hitbox;
     if (!this.mouseOverGameStage)
     {
         q = this.tray.gameStage.toView(p);
-        var hitbox = this.tray.gameStage.findHitbox(q[0], q[1]);
+        hitbox = this.tray.gameStage.findHitbox(q[0], q[1]);
         if (hitbox && hitbox.data)
         {
             return hitbox.data;
@@ -1700,7 +1709,7 @@ Breadboard.prototype.getComponentFromMouse = function getComponentFromMouse(p)
             return wire;
         }
     }
-    var hitbox = this.gameStage.findHitbox(q[0], q[1]);
+    hitbox = this.gameStage.findHitbox(q[0], q[1]);
     if (hitbox && hitbox.data)
     {
         return hitbox.data;

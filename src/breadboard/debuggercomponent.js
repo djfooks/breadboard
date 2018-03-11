@@ -157,8 +157,8 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
 
     ctx.fillStyle = this.editingValue ? "#FF0000" : bgColor;
     var textPos = AddTransformedVector(p, rotationMatrix, [5.9, 0.0]);
-    ctx.textAlign="right";
-    ctx.textBaseline="middle";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
     ctx.font = "bold 0.9px Courier New";
     ctx.fillText(this.value, textPos[0], textPos[1]);
 
