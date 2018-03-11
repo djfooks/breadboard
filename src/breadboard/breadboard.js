@@ -512,10 +512,10 @@ Breadboard.prototype.draw = function draw()
         this.gameStage.drawHitboxes(ctx);
     }
 
-    ctx.fillStyle = "blue";
-    ctx.beginPath();
-    ctx.arc(this.draggingPoint[0], this.draggingPoint[1], 0.1, 0, Math.PI * 2);
-    ctx.fill();
+    // ctx.fillStyle = "blue";
+    // ctx.beginPath();
+    // ctx.arc(this.draggingPoint[0], this.draggingPoint[1], 0.1, 0, Math.PI * 2);
+    // ctx.fill();
 
     ctx.restore();
 
@@ -537,10 +537,10 @@ Breadboard.prototype.draw = function draw()
         this.debugDrawList[i](ctx);
     }
 
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(this.mouseDownP[0], this.mouseDownP[1], 2, 0, Math.PI * 2);
-    ctx.fill();
+    // ctx.fillStyle = "red";
+    // ctx.beginPath();
+    // ctx.arc(this.mouseDownP[0], this.mouseDownP[1], 2, 0, Math.PI * 2);
+    // ctx.fill();
 };
 
 Breadboard.prototype.drawSelection = function drawSelection()
@@ -1397,8 +1397,8 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
         var selectedObject = selectedObjects.objects[0];
 
         var trayViewMouseDownP = this.tray.gameStage.toView(mouseDownP);
-        localOffset = [trayViewMouseDownP[0] - this.draggingFromTrayComponent.p0[0],
-                       trayViewMouseDownP[1] - this.draggingFromTrayComponent.p0[1]];
+        localOffset = [trayViewMouseDownP[0] - selectedObject.grabbedPosition[0],
+                       trayViewMouseDownP[1] - selectedObject.grabbedPosition[1]];
 
         draggingPoint = this.draggingPoint = this.gameStage.toView(p);
         selectedObject.grabbedPosition = this.getPosition(draggingPoint);
@@ -1456,10 +1456,8 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
 
         localOffset = [selectedObj.grabbedPosition[0] - viewMouseDownP[0],
                        selectedObj.grabbedPosition[1] - viewMouseDownP[1]];
-        var ox = viewMouseDownP[0] + localOffset[1] + offsetX;
-        var oy = viewMouseDownP[1] - localOffset[0] + offsetY;
-        selectedObj.grabbedPosition = [Math.round(ox),
-                                       Math.round(oy)];
+        selectedObj.grabbedPosition = [Math.round(viewMouseDownP[0] + localOffset[1] + offsetX),
+                                       Math.round(viewMouseDownP[1] - localOffset[0] + offsetY)];
 
         component.move(this, component.p0, newRotation);
     }
@@ -1478,7 +1476,10 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         wire.rotate(this);
     }
 
-    this.mouseDownP = gameStage.fromView([draggingPoint[0] - (ox - Math.round(ox)), draggingPoint[1] - (oy - Math.round(oy))]);
+    var ox = viewMouseDownP[0] - viewMouseDownP[1] + offsetX;
+    var oy = viewMouseDownP[1] + viewMouseDownP[0] + offsetY;
+    this.mouseDownP = gameStage.fromView([draggingPoint[0] - (ox - Math.round(ox)),
+                                          draggingPoint[1] - (oy - Math.round(oy))]);
 
     selectedObjects.setOffset([0, 0]);
     for (i = 0; i < selectedObjects.objects.length; i += 1)
@@ -1487,16 +1488,6 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
     }
     selectedObjects.connectionMapDirty = true;
-
-    // mvx = viewMouseDownP[0] - viewMouseDownP[1];
-    // mvy = viewMouseDownP[1] + viewMouseDownP[0];
-    // mvx = (mvx - Math.round(mvx));
-    // mvy = (mvy - Math.round(mvy));
-    // viewMouseDownP[0] -= mvx;
-    // viewMouseDownP[1] -= mvy;
-    // this.mouseDownP = gameStage.fromView(viewMouseDownP);
-
-    // setOffset
 };
 
 Breadboard.prototype.addComponent = function addComponent(component)
