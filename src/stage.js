@@ -1,7 +1,8 @@
 
 var BaseKeyCodeMap =
 {
-    SHIFT: 16
+    SHIFT: 16,
+    DELETE: 46
 };
 
 function Hitbox(minX, minY, maxX, maxY, data)

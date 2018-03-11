@@ -8,7 +8,7 @@ function DrawOptions(breadboard)
     {
         this.getConnectionValue = function getConnectionValueFn() { return 0; };
     }
-};
+}
 
 function Breadboard(stage, top, left, cols, rows)
 {
@@ -109,7 +109,7 @@ Breadboard.prototype.postLoad = function postLoad()
         button.enabledTexture = TextureManager.get(button.enabledTexture);
         button.disabledTexture = TextureManager.get(button.disabledTexture);
     }
-}
+};
 
 Breadboard.prototype.clear = function clearFn()
 {
@@ -390,6 +390,11 @@ Breadboard.prototype.iterateBatteryPulsePaths = function iterateBatteryPulsePath
 Breadboard.prototype.update = function update()
 {
     this.frame += 1;
+
+    if (this.stage.isKeyDown(BaseKeyCodeMap.DELETE))
+    {
+        this.delete();
+    }
 
     var that = this;
     if (this.dirty)
@@ -999,6 +1004,25 @@ Breadboard.prototype.dirtyConnection = function dirtyConnection(id, connection)
     {
         delete this._connections[id];
     }
+};
+
+Breadboard.prototype.delete = function delete()
+{
+    var selectedObjects = this.selectedObjects.objects;
+    var i;
+    for (i = 0; i < selectedObjects.size(); i += 1)
+    {
+        var selectedObject = selectedObjects[i].object;
+        if (selectedObject.isWire())
+        {
+            this.removeWire(selectedObject);
+        }
+        else
+        {
+            this.removeComponent(selectedObject);
+        }
+    }
+    this.selectedObjects.clear();
 };
 
 Breadboard.prototype.removeWire = function removeWire(wire)
