@@ -155,13 +155,28 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = hasFocus ? "#FF0000" : bgColor;
     var textPos = AddTransformedVector(p, rotationMatrix, [5.9, 0.0]);
-    ctx.textAlign="right";
-    ctx.textBaseline="middle";
+    if (this.rotation !== 2)
+    {
+        ctx.save();
+        ctx.translate(textPos[0], textPos[1]);
+        ctx.rotate(this.rotation * Math.PI * 0.5);
+    }
+
+    ctx.fillStyle = hasFocus ? "#FF0000" : bgColor;
+    ctx.textAlign = (this.rotation !== 0) ? "left" : "right";
+    ctx.textBaseline = "middle";
 
     ctx.font = "bold 0.9px Courier New";
-    ctx.fillText(this.value, textPos[0], textPos[1]);
+    if (this.rotation !== 2)
+    {
+        ctx.fillText(this.value, 0.0, 0.0);
+        ctx.restore();
+    }
+    else
+    {
+        ctx.fillText(this.value, textPos[0], textPos[1]);
+    }
 
     var cogP = AddTransformedVector(p, rotationMatrix, [7, 0]);
     ctx.fillStyle = bgColor;
