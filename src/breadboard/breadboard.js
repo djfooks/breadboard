@@ -228,21 +228,19 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
     for (i = 0; i < wiresLength; i += 1)
     {
         w = wires[i];
-        breadboard.addWire(w[0], w[1], w[2], w[3], false);
+        breadboard.addWire(w[0], w[1], w[2], w[3], ComponentTypes.WIRE, false);
     }
 
     var buses = json.buses;
     if (buses)
     {
-        breadboard.wireType = ComponentTypes.BUS;
         var busesLength = buses.length;
         for (i = 0; i < busesLength; i += 1)
         {
             w = buses[i];
-            breadboard.addWire(w[0], w[1], w[2], w[3], false);
+            breadboard.addWire(w[0], w[1], w[2], w[3], ComponentTypes.BUS, false);
         }
     }
-    breadboard.wireType = ComponentTypes.WIRE;
 
     var componentsList = json.componentsList;
     if (!componentsList)
@@ -516,14 +514,14 @@ Breadboard.prototype.draw = function draw()
 
     this.drawComponents();
     this.drawWires(this.wires, "#000000", this.wireDrawParameters);
-    this.drawBuses(this.buses);
+    this.drawBuses(this.buses, "#000000", this.wireDrawParameters);
     if (this.wireType == ComponentTypes.WIRE)
     {
         this.drawWires(this.virtualWires, "#000000", this.wireDrawParameters);
     }
     else /*if (this.wireType == ComponentTypes.BUS)*/
     {
-        this.drawBuses(this.virtualWires);
+        this.drawBuses(this.virtualWires, "#000000", this.wireDrawParameters);
     }
 
     if (this.debugDrawHitboxes)
@@ -640,6 +638,20 @@ Breadboard.prototype.drawSelection = function drawSelection()
             ctx.stroke();
         }
     }
+
+    ctx.lineWidth = 0.45;
+    var buses = this.buses;
+    for (i = 0; i < buses.length; i += 1)
+    {
+        var bus = buses[i];
+        if (bus.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+        {
+            ctx.beginPath();
+            ctx.moveTo(bus.x0, bus.y0);
+            ctx.lineTo(bus.x1, bus.y1);
+            ctx.stroke();
+        }
+    }
 };
 
 Breadboard.prototype.drawComponents = function drawComponents()
@@ -716,16 +728,13 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
         return (connection && connection.hasDot) || selectedObjects.hasDot(x, y);
     };
     this.drawWires(selectedObjects.wireObjects, "#808080", greyDrawParameters);
+    this.drawBuses(selectedObjects.busObjects, "#808080", greyDrawParameters);
 
     var draggedDrawParameters = new WireDrawParameters();
     draggedDrawParameters.hasDotFn = function (connection, x, y)
     {
         return selectedObjects.hasDot(x, y);
     };
-    // var wireOffset = [this.draggingPoint[0] - this.mouseDownP[0],
-    //                   this.draggingPoint[1] - this.mouseDownP[1]];
-    // wireOffset = this.gameStage.toView(wireOffset);
-    // console.log(wireOffset);
     localOffset[0] = localOffset[0] - Math.round(localOffset[0]);
     localOffset[1] = localOffset[1] - Math.round(localOffset[1]);
     draggedDrawParameters.offsetFn = function (offset, index)
@@ -740,6 +749,7 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
     };
 
     this.drawWires(selectedObjects.wireObjects, "#000000", draggedDrawParameters);
+    this.drawBuses(selectedObjects.busObjects, "#000000", draggedDrawParameters);
 
     ctx.restore();
 };
@@ -783,7 +793,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
 
             ctx.fillStyle = fgColor;
             ctx.beginPath();
-            ctx.arc(x + offset[0], y + offset[1], Wire.width, 0, Math.PI * 2);
+            ctx.arc(x + offset[0], y + offset[1], Wire.wireWidth, 0, Math.PI * 2);
             ctx.fill();
         }
     }
@@ -827,7 +837,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
         ctx.strokeStyle = removing ? "#888888" : fgColor;
 
         ctx.beginPath();
-        ctx.lineWidth = Wire.width;
+        ctx.lineWidth = Wire.wireWidth;
         ctx.moveTo(x0 + offset[0], y0 + offset[1]);
         ctx.lineTo(x1 + offset[0], y1 + offset[1]);
         ctx.stroke();
@@ -874,7 +884,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
     }
 };
 
-Breadboard.prototype.drawBuses = function drawBuses(buses)
+Breadboard.prototype.drawBuses = function drawBuses(buses, fgColor, params)
 {
     var ctx = this.stage.ctx;
 
@@ -885,6 +895,7 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
     var diamonds = {};
     var value;
 
+    var offset = [0, 0];
     function busIterate(x, y)
     {
         var id = that.getIndex(x, y);
@@ -893,9 +904,9 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
             removing = true;
         }
         var connection = connections[id];
-        if (!diamonds[id] && connection && connection.hasDot)
+        if (!diamonds[id] && params.hasDotFn(connection, x, y))
         {
-            diamonds[id] = [x, y];
+            diamonds[id] = [x + offset[0], y + offset[1]];
         }
     }
 
@@ -906,15 +917,16 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
         var y0 = bus.y0;
         var x1 = bus.x1;
         var y1 = bus.y1;
+        params.offsetFn(offset, i);
 
         var removing = false;
         bus.iterate(busIterate);
 
         ctx.beginPath();
-        ctx.moveTo(x0, y0);
-        ctx.lineTo(x1, y1);
+        ctx.moveTo(x0 + offset[0], y0 + offset[1]);
+        ctx.lineTo(x1 + offset[0], y1 + offset[1]);
 
-        ctx.strokeStyle = removing ? "#888888" : "#000000";
+        ctx.strokeStyle = removing ? "#888888" : fgColor;
         ctx.lineWidth = 0.3;
         ctx.stroke();
 
@@ -922,12 +934,12 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
         ctx.lineWidth = 0.15;
         ctx.stroke();
 
-        ctx.strokeStyle = removing ? "#888888" : "#000000";
+        ctx.strokeStyle = removing ? "#888888" : fgColor;
         ctx.lineWidth = 0.05;
         ctx.stroke();
     }
 
-    ctx.strokeStyle = "black";
+    ctx.strokeStyle = fgColor;
     ctx.fillStyle = "teal";
     ctx.lineCap = "square";
     ctx.lineWidth = 0.15;
@@ -941,11 +953,6 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
             var x = diamonds[id][0];
             var y = diamonds[id][1];
             var connection = connections[id];
-            if (!connection)
-            {
-                continue;
-            }
-            value = connection.getValue();
 
             ctx.beginPath();
             ctx.moveTo(x + diamondWidth, y);
@@ -1150,7 +1157,7 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     this.dirtyConnection(id, connection);
 };
 
-Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual, wire)
+Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, wire)
 {
     if (x0 == x1 && y0 == y1)
     {
@@ -1160,7 +1167,6 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual, wire)
     var id0 = this.getIndex(x0, y0);
     var id1 = this.getIndex(x1, y1);
 
-    var type = this.wireType;
     wire = wire || new Wire(x0, y0, x1, y1, id0, id1, type);
 
     if (virtual)
@@ -1263,7 +1269,7 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
         if (p[0] === wireStart[0] ||
             p[1] === wireStart[1])
         {
-            this.addWire(p[0], p[1], wireStart[0], wireStart[1], virtual);
+            this.addWire(p[0], p[1], wireStart[0], wireStart[1], this.wireType, virtual);
         }
         else
         {
@@ -1272,14 +1278,14 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
             if (Math.abs(x) < Math.abs(y))
             {
                 y = ((y > 0 && x > 0) || (y < 0 && x < 0)) ? x : -x;
-                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
-                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
+                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual);
+                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual);
             }
             else
             {
                 x = ((x > 0 && y > 0) || (x < 0 && y < 0)) ? y : -y;
-                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
-                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
+                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual);
+                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual);
             }
         }
     }
@@ -1393,7 +1399,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
         for (i = 0; i < selectedWires.length; i += 1)
         {
             var wire = selectedWires[i].object;
-            this.addWire(wire.x0, wire.y0, wire.x1, wire.y1, false, wire);
+            this.addWire(wire.x0, wire.y0, wire.x1, wire.y1, wire.type, false, wire);
         }
     }
     else
@@ -1773,8 +1779,18 @@ Breadboard.prototype.getComponentFromMouse = function getComponentFromMouse(p)
     }
 
     q = this.gameStage.toView(p);
+    var buses = this.buses;
+    var i;
+    for (i = 0; i < buses.length; i += 1)
+    {
+        var bus = buses[i];
+        if (bus.distance(q[0], q[1]) < 0.05)
+        {
+            return bus;
+        }
+    }
     var wires = this.wires;
-    for (var i = 0; i < wires.length; i += 1)
+    for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
         if (wire.distance(q[0], q[1]) < 0.05)

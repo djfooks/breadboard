@@ -17,7 +17,7 @@ function Wire(x0, y0, x1, y1, id0, id1, type)
     dy = dy < 0 ? -1 : (dy > 0 ? 1 : 0);
     this.dy = dy;
 
-    this.directionId = Connection.getDirectionId(dx, dy)
+    this.directionId = Connection.getDirectionId(dx, dy);
     this.bit0 = Connection.getDirectionFlag( dx,  dy);
     this.bit1 = Connection.getDirectionFlag(-dx, -dy);
 }
@@ -27,8 +27,20 @@ Wire.prototype.clone = function clone()
     return new Wire(this.x0, this.y0, this.x1, this.y1, this.id0, this.id1, this.type);
 };
 
-Wire.width = 0.2;
-Wire.halfWidth = Wire.width * 0.5;
+Wire.wireWidth = 0.2;
+Wire.busWidth = 0.3;
+
+Wire.prototype.getWidth = function getWidth()
+{
+    if (this.type === ComponentTypes.WIRE)
+    {
+        return Wire.wireWidth;
+    }
+    else// if (this.type === ComponentTypes.BUS)
+    {
+        return Wire.busWidth;
+    }
+};
 
 Wire.prototype.move = function move(breadboard, p/*, rotation*/)
 {
@@ -67,7 +79,7 @@ Wire.prototype.isWire = function isWire()
 
 Wire.prototype.drawSelection = function drawSelection(ctx, color)
 {
-    ctx.lineWidth = 0.3;
+    ctx.lineWidth = this.getWidth() + 0.1;
     ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.moveTo(this.x0, this.y0);
@@ -140,11 +152,11 @@ Wire.prototype.boxOverlap = function boxOverlap(x0, y0, x1, y1)
 
 Wire.prototype.lineIntersect = function lineIntersect(x0, y0, x1, y1)
 {
-    var CmPx = x0 - this.x0
+    var CmPx = x0 - this.x0;
     var CmPy = y0 - this.y0;
-    var rx = this.x1 - this.x0
+    var rx = this.x1 - this.x0;
     var ry = this.y1 - this.y0;
-    var sx = x1 - x0
+    var sx = x1 - x0;
     var sy = y1 - y0;
 
     var CmPxr = CmPx * ry - CmPy * rx;
@@ -155,8 +167,8 @@ Wire.prototype.lineIntersect = function lineIntersect(x0, y0, x1, y1)
     {
         // Lines are collinear, and so intersect if they have any overlap
 
-        return ((x0 - this.x0 < 0.0) != (x0 - this.x1 < 0.0))
-            || ((y0 - this.y0 < 0.0) != (y0 - this.y1 < 0.0));
+        return ((x0 - this.x0 < 0.0) != (x0 - this.x1 < 0.0)) ||
+               ((y0 - this.y0 < 0.0) != (y0 - this.y1 < 0.0));
     }
 
     if (rxs === 0.0)
@@ -171,7 +183,7 @@ Wire.prototype.lineIntersect = function lineIntersect(x0, y0, x1, y1)
     return (t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0);
 };
 
-Wire.prototype.distance = function distance(px, py)
+Wire.prototype.distance = function baseDistance(px, py)
 {
     var x0 = this.x0;
     var y0 = this.y0;
@@ -191,13 +203,15 @@ Wire.prototype.distance = function distance(px, py)
     d = px * dx + py * dy;
     d1 = x1 * dx + y1 * dy;
 
-    if (d - d0 < Wire.width)
+    var width = this.getWidth();
+
+    if (d - d0 < width)
     {
-        lineDistance = Math.sqrt((px - x0) * (px - x0) + (py - y0) * (py - y0)) - Wire.width;
+        lineDistance = Math.sqrt((px - x0) * (px - x0) + (py - y0) * (py - y0)) - width;
     }
-    else if (d - d1 > -Wire.width)
+    else if (d - d1 > -width)
     {
-        lineDistance = Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1)) - Wire.width;
+        lineDistance = Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1)) - width;
     }
     else
     {
@@ -205,11 +219,11 @@ Wire.prototype.distance = function distance(px, py)
         var ty = -dx;
         d0 = x0 * tx + y0 * ty;
         d = px * tx + py * ty;
-        lineDistance = Math.abs(d - d0) - (Wire.halfWidth + 0.02);
+        lineDistance = Math.abs(d - d0) - (width * 0.5 + 0.02);
     }
 
     return Math.max(0.0, lineDistance);
-}
+};
 
 Wire.prototype.iterate = function iterate(fn)
 {
@@ -256,7 +270,7 @@ Wire.prototype.toggle = function toggle()
 function BusKey()
 {
     this.value = 0;
-};
+}
 
 function Bus(breadboard, p)
 {

@@ -45,6 +45,7 @@ SelectedObjectSet.prototype.clear = function clear(object)
     this.components = [];
     this.wires = [];
     this.wireObjects = [];
+    this.busObjects = [];
 
     this._connections = {};
     this.connectionMapOffset = [0, 0];
@@ -95,19 +96,23 @@ SelectedObjectSet.prototype.updateConnectionMap = function updateConnectionMap()
 
     var that = this;
     var breadboard = this.breadboard;
-    var wireObjects = this.wireObjects;
     var components = this.components;
     var i;
     var j;
-    for (i = 0; i < wireObjects.length; i += 1)
+    function itrWires(wireObjects)
     {
-        var wire = wireObjects[i];
-        wire.iterate(function (x, y)
+        for (i = 0; i < wireObjects.length; i += 1)
         {
-            var id = breadboard.getIndex(x, y);
-            that.emplaceConnection(id).addWireComponent(id, wire);
-        });
+            var wire = wireObjects[i];
+            wire.iterate(function (x, y)
+            {
+                var id = breadboard.getIndex(x, y);
+                that.emplaceConnection(id).addWireComponent(id, wire);
+            });
+        }
     }
+    itrWires(this.wireObjects);
+    itrWires(this.busObjects);
 
     for (i = 0; i < components.length; i += 1)
     {
@@ -139,7 +144,14 @@ SelectedObjectSet.prototype.addObject = function addObject(object)
     if (object.isWire())
     {
         this.wires.push(selectedObject);
-        this.wireObjects.push(object);
+        if (object.type === ComponentTypes.WIRE)
+        {
+            this.wireObjects.push(object);
+        }
+        else //if (object.type === ComponentTypes.BUS)
+        {
+            this.busObjects.push(object);
+        }
     }
     else
     {
@@ -171,8 +183,17 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
         {
             return false;
         }
-        var index = this.wireObjects.indexOf(object);
-        this.wireObjects.splice(index, 1);
+        var index;
+        if (object.type === ComponentTypes.WIRE)
+        {
+            index = this.wireObjects.indexOf(object);
+            this.wireObjects.splice(index, 1);
+        }
+        else //if (object.type === ComponentTypes.BUS)
+        {
+            index = this.busObjects.indexOf(object);
+            this.busObjects.splice(index, 1);
+        }
     }
     else
     {

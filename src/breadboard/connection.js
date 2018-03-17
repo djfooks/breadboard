@@ -136,7 +136,7 @@ Connection.prototype.removeWire = function removeWire(id, direction, type)
     this.updateHasDot(id);
 };
 
-Connection.prototype.getWireArray = function addWireComponent(type)
+Connection.prototype.getWireArray = function getWireArray(type)
 {
     if (type == ComponentTypes.WIRE)
     {
