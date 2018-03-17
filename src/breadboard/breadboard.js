@@ -1338,7 +1338,8 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     this.draggingFromTray = this.tray.isFromTray(component);
     this.draggingFromTrayComponent = component;
 
-    if (!this.draggingFromTray && this.componentsList.indexOf(component) === -1)
+    if (!this.draggingFromTray &&
+        (!component.isWire() && this.componentsList.indexOf(component) === -1))
     {
         throw new Error("Clicked on a component that is not a part of the breadboard!");
     }
