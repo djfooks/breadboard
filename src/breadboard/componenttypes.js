@@ -18,13 +18,10 @@ Component.border = 0.45;
 Component.selectionBorder = 0.55;
 Component.borderLineWidth = 0.05;
 
-Component.remove = function remove(breadboard, component)
+Component.removeHitbox = function removeHitbox(breadboard, component)
 {
-    breadboard.stage.removeHitbox(component.hitbox);
     breadboard.gameStage.removeHitbox(component.hitbox);
-    component.hitbox.onMouseDown = null;
-    component.hitbox.onMouseUp = null;
-    component.hitbox = null;
+    component.hitbox.clearCallbacks();
 };
 
 Component.updateHitbox = function updateHitbox(component, p0, p1)

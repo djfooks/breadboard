@@ -78,6 +78,7 @@ DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
 DebuggerComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new DebuggerComponent(breadboard);
+    cloneComponent.value = this.value;
     cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };

@@ -32,13 +32,20 @@ Hitbox.prototype.getHeight = function getHeight()
     return this.maxY - this.minY;
 };
 
+Hitbox.prototype.clearCallbacks = function clearCallbacks()
+{
+    this.onMouseUp = null;
+    this.onMouseDown = null;
+    this.onMouseMove = null;
+};
+
 function Button(x, y, width, height)
 {
     this.enabledTexture = null;
     this.disabledTexture = null;
     this.enabled = true;
     this.hitbox = new Hitbox(x, y, x + width, y + height, null);
-};
+}
 
 function Stage(canvas)
 {

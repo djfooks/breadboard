@@ -36,6 +36,7 @@ SwitchComponent.prototype.move = function move(breadboard, p, rotation)
 SwitchComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new SwitchComponent(breadboard);
+    cloneComponent.connected = this.connected;
     cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };

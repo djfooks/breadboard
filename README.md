@@ -5,6 +5,9 @@ Try it here:
 
 https://cdn.rawgit.com/djfooks/breadboard/master/index.html
 
+Known issues:
+- Crash when deleting after pasting.
+
 Change log:
 
 - Added Ctrl-c and Ctrl-v to copy paste selection.

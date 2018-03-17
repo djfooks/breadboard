@@ -62,6 +62,7 @@ BusInputComponent.prototype.move = function move(breadboard, p, rotation)
 BusInputComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new BusInputComponent(breadboard);
+    cloneComponent.busKey = this.busKey;
     cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };

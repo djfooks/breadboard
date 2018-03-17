@@ -286,10 +286,7 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         }
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p0 || componentJson.p, componentJson.rotation | 0);
-        if (breadboard.addComponent(component))
-        {
-            breadboard.gameStage.addHitbox(component.hitbox);
-        }
+        breadboard.addComponent(component);
     }
     return breadboard;
 };
@@ -689,21 +686,45 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
                        draggingPoint[1] - viewMouseDownP[1]];
     var valid = this.mouseOverGameStage &&
                 SelectedObject.areAllValid(this, selectedComponents, localOffset);
+
+    var selectedWires = selectedObjects.wires;
+
+    var greyDrawParameters = new WireDrawParameters();
+    greyDrawParameters.hasDotFn = function (connection, x, y)
+    {
+        return (connection && connection.hasDot) || selectedObjects.hasDot(x, y);
+    };
+    this.drawWires(selectedObjects.wireObjects, "#808080", greyDrawParameters);
+    this.drawBuses(selectedObjects.busObjects, "#808080", greyDrawParameters);
+
     var i;
+    var component;
+    var p;
+    var q;
     for (i = 0; i < selectedComponents.length; i += 1)
     {
         selectedObj = selectedComponents[i];
-        var component = selectedObj.object;
+        component = selectedObj.object;
 
-        var p = [localOffset[0] + selectedObj.grabbedPosition[0],
-                 localOffset[1] + selectedObj.grabbedPosition[1]];
+        p = [localOffset[0] + selectedObj.grabbedPosition[0],
+             localOffset[1] + selectedObj.grabbedPosition[1]];
 
-        var q = this.getPosition(p);
-
+        q = this.getPosition(p);
         if (valid)
         {
             component.draw(drawOptions, ctx, null, "#AAAAAA", null, gameStage);
         }
+    }
+
+    for (i = 0; i < selectedComponents.length; i += 1)
+    {
+        selectedObj = selectedComponents[i];
+        component = selectedObj.object;
+
+        p = [localOffset[0] + selectedObj.grabbedPosition[0],
+             localOffset[1] + selectedObj.grabbedPosition[1]];
+
+        q = this.getPosition(p);
         var color;
         if (this.draggingFromTray)
         {
@@ -719,16 +740,6 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
         }
         component.draw(drawOptions, ctx, p, color, "#FFFFFF", gameStage);
     }
-
-    var selectedWires = selectedObjects.wires;
-
-    var greyDrawParameters = new WireDrawParameters();
-    greyDrawParameters.hasDotFn = function (connection, x, y)
-    {
-        return (connection && connection.hasDot) || selectedObjects.hasDot(x, y);
-    };
-    this.drawWires(selectedObjects.wireObjects, "#808080", greyDrawParameters);
-    this.drawBuses(selectedObjects.busObjects, "#808080", greyDrawParameters);
 
     var draggedDrawParameters = new WireDrawParameters();
     draggedDrawParameters.hasDotFn = function (connection, x, y)
@@ -1047,7 +1058,6 @@ Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
         else
         {
             this.removeComponent(selectedObject);
-            Component.remove(this, selectedObject);
         }
     }
     this.selectedObjects.clear();
@@ -1107,10 +1117,6 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
     {
         selectedObj = selectedObjects.objects[i];
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
-        if (!selectedObj.object.isWire())
-        {
-            this.gameStage.addHitbox(selectedObj.object.hitbox);
-        }
     }
 
     this.mouseDownComponent = selectedObjects.objects[0].object;
@@ -1331,6 +1337,11 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 
     this.draggingFromTray = this.tray.isFromTray(component);
     this.draggingFromTrayComponent = component;
+
+    if (!this.draggingFromTray && this.componentsList.indexOf(component) === -1)
+    {
+        throw new Error("Clicked on a component that is not a part of the breadboard!");
+    }
     return false;
 };
 
@@ -1410,7 +1421,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
     {
         for (i = 0; i < selectedComponents.length; i += 1)
         {
-            Component.remove(this, selectedComponents[i].object);
+            Component.removeHitbox(this, selectedComponents[i].object);
         }
         this.selectedObjects.clear();
     }
@@ -1450,7 +1461,6 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                     selectedObjects.clear();
                     selectedObj = selectedObjects.addObject(mouseDownComponent.clone(this));
                     selectedObj.grabbedPosition = mouseDownComponent.getPosition();
-                    this.tray.gameStage.addHitbox(selectedObj.object.hitbox);
                 }
                 else
                 {
@@ -1501,6 +1511,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
 
     if (this.shouldSwitch || !canDrag)
     {
+        this.shouldSwitch = false;
         this.mouseDownComponent = null;
         return;
     }
@@ -1522,10 +1533,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                                 selectedObject.grabbedPosition[1] + localOffset[1]];
 
         this.mouseDownP = this.gameStage.fromView(newMouseDownView);
-
-        this.tray.gameStage.removeHitbox(selectedObject.object.hitbox);
         gameStage = this.gameStage;
-        gameStage.addHitbox(selectedObject.object.hitbox);
 
         fromTray = this.draggingFromTray = false;
         this.draggingFromTrayComponent = null;
@@ -1629,6 +1637,8 @@ Breadboard.prototype.addComponent = function addComponent(component)
     {
         this.batteries.push(component);
     }
+
+    this.gameStage.addHitbox(component.hitbox);
     return true;
 };
 
@@ -1764,6 +1774,7 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     }
     this.dirty = true;
 
+    Component.removeHitbox(this, component);
     return true;
 };
 

@@ -86,12 +86,14 @@ LatchComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     var p1Component = breadboard.getComponent(p1);
     var p2Component = breadboard.getComponent(p2);
     var p3Component = breadboard.getComponent(p3);
+    var p4Component = breadboard.getComponent(p4);
 
     var isValid = true;
     isValid = isValid && breadboard.validPosition(p0) && (!p0Component || p0Component === this);
     isValid = isValid && breadboard.validPosition(p1) && (!p1Component || p1Component === this);
     isValid = isValid && breadboard.validPosition(p2) && (!p2Component || p2Component === this);
     isValid = isValid && breadboard.validPosition(p3) && (!p3Component || p3Component === this);
+    isValid = isValid && breadboard.validPosition(p4) && (!p4Component || p4Component === this);
     return isValid;
 };
 
