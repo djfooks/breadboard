@@ -1107,6 +1107,10 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
     {
         selectedObj = selectedObjects.objects[i];
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
+        if (!selectedObj.object.isWire())
+        {
+            this.gameStage.addHitbox(selectedObj.object.hitbox);
+        }
     }
 
     this.mouseDownComponent = selectedObjects.objects[0].object;

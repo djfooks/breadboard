@@ -67,9 +67,15 @@ Wire.prototype.rotate = function rotate(breadboard)
     var dy = this.dy;
     this.dx = dy;
     this.dy = -dx;
+    dx = this.dx;
+    dy = this.dy;
 
     this.id0 = breadboard.getIndex(this.x0, this.y0);
     this.id1 = breadboard.getIndex(this.x1, this.y1);
+
+    this.directionId = Connection.getDirectionId(dx, dy);
+    this.bit0 = Connection.getDirectionFlag( dx,  dy);
+    this.bit1 = Connection.getDirectionFlag(-dx, -dy);
 };
 
 Wire.prototype.isWire = function isWire()
