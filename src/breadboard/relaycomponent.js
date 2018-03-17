@@ -87,7 +87,7 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var outP0 = this.outP0;
     var baseP = this.baseP;

@@ -85,7 +85,7 @@ BusInputComponent.prototype.isValidPosition = function isValidPosition(breadboar
     return isValid;
 };
 
-BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var rotationMatrix = RotationMatrix[this.rotation];
 
@@ -135,7 +135,7 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = this.editingValue ? "#FF0000" : bgColor;
+    ctx.fillStyle = hasFocus ? "#FF0000" : bgColor;
     ctx.textAlign="center";
     ctx.textBaseline="middle";
     ctx.font = "bold 0.9px Courier New";
@@ -178,8 +178,7 @@ BusInputComponent.prototype.toggle = function toggle(breadboard, p)
     var settingP = this.settingP;
     if (p[0] === settingP[0] && p[1] === settingP[1])
     {
-        this.editingValue = true;
-        breadboard.registerKeyDown(this.onKeyDown.bind(this));
+        breadboard.takeFocus(this, this.onKeyDown.bind(this));
     }
 };
 
@@ -187,8 +186,7 @@ BusInputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
 {
     if (keyCode === 13)
     {
-        this.editingValue = false;
-        breadboard.unregisterKeyDown();
+        breadboard.removeFocus();
         return;
     }
 

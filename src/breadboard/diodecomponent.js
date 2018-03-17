@@ -63,7 +63,7 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var p0 = this.p0;
     var p1 = this.p1;

@@ -97,7 +97,7 @@ LatchComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
-LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var outP0 = this.outP0;
     var signalP0 = this.signalP0;

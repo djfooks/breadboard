@@ -388,22 +388,25 @@ Breadboard.prototype.update = function update()
 {
     this.frame += 1;
 
-    if (this.stage.isKeyDown(BaseKeyCodeMap.DELETE) ||
-        this.stage.isKeyDown(BaseKeyCodeMap.BACKSPACE))
+    if (!this.focusComponent)
     {
-        this.removeSelectedObjects();
-    }
+        if (this.stage.isKeyDown(BaseKeyCodeMap.DELETE) ||
+            this.stage.isKeyDown(BaseKeyCodeMap.BACKSPACE))
+        {
+            this.removeSelectedObjects();
+        }
 
-    if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
-        this.stage.isKeyDown(BaseKeyCodeMap.KEY_C))
-    {
-        this.copySelectedObjects();
-    }
+        if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
+            this.stage.isKeyDown(BaseKeyCodeMap.KEY_C))
+        {
+            this.copySelectedObjects();
+        }
 
-    if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
-        this.stage.isKeyDown(BaseKeyCodeMap.KEY_V))
-    {
-        this.pasteSelectedObjects();
+        if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
+            this.stage.isKeyDown(BaseKeyCodeMap.KEY_V))
+        {
+            this.pasteSelectedObjects();
+        }
     }
 
     var that = this;
@@ -659,7 +662,8 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
-        componentsList[i].draw(drawOptions, ctx, null, "#000000", null, this.gameStage);
+        var component = componentsList[i];
+        component.draw(drawOptions, ctx, null, "#000000", null, this.focusComponent === component);
     }
 };
 
@@ -712,7 +716,7 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
         q = this.getPosition(p);
         if (valid)
         {
-            component.draw(drawOptions, ctx, null, "#AAAAAA", null, gameStage);
+            component.draw(drawOptions, ctx, null, "#AAAAAA", null, false);
         }
     }
 
@@ -738,7 +742,8 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
         {
             color = "#000000";
         }
-        component.draw(drawOptions, ctx, p, color, "#FFFFFF", gameStage);
+        component.draw(drawOptions, ctx, p, color, "#FFFFFF", false);
+        ctx.restore();
     }
 
     var draggedDrawParameters = new WireDrawParameters();
@@ -1832,6 +1837,8 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         return;
     }
 
+    this.removeFocus();
+
     var component = this.getComponentFromMouse(p);
     if (component)
     {
@@ -1966,12 +1973,18 @@ Breadboard.prototype.onKeyUp = function onKeyUp(key, keyCode)
 {
 };
 
-Breadboard.prototype.registerKeyDown = function registerKeyDown(fn)
+Breadboard.prototype.takeFocus = function takeFocus(component, fn)
 {
+    if (this.focusComponent && this.focusComponent.removeFocus)
+    {
+        this.focusComponent.removeFocus();
+    }
+    this.focusComponent = component;
     this.onKeyDownFn = fn;
 };
 
-Breadboard.prototype.unregisterKeyDown = function unregisterKeyDown(fn)
+Breadboard.prototype.removeFocus = function removeFocus(fn)
 {
+    this.focusComponent = null;
     this.onKeyDownFn = null;
 };

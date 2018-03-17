@@ -67,7 +67,7 @@ BatteryComponent.prototype.isValidPosition = function isValidPosition(breadboard
     return isValid;
 };
 
-BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor)
+BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var p0 = this.p0;
     var p1 = this.p1;
