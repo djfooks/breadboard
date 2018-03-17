@@ -1819,7 +1819,7 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
     var component = this.getComponentFromMouse(p);
     if (component)
     {
-        if (this.onComponentMouseDown(component, p, button))
+        if ((this.state !== Breadboard.state.DRAG) && this.onComponentMouseDown(component, p, button))
         {
             return;
         }
