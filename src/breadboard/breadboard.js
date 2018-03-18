@@ -1292,11 +1292,13 @@ Breadboard.prototype.wireRemoveUpdate = function wireRemoveUpdate(p, virtual)
             var wires = connection.wires;
             while (wires.length)
             {
+                this.selectedObjects.removeObject(wires[0]);
                 this.removeWire(wires[0]);
             }
             var buses = connection.buses;
             while (buses.length)
             {
+                this.selectedObjects.removeObject(buses[0]);
                 this.removeWire(buses[0]);
             }
             this.dirtyConnection(id, connection);
