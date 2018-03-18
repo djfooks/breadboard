@@ -20,8 +20,7 @@ function GameStage(minX, minY, maxX, maxY)
     this.view = [0, 0];
     this.zoomVelocity = 0;
     this.zoomLevel = 70;
-    this.zoom = 20;
-    this.invZoom = 1 / this.zoom;
+    this.setZoom(20);
 
     this.mousePos = [(this.maxX - this.minX) * 0.5,
                      (this.maxX - this.minX) * 0.5];
@@ -32,6 +31,12 @@ function GameStage(minX, minY, maxX, maxY)
 
     this.debugClippping = false;
 }
+
+GameStage.prototype.setZoom = function setZoom(zoom)
+{
+    this.zoom = zoom;
+    this.invZoom = 1 / zoom;
+};
 
 GameStage.prototype.scroll = function scroll(delta)
 {
@@ -50,8 +55,7 @@ GameStage.prototype.update = function update(deltaTime)
         this.zoomLevel = 100;
         this.zoomVelocity = 0;
     }
-    this.zoom = Math.pow(1.05, this.zoomLevel);
-    this.invZoom = 1 / this.zoom;
+    this.setZoom(Math.pow(1.05, this.zoomLevel));
 
     // keep whatever is under the mouse stationary during the zoom
     this.view[0] = ((this.view[0] + this.mousePos[0]) * (this.zoom / oldZoom)) - this.mousePos[0];

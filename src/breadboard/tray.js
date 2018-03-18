@@ -6,7 +6,7 @@ function Tray(breadboard)
     this.gameStage = new GameStage(0, 0, 99999, 99999);
 
     this.gameStage.view = [-670, 0];
-    this.gameStage.zoom = 25;
+    this.gameStage.setZoom(25);
 
     this.resetComponents();
 }
