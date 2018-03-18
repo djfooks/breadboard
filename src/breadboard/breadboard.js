@@ -1139,6 +1139,7 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
     var roundedCenter = this.getPosition(center);
 
     var gameSpaceMouseDownP = this.gameSpaceMouseDownP;
+    var gameSpaceMouseDownPRounded = this.getPosition(gameSpaceMouseDownP);
 
     for (i = 0; i < copiedObjects.length; i += 1)
     {
@@ -1148,7 +1149,7 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
 
         var ox = object.getPosition()[0] - roundedCenter[0];
         var oy = object.getPosition()[1] - roundedCenter[1];
-        selectedObj.grabbedPosition = [gameSpaceMouseDownP[0] + ox, gameSpaceMouseDownP[1] + oy];
+        selectedObj.grabbedPosition = [gameSpaceMouseDownPRounded[0] + ox, gameSpaceMouseDownPRounded[1] + oy];
     }
 
     this.gameSpaceMouseDownP[0] += center[0] - roundedCenter[0];
