@@ -586,9 +586,11 @@ Breadboard.prototype.drawSelection = function drawSelection()
     var x1 = this.gameSpaceMouse[0];
     var y1 = this.gameSpaceMouse[1];
 
+    var scale = this.gameStage.invZoom;
+
     ctx.beginPath();
-    ctx.lineWidth = Component.borderLineWidth;
-    ctx.setLineDash([0.1, 0.15]);
+    ctx.lineWidth = 2 * scale;
+    ctx.setLineDash([5 * scale, 7 * scale]);
     ctx.strokeStyle = "#000000";
     ctx.moveTo(x0, y0);
     ctx.lineTo(x0, y1);
@@ -808,9 +810,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
             circles[id] = [x + offset[0], y + offset[1]];
 
             ctx.fillStyle = fgColor;
-            ctx.beginPath();
             ctx.arc(x + offset[0], y + offset[1], Wire.wireWidth, 0, Math.PI * 2);
-            ctx.fill();
         }
     }
 
@@ -848,7 +848,9 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
         params.offsetFn(offset, i);
 
         var removing = false;
+        ctx.beginPath();
         wire.iterate(wireIterate);
+        ctx.fill();
 
         ctx.strokeStyle = removing ? "#888888" : fgColor;
 

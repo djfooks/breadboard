@@ -176,7 +176,7 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
     ctx.beginPath();
     if (this.signalValue)
     {
-        var color = fgColor || Wire.getColor(Math.min(valueIn, valueOut));
+        color = fgColor || Wire.getColor(Math.min(valueIn, valueOut));
         ctx.strokeStyle = color;
         ctx.lineWidth = 0.2;
         ctx.moveTo(inP[0], inP[1]);

@@ -71,7 +71,7 @@ Component.drawFgNode = function drawFgNode(ctx, fgColor, value0, p)
     ctx.beginPath();
     ctx.arc(p[0], p[1], Component.connectionFgRadius, 0, Math.PI * 2);
     ctx.fill();
-}
+};
 
 Component.addComponentFunctions = function addComponentFunctions(componentType)
 {

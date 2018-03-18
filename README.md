@@ -7,6 +7,7 @@ https://cdn.rawgit.com/djfooks/breadboard/master/index.html
 
 Known issues:
 - Crash when deleting after pasting.
+- Crash occasionally after a delete/selection?
 
 Change log:
 
