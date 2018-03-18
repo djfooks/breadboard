@@ -745,7 +745,6 @@ Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
             color = "#000000";
         }
         component.draw(drawOptions, ctx, p, color, "#FFFFFF", false);
-        ctx.restore();
     }
 
     var draggedDrawParameters = new WireDrawParameters();
