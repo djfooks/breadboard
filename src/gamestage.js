@@ -6,6 +6,9 @@ function GameStage(minX, minY, maxX, maxY)
     this.maxX = maxX;
     this.maxY = maxY;
 
+    this.gameMin = [0.0, 0.0];
+    this.gameMax = [0.0, 0.0];
+
     this.gameStageHitbox = new Hitbox(minX, minY, maxX, maxY, this);
 
     this.gameStageHitbox.onMouseDown = this.mouseDown.bind(this);
@@ -26,6 +29,8 @@ function GameStage(minX, minY, maxX, maxY)
     this.onMouseDown = null;
     this.onMouseUp = null;
     this.onMouseMove = null;
+
+    this.debugClippping = false;
 }
 
 GameStage.prototype.scroll = function scroll(delta)
@@ -59,6 +64,17 @@ GameStage.prototype.update = function update(deltaTime)
     var centerVelocity = Math.abs(this.zoomVelocity);
     this.view[0] += offsetX * centerVelocity * 0.05;
     this.view[1] += offsetY * centerVelocity * 0.05;
+
+    if (this.debugClippping)
+    {
+        this.gameMin = this.toView([this.minX + 50, this.minY + 50]);
+        this.gameMax = this.toView([this.maxX - 50, this.maxY - 50]);
+    }
+    else
+    {
+        this.gameMin = this.toView([this.minX, this.minY]);
+        this.gameMax = this.toView([this.maxX, this.maxY]);
+    }
 };
 
 GameStage.prototype.clearHitboxes = function clearHitboxes()
@@ -113,7 +129,7 @@ GameStage.prototype.findHitbox = function findHitbox(x, y)
         }
     }
     return null;
-}
+};
 
 GameStage.prototype.mouseDown = function mouseDown(p, button)
 {
@@ -168,8 +184,8 @@ GameStage.prototype.transformContext = function transformContext(ctx)
 
 GameStage.prototype.toView = function toView(p)
 {
-    return [(p[0] - this.minX + this.view[0]) / this.zoom,
-            (p[1] - this.minY + this.view[1]) / this.zoom];
+    return [(p[0] - this.minX + this.view[0]) * this.invZoom,
+            (p[1] - this.minY + this.view[1]) * this.invZoom];
 };
 
 GameStage.prototype.fromView = function fromView(p)
@@ -178,12 +194,33 @@ GameStage.prototype.fromView = function fromView(p)
             p[1] * this.zoom + this.minY - this.view[1]];
 };
 
+GameStage.prototype.hitboxOverlaps = function hitboxOverlaps(hitbox)
+{
+    return (hitbox.maxX >= this.gameMin[0] && this.gameMax[0] >= hitbox.minX &&
+            hitbox.maxY >= this.gameMin[1] && this.gameMax[1] >= hitbox.minY);
+};
+
+GameStage.prototype.boxOverlaps = function boxOverlaps(x0, y0, x1, y1, padding)
+{
+    var minX = Math.min(x0, x1) - padding;
+    var minY = Math.min(y0, y1) - padding;
+    var maxX = Math.max(x0, x1) + padding;
+    var maxY = Math.max(y0, y1) + padding;
+    return (maxX >= this.gameMin[0] && this.gameMax[0] >= minX &&
+            maxY >= this.gameMin[1] && this.gameMax[1] >= minY);
+};
+
 GameStage.prototype.drawBorder = function drawBorder(ctx)
 {
-    var x0 = this.minX - 1;
-    var y0 = this.minY - 1;
-    var x1 = this.maxX + 1;
-    var y1 = this.maxY + 1;
+    var padding = 1;
+    if (this.debugClippping)
+    {
+        padding -= 50;
+    }
+    var x0 = this.minX - padding;
+    var y0 = this.minY - padding;
+    var x1 = this.maxX + padding;
+    var y1 = this.maxY + padding;
 
     ctx.beginPath();
     ctx.lineWidth = 1;

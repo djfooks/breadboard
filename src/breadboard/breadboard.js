@@ -660,11 +660,15 @@ Breadboard.prototype.drawComponents = function drawComponents()
     var ctx = this.stage.ctx;
     var componentsList = this.componentsList;
     var drawOptions = new DrawOptions(this);
+    var gameStage = this.gameStage;
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
         var component = componentsList[i];
-        component.draw(drawOptions, ctx, null, "#000000", null, this.focusComponent === component);
+        if (gameStage.hitboxOverlaps(component.hitbox))
+        {
+            component.draw(drawOptions, ctx, null, "#000000", null, this.focusComponent === component);
+        }
     }
 };
 
@@ -793,6 +797,8 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
     var circles = {};
     var value;
 
+    var gameStage = this.gameStage;
+
     var offset = [0, 0];
     function wireIterate(x, y)
     {
@@ -842,6 +848,12 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
         var y0 = wire.y0;
         var x1 = wire.x1;
         var y1 = wire.y1;
+
+        if (!gameStage.boxOverlaps(x0, y0, x1, y1, Wire.wireWidth))
+        {
+            continue;
+        }
+
         params.offsetFn(offset, i);
 
         var removing = false;
