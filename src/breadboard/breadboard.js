@@ -1149,8 +1149,11 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
         selectedObj = selectedObjects.objects[i];
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
     }
+    selectedObjects.updateConnectionMap();
 
     this.mouseDownComponent = selectedObjects.objects[0].object;
+
+    this.mouseDownComponentsUpdate(this.gameStage.fromView(this.gameSpaceMouse));
 };
 
 Breadboard.prototype.removeWire = function removeWire(wire)
