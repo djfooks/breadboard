@@ -1062,21 +1062,28 @@ Breadboard.prototype.dirtyConnection = function dirtyConnection(id, connection)
 
 Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
 {
-    var selectedObjects = this.selectedObjects.objects;
     var i;
-    for (i = 0; i < selectedObjects.length; i += 1)
+    if (this.state !== Breadboard.state.DRAG)
     {
-        var selectedObject = selectedObjects[i].object;
-        if (selectedObject.isWire())
+        var selectedObjects = this.selectedObjects.objects;
+        for (i = 0; i < selectedObjects.length; i += 1)
         {
-            this.removeWire(selectedObject);
-        }
-        else
-        {
-            this.removeComponent(selectedObject);
+            var selectedObject = selectedObjects[i].object;
+            if (selectedObject.isWire())
+            {
+                this.removeWire(selectedObject);
+            }
+            else
+            {
+                this.removeComponent(selectedObject);
+            }
         }
     }
     this.selectedObjects.clear();
+
+    this.state = Breadboard.state.MOVE;
+    this.disableButtons();
+    this.enableButton(this.moveButton);
 };
 
 Breadboard.prototype.copySelectedObjects = function copySelectedObjects()
