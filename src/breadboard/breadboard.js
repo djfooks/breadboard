@@ -132,7 +132,6 @@ Breadboard.prototype.clear = function clearFn()
     this.draggingPoint = [0, 0];
     this.selectedObjects = new SelectedObjectSet(this);
     this.copiedObjects = [];
-    this.copiedObjectsMouse = [0, 0];
     this.draggingFromTray = false;
     this.draggingFromTrayComponent = null;
     this.wireStart = [-1, -1];
@@ -1073,7 +1072,6 @@ Breadboard.prototype.copySelectedObjects = function copySelectedObjects()
 {
     var selectedObjects = this.selectedObjects.objects;
     var copiedObjects = this.copiedObjects;
-    this.copiedObjectsMouse = [this.gameSpaceMouse[0], this.gameSpaceMouse[1]];
     copiedObjects.length = 0;
     var i;
     for (i = 0; i < selectedObjects.length; i += 1)
@@ -1096,27 +1094,55 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
     this.shouldSwitch = false;
 
     var viewMouseDownP = this.getPosition(this.gameSpaceMouse);
-    this.mouseDownP = this.gameStage.fromView(this.gameSpaceMouse);
 
     this.draggingFromTray = false;
     this.draggingFromTrayComponent = null;
 
     var selectedObjects = this.selectedObjects;
     selectedObjects.clear();
-    var copiedObjectsMouse = this.getPosition(this.copiedObjectsMouse);
 
     var copiedObjects = this.copiedObjects;
     var i;
+    var minX =  9999999;
+    var maxX = -9999999;
+    var minY =  9999999;
+    var maxY = -9999999;
+    var object;
     for (i = 0; i < copiedObjects.length; i += 1)
     {
-        var object = copiedObjects[i].clone(this);
+        object = copiedObjects[i];
+        if (object.isWire())
+        {
+            minX = Math.min(minX, object.x0, object.x1);
+            maxX = Math.max(maxX, object.x0, object.x1);
+            minY = Math.min(minY, object.y0, object.y1);
+            maxY = Math.max(maxY, object.y0, object.y1);
+        }
+        else
+        {
+            minX = Math.min(minX, object.p0[0], object.p1[0]);
+            maxX = Math.max(maxX, object.p0[0], object.p1[0]);
+            minY = Math.min(minY, object.p0[1], object.p1[1]);
+            maxY = Math.max(maxY, object.p0[1], object.p1[1]);
+        }
+    }
+    var center = [(minX + maxX) * 0.5, (minY + maxY) * 0.5];
+    var roundedCenter = this.getPosition(center);
+
+    for (i = 0; i < copiedObjects.length; i += 1)
+    {
+        object = copiedObjects[i].clone(this);
 
         selectedObj = selectedObjects.addObject(object);
 
-        var ox = object.getPosition()[0] - copiedObjectsMouse[0];
-        var oy = object.getPosition()[1] - copiedObjectsMouse[1];
+        var ox = object.getPosition()[0] - roundedCenter[0];
+        var oy = object.getPosition()[1] - roundedCenter[1];
         selectedObj.grabbedPosition = [viewMouseDownP[0] + ox, viewMouseDownP[1] + oy];
     }
+
+    this.mouseDownP = this.gameStage.fromView([this.gameSpaceMouse[0] + center[0] - roundedCenter[0],
+                                               this.gameSpaceMouse[1] + center[1] - roundedCenter[1]]);
+
     selectedObjects.connectionMapDirty = true;
     selectedObjects.setOffset([0, 0]);
     for (i = 0; i < selectedObjects.objects.length; i += 1)
