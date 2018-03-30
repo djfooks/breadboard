@@ -1084,6 +1084,8 @@ Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
     this.state = Breadboard.state.MOVE;
     this.disableButtons();
     this.enableButton(this.moveButton);
+
+    this.mouseDownComponent = null;
 };
 
 Breadboard.prototype.copySelectedObjects = function copySelectedObjects()

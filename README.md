@@ -6,9 +6,6 @@ Try it here:
 https://cdn.rawgit.com/djfooks/breadboard/master/index.html
 
 Known issues:
-- Lock up after deleting a component while dragging it.
-- Crash after a delete/selection results in a mouseDownComponent=null on a onComponentMouseUp call.
-- Create a switch and a wire then drag and delete is while dragging. Then select another component to get crash.
 - Rotation without dragging causes a crash.
 
 Change log:
