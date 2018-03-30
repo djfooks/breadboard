@@ -1908,6 +1908,7 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
     {
         if (!component)
         {
+            this.shouldSwitch = false;
             if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
             {
                 this.selectStart = [q[0], q[1]];
