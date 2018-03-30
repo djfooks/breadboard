@@ -19,6 +19,7 @@ function DebuggerComponent(breadboard)
 
     this.previousValue = 0;
     this.value = 0;
+    this.valueSelected = true;
     this.debugType = DebuggerComponent.debugType.WRITE;
 
     this.pulsePaths = [];
@@ -269,6 +270,11 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
     }
     if (keyCode === 8)
     {
+        if (this.valueSelected)
+        {
+            this.value = 0;
+        }
+
         this.value = (this.value / 10) | 0;
     }
     else if (key === "+")
@@ -281,12 +287,18 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
     }
     else if (key === "0" || (key | 0) !== 0)
     {
+        if (this.valueSelected)
+        {
+            this.value = 0;
+        }
         this.value = (this.value + key) | 0;
     }
     else
     {
         return;
     }
+
+    this.valueSelected = false;
 
     if (this.value < 0 || this.value > 255)
     {
@@ -365,6 +377,7 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
     if (p[0] >= min[0] && p[0] <= max[0] && p[1] >= min[1] && p[1] <= max[1])
     {
         breadboard.takeFocus(this, this.onKeyDown.bind(this));
+        this.valueSelected = true;
     }
 };
 
