@@ -1373,7 +1373,6 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 {
     if (button === 2)
     {
-        this.shouldSwitch = false;
         return true;
     }
 
@@ -1566,6 +1565,10 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                 }
             }
             this.shouldSwitch = false;
+        }
+        else
+        {
+            return;
         }
     }
 

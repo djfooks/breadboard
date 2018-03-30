@@ -5,9 +5,6 @@ Try it here:
 
 https://cdn.rawgit.com/djfooks/breadboard/master/index.html
 
-Known issues:
-- Rotation without dragging causes a crash.
-
 Change log:
 
 - Added focus to text entry on components.
