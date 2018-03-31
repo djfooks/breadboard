@@ -55,7 +55,7 @@ var App = function ()
                 myDropdown.classList.remove('show');
             }
         }
-    }
+    };
     document.getElementById("clearBoardButton").onclick = function ()
     {
         document.getElementById("fileDrop").classList.remove("show");
@@ -64,7 +64,7 @@ var App = function ()
     };
 
     // disable mouse scroll on middle click
-    document.body.onmousedown = function(e) { if (e.button === 1) return false; }
+    document.body.onmousedown = function(e) { if (e.button === 1) return false; };
 
     this.loading = true;
     TextureManager.request("jack-plug.png");

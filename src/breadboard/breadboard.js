@@ -791,6 +791,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
     var ctx = this.stage.ctx;
 
     var i;
+    var j;
 
     var that = this;
     var connections = this._connections;
@@ -800,6 +801,7 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
     var gameStage = this.gameStage;
 
     var offset = [0, 0];
+    var removing;
     function wireIterate(x, y)
     {
         var id = that.getIndex(x, y);
@@ -811,9 +813,6 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
         if (!circles[id] && params.hasDotFn(connection, x, y))
         {
             circles[id] = [x + offset[0], y + offset[1]];
-
-            ctx.fillStyle = fgColor;
-            ctx.arc(x + offset[0], y + offset[1], Wire.wireWidth, 0, Math.PI * 2);
         }
     }
 
@@ -841,13 +840,26 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
     }
 
     var connection;
+    var wire;
+    var x0;
+    var y0;
+    var x1;
+    var y1;
+    var visibleWires = [];
+
+    function VisibleWire(i, removing)
+    {
+        this.i = i;
+        this.removing = removing;
+    }
+
     for (i = 0; i < wires.length; i += 1)
     {
-        var wire = wires[i];
-        var x0 = wire.x0;
-        var y0 = wire.y0;
-        var x1 = wire.x1;
-        var y1 = wire.y1;
+        wire = wires[i];
+        x0 = wire.x0;
+        y0 = wire.y0;
+        x1 = wire.x1;
+        y1 = wire.y1;
 
         if (!gameStage.boxOverlaps(x0, y0, x1, y1, Wire.wireWidth))
         {
@@ -856,10 +868,41 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
 
         params.offsetFn(offset, i);
 
-        var removing = false;
-        ctx.beginPath();
+        removing = false;
         wire.iterate(wireIterate);
-        ctx.fill();
+
+        visibleWires.push(new VisibleWire(i, removing));
+    }
+
+    ctx.fillStyle = fgColor;
+    ctx.beginPath();
+    var id;
+    var x;
+    var y;
+    for (id in circles)
+    {
+        if (circles.hasOwnProperty(id))
+        {
+            id = id | 0;
+            x = circles[id][0];
+            y = circles[id][1];
+            ctx.moveTo(x, y);
+            ctx.arc(x, y, Wire.wireWidth, 0, Math.PI * 2);
+        }
+    }
+    ctx.fill();
+
+    for (j = 0; j < visibleWires.length; j += 1)
+    {
+        i = visibleWires[j].i;
+        removing = visibleWires[j].removing;
+        wire = wires[i];
+        x0 = wire.x0;
+        y0 = wire.y0;
+        x1 = wire.x1;
+        y1 = wire.y1;
+
+        params.offsetFn(offset, i);
 
         ctx.strokeStyle = removing ? "#888888" : fgColor;
 
@@ -885,14 +928,15 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
         }
     }
 
-    var id;
+    var prevValue = -1;
+    ctx.beginPath();
     for (id in circles)
     {
         if (circles.hasOwnProperty(id))
         {
             id = id | 0;
-            var x = circles[id][0];
-            var y = circles[id][1];
+            x = circles[id][0];
+            y = circles[id][1];
             connection = connections[id];
             if (connection)
             {
@@ -903,12 +947,20 @@ Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
                 value = 0;
             }
 
-            ctx.fillStyle = Wire.getColor(value);
-            ctx.beginPath();
+            var colorChange = (prevValue !== value);
+            prevValue = value;
+
+            if (colorChange)
+            {
+                ctx.fill();
+                ctx.fillStyle = Wire.getColor(value);
+                ctx.beginPath();
+            }
+            ctx.moveTo(x, y);
             ctx.arc(x, y, 0.15, 0, Math.PI * 2);
-            ctx.fill();
         }
     }
+    ctx.fill();
 };
 
 Breadboard.prototype.drawBuses = function drawBuses(buses, fgColor, params)
