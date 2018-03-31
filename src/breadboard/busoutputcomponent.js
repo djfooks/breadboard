@@ -1,7 +1,8 @@
 
 function BusOutputComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.busId = -1;
     this.busP = [-1, -1];
@@ -20,8 +21,9 @@ function BusOutputComponent(breadboard)
 
     this.signalValue = false;
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
+Component.addComponentFunctions(BusOutputComponent);
 
 BusOutputComponent.prototype.type = ComponentTypes.BUS_OUTPUT;
 
@@ -29,7 +31,7 @@ BusOutputComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.BUS_OUTPUT,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation,
         busKey: this.busKey
     };
@@ -44,7 +46,7 @@ BusOutputComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
 
     this.busP = [p[0], p[1]];
     this.busId = breadboard.getIndex(p[0], p[1]);
@@ -58,13 +60,16 @@ BusOutputComponent.prototype.move = function move(breadboard, p, rotation)
     this.outP = AddTransformedVector(p, matrix, [0, 3]);
     this.outId = breadboard.getIndex(this.outP[0], this.outP[1]);
 
+    this.p1 = this.outP;
+
     Component.updateHitbox(this, p, this.outP);
 };
 
 BusOutputComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new BusOutputComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.busKey = this.busKey;
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -100,7 +105,7 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
 
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {
@@ -147,11 +152,11 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
         ctx.stroke();
     }
 
-    Component.containerPath(drawOptions, ctx, bgColor, busP, outP);
+    Component.containerPath(ctx, bgColor, busP, outP);
     ctx.stroke();
 
     ctx.fillStyle = "#FFFFFF";
-    Component.containerPath(drawOptions, ctx, bgColor, settingP, settingP);
+    Component.containerPath(ctx, bgColor, settingP, settingP);
     ctx.fill();
     ctx.stroke();
 
@@ -171,7 +176,7 @@ BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, 
     ctx.beginPath();
     if (this.signalValue)
     {
-        var color = fgColor || Wire.getColor(Math.min(valueIn, valueOut));
+        color = fgColor || Wire.getColor(Math.min(valueIn, valueOut));
         ctx.strokeStyle = color;
         ctx.lineWidth = 0.2;
         ctx.moveTo(inP[0], inP[1]);

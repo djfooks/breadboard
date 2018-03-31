@@ -1,15 +1,25 @@
 
-function Hitbox(minX, minY, maxX, maxY)
+var BaseKeyCodeMap =
+{
+    SHIFT: 16,
+    CTRL: 17,
+    DELETE: 46,
+    BACKSPACE: 8,
+    KEY_C: 67,
+    KEY_V: 86,
+};
+
+function Hitbox(minX, minY, maxX, maxY, data)
 {
     this.minX = minX;
     this.minY = minY;
     this.maxX = maxX;
     this.maxY = maxY;
+    this.data = data;
 
     this.onMouseUp = null;
     this.onMouseDown = null;
     this.onMouseMove = null;
-    this.onKeyDown = null;
 }
 
 Hitbox.prototype.getWidth = function getWidth()
@@ -22,13 +32,20 @@ Hitbox.prototype.getHeight = function getHeight()
     return this.maxY - this.minY;
 };
 
+Hitbox.prototype.clearCallbacks = function clearCallbacks()
+{
+    this.onMouseUp = null;
+    this.onMouseDown = null;
+    this.onMouseMove = null;
+};
+
 function Button(x, y, width, height)
 {
     this.enabledTexture = null;
     this.disabledTexture = null;
     this.enabled = true;
-    this.hitbox = new Hitbox(x, y, x + width, y + height);
-};
+    this.hitbox = new Hitbox(x, y, x + width, y + height, null);
+}
 
 function Stage(canvas)
 {
@@ -40,6 +57,11 @@ function Stage(canvas)
     this.onMouseDown = null;
     this.onMouseUp = null;
     this.onMouseMove = null;
+
+    this.onKeyDown = null;
+    this.onKeyUp = null;
+
+    this.keyCodesInput = {};
 }
 
 Stage.prototype.addHitbox = function addHitbox(hitbox)
@@ -131,11 +153,26 @@ Stage.prototype.mouseMove = function mouseMove(e)
     }
 };
 
+Stage.prototype.isKeyDown = function isKeyDown(keyCode)
+{
+    return this.keyCodesInput[keyCode] || false;
+};
+
 Stage.prototype.keyDown = function keyDown(e)
 {
+    this.keyCodesInput[e.keyCode] = true;
     if (this.onKeyDown)
     {
         this.onKeyDown(e.key, e.keyCode);
+    }
+};
+
+Stage.prototype.keyUp = function keyUp(e)
+{
+    this.keyCodesInput[e.keyCode] = false;
+    if (this.onKeyUp)
+    {
+        this.onKeyUp(e.key, e.keyCode);
     }
 };
 
@@ -155,6 +192,7 @@ Stage.prototype.enable = function enable()
     c.addEventListener("mousemove", this.mouseMove.bind(this));
     c.addEventListener("wheel", this.wheel.bind(this));
     c.addEventListener("keydown", this.keyDown.bind(this));
+    c.addEventListener("keyup", this.keyUp.bind(this));
 };
 
 Stage.prototype.getCanvasPosition = function getCanvasPosition(e, p)
@@ -191,7 +229,7 @@ Stage.test = function test()
     var stage = new Stage(canvas);
     stage.enable();
 
-    var hitbox = new Hitbox(0, 0, canvas.width, canvas.height);
+    var hitbox = new Hitbox(0, 0, canvas.width, canvas.height, null);
     stage.addHitbox(hitbox);
 
     hitbox.mouseMove = function (x, y)

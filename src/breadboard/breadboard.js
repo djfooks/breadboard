@@ -8,7 +8,7 @@ function DrawOptions(breadboard)
     {
         this.getConnectionValue = function getConnectionValueFn() { return 0; };
     }
-};
+}
 
 function Breadboard(stage, top, left, cols, rows)
 {
@@ -21,6 +21,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
     this.stage.onWheel = this.onWheel.bind(this);
     this.stage.onKeyDown = this.onKeyDown.bind(this);
+    this.stage.onKeyUp = this.onKeyUp.bind(this);
 
     this.onKeyDownFn = null;
 
@@ -79,10 +80,10 @@ function Breadboard(stage, top, left, cols, rows)
     }
 
     this.addWireButton    = addButton("jack-plug",   655, 0,   Breadboard.state.ADD_WIRE, true,
-        function () { that.wireType = Breadboard.wireType.WIRE; });
+        function () { that.wireType = ComponentTypes.WIRE; });
 
     this.addBusWireButton = addButton("truck",       655, 40,  Breadboard.state.ADD_WIRE, false,
-        function () { that.wireType = Breadboard.wireType.BUS; });
+        function () { that.wireType = ComponentTypes.BUS; });
 
     this.removeWireButton = addButton("cancel",      655, 80,  Breadboard.state.REMOVE_WIRE);
     this.moveButton       = addButton("move",        655, 120, Breadboard.state.MOVE);
@@ -94,6 +95,8 @@ function Breadboard(stage, top, left, cols, rows)
     this.stage.addHitbox(this.tray.gameStage.gameStageHitbox);
 
     this.frame = 0;
+
+    this.wireDrawParameters = new WireDrawParameters();
 }
 
 Breadboard.prototype.postLoad = function postLoad()
@@ -106,12 +109,14 @@ Breadboard.prototype.postLoad = function postLoad()
         button.enabledTexture = TextureManager.get(button.enabledTexture);
         button.disabledTexture = TextureManager.get(button.disabledTexture);
     }
-}
+};
 
 Breadboard.prototype.clear = function clearFn()
 {
     this._connections = {};
     this.componentsList = [];
+
+    this.gameStage.clearHitboxes();
 
     this.wires = [];
     this.buses = [];
@@ -123,29 +128,29 @@ Breadboard.prototype.clear = function clearFn()
 
     this.shouldSwitch = false;
     this.state = Breadboard.state.ADD_WIRE;
-    this.wireType = Breadboard.wireType.WIRE;
-    this.draggingStartPoint = [-1, -1];
+    this.wireType = ComponentTypes.WIRE;
     this.draggingPoint = [0, 0];
-    this.draggingComponent = null;
-    this.draggingComponentGrabPoint = [0, 0];
+    this.selectedObjects = new SelectedObjectSet(this);
+    this.copiedObjects = [];
     this.draggingFromTray = false;
+    this.draggingFromTrayComponent = null;
     this.wireStart = [-1, -1];
+    this.selectStart = [-1, -1];
+    this.gameSpaceMouse = [-1, -1];
+
+    this.mouseDownComponent = null;
+    this.gameSpaceMouseDownP = [-1, -1];
 
     this.simulateSteps = 0;
 
     this.connectionIdPulseMap = {};
 };
 
-Breadboard.wireType = {
-    WIRE: 1,
-    BUS: 2,
-};
-
 Breadboard.state = {
     ADD_WIRE: 1,
     PLACING_WIRE: 2,
     REMOVE_WIRE: 3,
-    DRAG_COMPONENT: 4,
+    DRAG: 4,
     MOVE: 5,
 };
 
@@ -216,26 +221,25 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
     var breadboard = new Breadboard(stage, top, left, 1001, 1001);
 
     var i;
+    var w;
     var wires = json.wires;
     var wiresLength = wires.length;
     for (i = 0; i < wiresLength; i += 1)
     {
-        var w = wires[i];
-        breadboard.addWire(w[0], w[1], w[2], w[3], false);
+        w = wires[i];
+        breadboard.addWire(w[0], w[1], w[2], w[3], ComponentTypes.WIRE, false);
     }
 
     var buses = json.buses;
     if (buses)
     {
-        breadboard.wireType = Breadboard.wireType.BUS;
         var busesLength = buses.length;
         for (i = 0; i < busesLength; i += 1)
         {
-            var w = buses[i];
-            breadboard.addWire(w[0], w[1], w[2], w[3], false);
+            w = buses[i];
+            breadboard.addWire(w[0], w[1], w[2], w[3], ComponentTypes.BUS, false);
         }
     }
-    breadboard.wireType = Breadboard.wireType.WIRE;
 
     var componentsList = json.componentsList;
     if (!componentsList)
@@ -243,7 +247,6 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         return breadboard;
     }
     var componentsLength = componentsList.length;
-    var i;
     for (i = 0; i < componentsLength; i += 1)
     {
         var componentJson = componentsList[i];
@@ -280,9 +283,8 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             component = new LatchComponent(breadboard);
         }
-        breadboard.gameStage.addHitbox(component.hitbox);
         component.stateFromJson(componentJson);
-        component.move(breadboard, componentJson.p, componentJson.rotation | 0);
+        component.move(breadboard, componentJson.p0 || componentJson.p, componentJson.rotation | 0);
         breadboard.addComponent(component);
     }
     return breadboard;
@@ -385,6 +387,27 @@ Breadboard.prototype.update = function update()
 {
     this.frame += 1;
 
+    if (!this.focusComponent)
+    {
+        if (this.stage.isKeyDown(BaseKeyCodeMap.DELETE) ||
+            this.stage.isKeyDown(BaseKeyCodeMap.BACKSPACE))
+        {
+            this.removeSelectedObjects();
+        }
+
+        if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
+            this.stage.isKeyDown(BaseKeyCodeMap.KEY_C))
+        {
+            this.copySelectedObjects();
+        }
+
+        if (this.stage.isKeyDown(BaseKeyCodeMap.CTRL) &&
+            this.stage.isKeyDown(BaseKeyCodeMap.KEY_V))
+        {
+            this.pasteSelectedObjects();
+        }
+    }
+
     var that = this;
     if (this.dirty)
     {
@@ -450,7 +473,6 @@ Breadboard.prototype.pulseReset = function pulseReset()
     }
 
     var componentsList = this.componentsList;
-    var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
         var outputs = componentsList[i].getConnections(this);
@@ -486,22 +508,35 @@ Breadboard.prototype.draw = function draw()
     }
 
     this.drawGrid();
+
+    this.drawSelection();
+
     this.drawComponents();
-    this.drawWires(this.wires);
-    this.drawBuses(this.buses);
-    if (this.wireType == Breadboard.wireType.WIRE)
+    this.drawWires(this.wires, "#000000", this.wireDrawParameters);
+    this.drawBuses(this.buses, "#000000", this.wireDrawParameters);
+    if (this.wireType == ComponentTypes.WIRE)
     {
-        this.drawWires(this.virtualWires);
+        this.drawWires(this.virtualWires, "#000000", this.wireDrawParameters);
     }
-    else /*if (this.wireType == Breadboard.wireType.BUS)*/
+    else /*if (this.wireType == ComponentTypes.BUS)*/
     {
-        this.drawBuses(this.virtualWires);
+        this.drawBuses(this.virtualWires, "#000000", this.wireDrawParameters);
     }
 
     if (this.debugDrawHitboxes)
     {
         this.gameStage.drawHitboxes(ctx);
     }
+
+    // ctx.fillStyle = "blue";
+    // ctx.beginPath();
+    // ctx.arc(this.draggingPoint[0], this.draggingPoint[1], 0.1, 0, Math.PI * 2);
+    // ctx.fill();
+
+    // ctx.fillStyle = "red";
+    // ctx.beginPath();
+    // ctx.arc(this.gameSpaceMouseDownP[0], this.gameSpaceMouseDownP[1], 2, 0, Math.PI * 2);
+    // ctx.fill();
 
     ctx.restore();
 
@@ -514,7 +549,7 @@ Breadboard.prototype.draw = function draw()
     }
     else
     {
-        this.drawDraggedComponents();
+        this.drawDraggedObjects();
     }
 
     var i;
@@ -524,40 +559,180 @@ Breadboard.prototype.draw = function draw()
     }
 };
 
+Breadboard.prototype.drawSelection = function drawSelection()
+{
+    if (this.state === Breadboard.state.DRAG)
+    {
+        return;
+    }
+    var ctx = this.stage.ctx;
+
+    var selectedObjects = this.selectedObjects.objects;
+    var component;
+    for (var i = 0; i < selectedObjects.length; i += 1)
+    {
+        component = selectedObjects[i].object;
+        component.drawSelection(ctx, "#BDB76B");
+    }
+
+    if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
+    {
+        return;
+    }
+
+    var x0 = this.selectStart[0];
+    var y0 = this.selectStart[1];
+    var x1 = this.gameSpaceMouse[0];
+    var y1 = this.gameSpaceMouse[1];
+
+    var scale = this.gameStage.invZoom;
+
+    ctx.beginPath();
+    ctx.lineWidth = 2 * scale;
+    ctx.setLineDash([5 * scale, 7 * scale]);
+    ctx.strokeStyle = "#000000";
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x0, y1);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x1, y0);
+    ctx.lineTo(x0, y0);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    var border = Component.border + Component.borderLineWidth * 0.5;
+
+    var cx0 = Math.ceil(Math.min(x0, x1) - border);
+    var cy0 = Math.ceil(Math.min(y0, y1) - border);
+    var cx1 = Math.floor(Math.max(x0, x1) + border);
+    var cy1 = Math.floor(Math.max(y0, y1) + border);
+
+    var componentsList = this.componentsList;
+    for (i = 0; i < componentsList.length; i += 1)
+    {
+        component = componentsList[i];
+        var p0 = component.p0;
+        var p1 = component.p1;
+        var minx = Math.min(p0[0], p1[0]);
+        var miny = Math.min(p0[1], p1[1]);
+        var maxx = Math.max(p0[0], p1[0]);
+        var maxy = Math.max(p0[1], p1[1]);
+        if (maxx >= cx0 && cx1 >= minx &&
+            maxy >= cy0 && cy1 >= miny)
+        {
+            component.drawSelection(ctx, "#AAAAAA");
+        }
+    }
+
+    ctx.lineWidth = 0.35;
+    ctx.strokeStyle = "#AAAAAA";
+
+    var wires = this.wires;
+    for (i = 0; i < wires.length; i += 1)
+    {
+        var wire = wires[i];
+        if (wire.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+        {
+            ctx.beginPath();
+            ctx.moveTo(wire.x0, wire.y0);
+            ctx.lineTo(wire.x1, wire.y1);
+            ctx.stroke();
+        }
+    }
+
+    ctx.lineWidth = 0.45;
+    var buses = this.buses;
+    for (i = 0; i < buses.length; i += 1)
+    {
+        var bus = buses[i];
+        if (bus.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+        {
+            ctx.beginPath();
+            ctx.moveTo(bus.x0, bus.y0);
+            ctx.lineTo(bus.x1, bus.y1);
+            ctx.stroke();
+        }
+    }
+};
+
 Breadboard.prototype.drawComponents = function drawComponents()
 {
     var ctx = this.stage.ctx;
     var componentsList = this.componentsList;
     var drawOptions = new DrawOptions(this);
+    var gameStage = this.gameStage;
     var i;
     for (i = 0; i < componentsList.length; i += 1)
     {
         var component = componentsList[i];
-        component.draw(drawOptions, ctx, null, "#000000", null, this.focusComponent === component);
+        if (gameStage.hitboxOverlaps(component.hitbox))
+        {
+            component.draw(drawOptions, ctx, null, "#000000", null, this.focusComponent === component);
+        }
     }
 };
 
-Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
+Breadboard.prototype.drawDraggedObjects = function drawDraggedObjects()
 {
     var ctx = this.stage.ctx;
     var gameStage = this.draggingFromTray ? this.tray.gameStage : this.gameStage;
-    if (this.state === Breadboard.state.DRAG_COMPONENT)
+    if (this.state !== Breadboard.state.DRAG)
     {
-        ctx.save();
-        gameStage.transformContext(ctx);
-        var drawOptions = new DrawOptions(null);
-        var p = [this.draggingPoint[0] + this.draggingComponentGrabPoint[0],
-                 this.draggingPoint[1] + this.draggingComponentGrabPoint[1]];
+        return;
+    }
+    var selectedObjects = this.selectedObjects;
+    selectedObjects.updateConnectionMap();
 
-        var q = this.getPosition(p);
-        var valid = (this.mouseOverGameStage &&
-                     this.validPosition(q) &&
-                     this.draggingComponent.isValidPosition(this, q, this.draggingComponent.rotation));
-        var component = this.draggingComponent;
+    ctx.save();
+    gameStage.transformContext(ctx);
+    var drawOptions = new DrawOptions(null);
+
+    var selectedComponents = selectedObjects.components;
+    var selectedObj;
+    var draggingPoint = this.draggingPoint;
+    var localOffset = [draggingPoint[0] - this.gameSpaceMouseDownP[0],
+                       draggingPoint[1] - this.gameSpaceMouseDownP[1]];
+    var valid = this.mouseOverGameStage &&
+                SelectedObject.areAllValid(this, selectedComponents, localOffset);
+
+    var selectedWires = selectedObjects.wires;
+
+    var greyDrawParameters = new WireDrawParameters();
+    greyDrawParameters.hasDotFn = function (connection, x, y)
+    {
+        return (connection && connection.hasDot) || selectedObjects.hasDot(x, y);
+    };
+    this.drawWires(selectedObjects.wireObjects, "#808080", greyDrawParameters);
+    this.drawBuses(selectedObjects.busObjects, "#808080", greyDrawParameters);
+
+    var i;
+    var component;
+    var p;
+    var q;
+    for (i = 0; i < selectedComponents.length; i += 1)
+    {
+        selectedObj = selectedComponents[i];
+        component = selectedObj.object;
+
+        p = [localOffset[0] + selectedObj.grabbedPosition[0],
+             localOffset[1] + selectedObj.grabbedPosition[1]];
+
+        q = this.getPosition(p);
         if (valid)
         {
             component.draw(drawOptions, ctx, null, "#AAAAAA", null, false);
         }
+    }
+
+    for (i = 0; i < selectedComponents.length; i += 1)
+    {
+        selectedObj = selectedComponents[i];
+        component = selectedObj.object;
+
+        p = [localOffset[0] + selectedObj.grabbedPosition[0],
+             localOffset[1] + selectedObj.grabbedPosition[1]];
+
+        q = this.getPosition(p);
         var color;
         if (this.draggingFromTray)
         {
@@ -572,11 +747,46 @@ Breadboard.prototype.drawDraggedComponents = function drawDraggedComponents()
             color = "#000000";
         }
         component.draw(drawOptions, ctx, p, color, "#FFFFFF", false);
-        ctx.restore();
     }
+
+    var draggedDrawParameters = new WireDrawParameters();
+    draggedDrawParameters.hasDotFn = function (connection, x, y)
+    {
+        return selectedObjects.hasDot(x, y);
+    };
+    localOffset[0] = localOffset[0] - Math.round(localOffset[0]);
+    localOffset[1] = localOffset[1] - Math.round(localOffset[1]);
+    draggedDrawParameters.offsetFn = function (offset, index)
+    {
+        var selectedObj = selectedWires[index];
+
+        var p = [localOffset[0] + selectedObj.grabbedPosition[0],
+                 localOffset[1] + selectedObj.grabbedPosition[1]];
+
+        offset[0] = localOffset[0];
+        offset[1] = localOffset[1];
+    };
+
+    this.drawWires(selectedObjects.wireObjects, "#000000", draggedDrawParameters);
+    this.drawBuses(selectedObjects.busObjects, "#000000", draggedDrawParameters);
+
+    ctx.restore();
 };
 
-Breadboard.prototype.drawWires = function drawWires(wires)
+function WireDrawParameters()
+{
+    this.offsetFn = function (offset, index)
+    {
+        offset[0] = 0;
+        offset[1] = 0;
+    };
+    this.hasDotFn = function (connection, x, y)
+    {
+        return connection && connection.hasDot;
+    };
+}
+
+Breadboard.prototype.drawWires = function drawWires(wires, fgColor, params)
 {
     var ctx = this.stage.ctx;
 
@@ -587,6 +797,50 @@ Breadboard.prototype.drawWires = function drawWires(wires)
     var circles = {};
     var value;
 
+    var gameStage = this.gameStage;
+
+    var offset = [0, 0];
+    function wireIterate(x, y)
+    {
+        var id = that.getIndex(x, y);
+        if (id == that.removeWireId)
+        {
+            removing = true;
+        }
+        var connection = connections[id];
+        if (!circles[id] && params.hasDotFn(connection, x, y))
+        {
+            circles[id] = [x + offset[0], y + offset[1]];
+
+            ctx.fillStyle = fgColor;
+            ctx.arc(x + offset[0], y + offset[1], Wire.wireWidth, 0, Math.PI * 2);
+        }
+    }
+
+    function wireIterateCurrent(x, y)
+    {
+        var id = that.getIndex(x, y);
+        var connection = connections[id];
+        var connectionValue = 0;
+        if (connection)
+        {
+            connectionValue = connection.getDirectionValue(wire.directionId);
+        }
+        if (value !== connectionValue)
+        {
+            ctx.strokeStyle = Wire.getColor(value);
+            ctx.lineWidth = 0.1;
+            value = connectionValue;
+            ctx.beginPath();
+            ctx.moveTo(start[0] + offset[0], start[1] + offset[1]);
+            ctx.lineTo(x + offset[0], y + offset[1]);
+            ctx.stroke();
+            start[0] = x;
+            start[1] = y;
+        }
+    }
+
+    var connection;
     for (i = 0; i < wires.length; i += 1)
     {
         var wire = wires[i];
@@ -595,67 +849,38 @@ Breadboard.prototype.drawWires = function drawWires(wires)
         var x1 = wire.x1;
         var y1 = wire.y1;
 
-        var removing = false;
-        wire.iterate(function wireIterate(x, y)
+        if (!gameStage.boxOverlaps(x0, y0, x1, y1, Wire.wireWidth))
         {
-            var id = that.getIndex(x, y);
-            if (id == that.removeWireId)
-            {
-                removing = true;
-            }
-            var connection = connections[id];
-            if (!circles[id] && connection && connection.hasDot)
-            {
-                circles[id] = [x, y];
+            continue;
+        }
 
-                ctx.fillStyle = "#000000";
-                ctx.beginPath();
-                ctx.arc(x, y, 0.2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
+        params.offsetFn(offset, i);
 
-        ctx.strokeStyle = removing ? "#888888" : "#000000";
+        var removing = false;
+        ctx.beginPath();
+        wire.iterate(wireIterate);
+        ctx.fill();
+
+        ctx.strokeStyle = removing ? "#888888" : fgColor;
 
         ctx.beginPath();
-        ctx.lineWidth = 0.2;
-        ctx.moveTo(x0, y0);
-        ctx.lineTo(x1, y1);
+        ctx.lineWidth = Wire.wireWidth;
+        ctx.moveTo(x0 + offset[0], y0 + offset[1]);
+        ctx.lineTo(x1 + offset[0], y1 + offset[1]);
         ctx.stroke();
 
         var start = [wire.x0, wire.y0];
-        var connection = connections[wire.id0];
+        connection = connections[wire.id0];
 
-        wire.iterate(function wireIterateCurrent(x, y)
-        {
-            var id = that.getIndex(x, y);
-            var connection = connections[id];
-            var connectionValue = 0;
-            if (connection)
-            {
-                connectionValue = connection.getDirectionValue(wire.directionId);
-            }
-            if (value !== connectionValue)
-            {
-                ctx.strokeStyle = Wire.getColor(value);
-                ctx.lineWidth = 0.1;
-                value = connectionValue;
-                ctx.beginPath();
-                ctx.moveTo(start[0], start[1]);
-                ctx.lineTo(x, y);
-                ctx.stroke();
-                start[0] = x;
-                start[1] = y;
-            }
-        });
+        wire.iterate(wireIterateCurrent);
 
         if (start[0] !== wire.x1 || start[1] !== wire.y1)
         {
             ctx.strokeStyle = Wire.getColor(value);
             ctx.lineWidth = 0.1;
             ctx.beginPath();
-            ctx.moveTo(start[0], start[1]);
-            ctx.lineTo(wire.x1, wire.y1);
+            ctx.moveTo(start[0] + offset[0], start[1] + offset[1]);
+            ctx.lineTo(wire.x1 + offset[0], wire.y1 + offset[1]);
             ctx.stroke();
         }
     }
@@ -668,12 +893,15 @@ Breadboard.prototype.drawWires = function drawWires(wires)
             id = id | 0;
             var x = circles[id][0];
             var y = circles[id][1];
-            var connection = connections[id];
-            if (!connection)
+            connection = connections[id];
+            if (connection)
             {
-                continue;
+                value = connection.getValue();
             }
-            value = connection.getValue();
+            else
+            {
+                value = 0;
+            }
 
             ctx.fillStyle = Wire.getColor(value);
             ctx.beginPath();
@@ -683,7 +911,7 @@ Breadboard.prototype.drawWires = function drawWires(wires)
     }
 };
 
-Breadboard.prototype.drawBuses = function drawBuses(buses)
+Breadboard.prototype.drawBuses = function drawBuses(buses, fgColor, params)
 {
     var ctx = this.stage.ctx;
 
@@ -694,6 +922,21 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
     var diamonds = {};
     var value;
 
+    var offset = [0, 0];
+    function busIterate(x, y)
+    {
+        var id = that.getIndex(x, y);
+        if (id == that.removeWireId)
+        {
+            removing = true;
+        }
+        var connection = connections[id];
+        if (!diamonds[id] && params.hasDotFn(connection, x, y))
+        {
+            diamonds[id] = [x + offset[0], y + offset[1]];
+        }
+    }
+
     for (i = 0; i < buses.length; i += 1)
     {
         var bus = buses[i];
@@ -701,27 +944,16 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
         var y0 = bus.y0;
         var x1 = bus.x1;
         var y1 = bus.y1;
+        params.offsetFn(offset, i);
 
         var removing = false;
-        bus.iterate(function busIterate(x, y)
-        {
-            var id = that.getIndex(x, y);
-            if (id == that.removeWireId)
-            {
-                removing = true;
-            }
-            var connection = connections[id];
-            if (!diamonds[id] && connection && connection.hasDot)
-            {
-                diamonds[id] = [x, y];
-            }
-        });
+        bus.iterate(busIterate);
 
         ctx.beginPath();
-        ctx.moveTo(x0, y0);
-        ctx.lineTo(x1, y1);
+        ctx.moveTo(x0 + offset[0], y0 + offset[1]);
+        ctx.lineTo(x1 + offset[0], y1 + offset[1]);
 
-        ctx.strokeStyle = removing ? "#888888" : "#000000";
+        ctx.strokeStyle = removing ? "#888888" : fgColor;
         ctx.lineWidth = 0.3;
         ctx.stroke();
 
@@ -729,12 +961,12 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
         ctx.lineWidth = 0.15;
         ctx.stroke();
 
-        ctx.strokeStyle = removing ? "#888888" : "#000000";
+        ctx.strokeStyle = removing ? "#888888" : fgColor;
         ctx.lineWidth = 0.05;
         ctx.stroke();
     }
 
-    ctx.strokeStyle = "black";
+    ctx.strokeStyle = fgColor;
     ctx.fillStyle = "teal";
     ctx.lineCap = "square";
     ctx.lineWidth = 0.15;
@@ -748,11 +980,6 @@ Breadboard.prototype.drawBuses = function drawBuses(buses)
             var x = diamonds[id][0];
             var y = diamonds[id][1];
             var connection = connections[id];
-            if (!connection)
-            {
-                continue;
-            }
-            value = connection.getValue();
 
             ctx.beginPath();
             ctx.moveTo(x + diamondWidth, y);
@@ -833,6 +1060,124 @@ Breadboard.prototype.dirtyConnection = function dirtyConnection(id, connection)
     }
 };
 
+Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
+{
+    var i;
+    if (this.state !== Breadboard.state.DRAG)
+    {
+        var selectedObjects = this.selectedObjects.objects;
+        for (i = 0; i < selectedObjects.length; i += 1)
+        {
+            var selectedObject = selectedObjects[i].object;
+            if (selectedObject.isWire())
+            {
+                this.removeWire(selectedObject);
+            }
+            else
+            {
+                this.removeComponent(selectedObject);
+            }
+        }
+    }
+    this.selectedObjects.clear();
+
+    this.state = Breadboard.state.MOVE;
+    this.disableButtons();
+    this.enableButton(this.moveButton);
+
+    this.mouseDownComponent = null;
+};
+
+Breadboard.prototype.copySelectedObjects = function copySelectedObjects()
+{
+    var selectedObjects = this.selectedObjects.objects;
+    var copiedObjects = this.copiedObjects;
+    copiedObjects.length = 0;
+    var i;
+    for (i = 0; i < selectedObjects.length; i += 1)
+    {
+        var selectedObject = selectedObjects[i];
+        var copyObject = selectedObject.object.clone(this);
+        copiedObjects.push(copyObject);
+    }
+};
+
+Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
+{
+    if (!this.copiedObjects.length)
+    {
+        return;
+    }
+
+    this.state = Breadboard.state.DRAG;
+
+    this.shouldSwitch = false;
+
+    this.draggingFromTray = false;
+    this.draggingFromTrayComponent = null;
+
+    var selectedObjects = this.selectedObjects;
+    selectedObjects.clear();
+
+    var copiedObjects = this.copiedObjects;
+    var i;
+    var minX =  9999999;
+    var maxX = -9999999;
+    var minY =  9999999;
+    var maxY = -9999999;
+    var object;
+    for (i = 0; i < copiedObjects.length; i += 1)
+    {
+        object = copiedObjects[i];
+        if (object.isWire())
+        {
+            minX = Math.min(minX, object.x0, object.x1);
+            maxX = Math.max(maxX, object.x0, object.x1);
+            minY = Math.min(minY, object.y0, object.y1);
+            maxY = Math.max(maxY, object.y0, object.y1);
+        }
+        else
+        {
+            minX = Math.min(minX, object.p0[0], object.p1[0]);
+            maxX = Math.max(maxX, object.p0[0], object.p1[0]);
+            minY = Math.min(minY, object.p0[1], object.p1[1]);
+            maxY = Math.max(maxY, object.p0[1], object.p1[1]);
+        }
+    }
+    var center = [(minX + maxX) * 0.5, (minY + maxY) * 0.5];
+    var roundedCenter = this.getPosition(center);
+
+    var gameSpaceMouseDownP = this.gameSpaceMouseDownP;
+    var gameSpaceMouseDownPRounded = this.getPosition(gameSpaceMouseDownP);
+
+    for (i = 0; i < copiedObjects.length; i += 1)
+    {
+        object = copiedObjects[i].clone(this);
+
+        selectedObj = selectedObjects.addObject(object);
+
+        var ox = object.getPosition()[0] - roundedCenter[0];
+        var oy = object.getPosition()[1] - roundedCenter[1];
+        selectedObj.grabbedPosition = [gameSpaceMouseDownPRounded[0] + ox, gameSpaceMouseDownPRounded[1] + oy];
+    }
+
+    this.gameSpaceMouseDownP[0] += center[0] - roundedCenter[0];
+    this.gameSpaceMouseDownP[1] += center[1] - roundedCenter[1];
+
+    selectedObjects.connectionMapDirty = true;
+    selectedObjects.setOffset([0, 0]);
+    for (i = 0; i < selectedObjects.objects.length; i += 1)
+    {
+        selectedObj = selectedObjects.objects[i];
+        selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
+    }
+    selectedObjects.updateConnectionMap();
+
+    this.mouseDownComponent = selectedObjects.objects[0].object;
+
+    this.mouseDownComponentsUpdate(this.gameStage.fromView(this.gameSpaceMouse));
+};
+
 Breadboard.prototype.removeWire = function removeWire(wire)
 {
     this.dirty = true;
@@ -841,12 +1186,12 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     var wireType;
     if (index !== -1)
     {
-        wireType = Breadboard.wireType.BUS;
+        wireType = ComponentTypes.BUS;
         this.buses.splice(index, 1);
     }
     else
     {
-        wireType = Breadboard.wireType.WIRE;
+        wireType = ComponentTypes.WIRE;
         index = this.wires.indexOf(wire);
         this.wires.splice(index, 1);
     }
@@ -878,7 +1223,7 @@ Breadboard.prototype.removeWire = function removeWire(wire)
     this.dirtyConnection(id, connection);
 };
 
-Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
+Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, wire)
 {
     if (x0 == x1 && y0 == y1)
     {
@@ -888,29 +1233,28 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
     var id0 = this.getIndex(x0, y0);
     var id1 = this.getIndex(x1, y1);
 
-    var type = this.wireType;
-    var newWire = new Wire(x0, y0, x1, y1, id0, id1, type);
+    wire = wire || new Wire(x0, y0, x1, y1, id0, id1, type);
 
     if (virtual)
     {
-        this.virtualWires.push(newWire);
+        this.virtualWires.push(wire);
     }
     else
     {
         this.dirty = true;
-        if (type == Breadboard.wireType.WIRE)
+        if (type == ComponentTypes.WIRE)
         {
-            this.wires.push(newWire);
+            this.wires.push(wire);
         }
-        else /*if (type == Breadboard.wireType.BUS)*/
+        else /*if (type == ComponentTypes.BUS)*/
         {
-            this.buses.push(newWire);
+            this.buses.push(wire);
         }
 
-        var dx = newWire.dx;
-        var dy = newWire.dy;
-        var bit0 = newWire.bit0;
-        var bit1 = newWire.bit1;
+        var dx = wire.dx;
+        var dy = wire.dy;
+        var bit0 = wire.bit0;
+        var bit1 = wire.bit1;
         var x = x0;
         var y = y0;
         var id;
@@ -920,14 +1264,14 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, virtual)
             id = this.getIndex(x, y);
             connection = this.emplaceConnection(id);
             connection.addWire(id, bit0, type);
-            connection.addWireComponent(id, newWire);
+            connection.addWireComponent(id, wire);
             x += dx;
             y += dy;
             id = this.getIndex(x, y);
             connection = this.emplaceConnection(id);
             connection.addWire(id, bit1, type);
         }
-        connection.addWireComponent(id, newWire);
+        connection.addWireComponent(id, wire);
     }
 };
 
@@ -957,11 +1301,13 @@ Breadboard.prototype.wireRemoveUpdate = function wireRemoveUpdate(p, virtual)
             var wires = connection.wires;
             while (wires.length)
             {
+                this.selectedObjects.removeObject(wires[0]);
                 this.removeWire(wires[0]);
             }
             var buses = connection.buses;
             while (buses.length)
             {
+                this.selectedObjects.removeObject(buses[0]);
                 this.removeWire(buses[0]);
             }
             this.dirtyConnection(id, connection);
@@ -991,7 +1337,7 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
         if (p[0] === wireStart[0] ||
             p[1] === wireStart[1])
         {
-            this.addWire(p[0], p[1], wireStart[0], wireStart[1], virtual);
+            this.addWire(p[0], p[1], wireStart[0], wireStart[1], this.wireType, virtual);
         }
         else
         {
@@ -1000,14 +1346,14 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
             if (Math.abs(x) < Math.abs(y))
             {
                 y = ((y > 0 && x > 0) || (y < 0 && x < 0)) ? x : -x;
-                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
-                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
+                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual);
+                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual);
             }
             else
             {
                 x = ((x > 0 && y > 0) || (x < 0 && y < 0)) ? y : -y;
-                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, virtual);
-                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], virtual);
+                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual);
+                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual);
             }
         }
     }
@@ -1023,170 +1369,321 @@ Breadboard.prototype.getConnectionValue = function getConnectionValue(id)
     return connection.getValue();
 };
 
-Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, q, button)
+Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(component, p, button)
 {
-    var fromTray = this.tray.isFromTray(component);
-    if (button === 1)
-    {
-        this.onMouseDown(q, button);
-        return;
-    }
-
     if (button === 2)
     {
+        return true;
+    }
+
+    if (this.state === Breadboard.state.MOVE && this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+    {
         this.shouldSwitch = false;
-        return;
+        if (this.selectedObjects.removeObject(component))
+        {
+            return true;
+        }
+        this.selectedObjects.addObject(component);
+        return true;
     }
 
     this.shouldSwitch = true;
 
-    if (this.state !== Breadboard.state.MOVE && !this.tray.isFromTray(component))
-    {
-        this.onMouseDown(q, button);
-        return;
-    }
-    var p = this.getPosition(q);
+    var fromTray = this.draggingFromTray = this.tray.isFromTray(component);
+    this.draggingFromTrayComponent = component;
+    var gameStage = fromTray ? this.tray.gameStage : this.gameStage;
 
-    this.state = Breadboard.state.DRAG_COMPONENT;
-    this.draggingStartPoint = q;
-    this.draggingFromTray = fromTray;
+    this.mouseDownComponent = component;
+    this.gameSpaceMouseDownP = gameStage.toView(p);
 
-    var gameStage = this.gameStage;
-    if (fromTray)
+    if (!this.draggingFromTray &&
+        (!component.isWire() && this.componentsList.indexOf(component) === -1))
     {
-        component = component.clone(this);
-        this.tray.gameStage.addHitbox(component.hitbox);
-        gameStage = this.tray.gameStage;
+        throw new Error("Clicked on a component that is not a part of the breadboard!");
     }
-    this.draggingComponent = component;
-    this.draggingComponentGrabPoint = Component.getGrabPoint(component, gameStage.toView(q));
-    this.draggingComponentUpdate(q);
+    return false;
 };
 
-Breadboard.prototype._onComponentMouseUp = function _onComponentMouseUp(p, button)
+Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
 {
-    if (button === 1)
+    if (button === 2)
     {
-        this.onMouseUp(p, button);
-        return;
-    }
-    else if (button === 2)
-    {
-        if (this.state === Breadboard.state.DRAG_COMPONENT)
+        if (this.state === Breadboard.state.DRAG)
         {
-            this.rotateComponent(this.draggingComponent);
+            this.rotateComponents();
         }
-        return;
+        return true;
     }
 
-    var q;
+    var selectedObjects = this.selectedObjects;
     if (this.shouldSwitch)
     {
-        q = this.getPosition(this.gameStage.toView(p));
-        var component = this.getComponent(q);
-        if (component)
+        var mouseDownComponent = this.mouseDownComponent;
+        var q = this.gameStage.toView(p);
+        if (mouseDownComponent)
         {
-            component.toggle(this, q);
+            mouseDownComponent.toggle(this, this.getPosition(q));
             this.dirtySave = true;
         }
+
+        if (this.state === Breadboard.state.MOVE)
+        {
+            var selectedIndex = selectedObjects.indexOf(mouseDownComponent);
+            if (selectedIndex === -1)
+            {
+                if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+                {
+                    selectedObjects.clear();
+                }
+                var selectedObj = selectedObjects.addObject(mouseDownComponent);
+                selectedObj.grabbedPosition = mouseDownComponent.getPosition();
+            }
+            else if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+            {
+                selectedObjects.removeObject(mouseDownComponent);
+            }
+        }
     }
 
-    if (this.state !== Breadboard.state.DRAG_COMPONENT || !this.draggingComponent)
+    if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
     {
-        this.onMouseUp(p, button);
-        return;
+        return true;
     }
 
-    if (!this.shouldSwitch)
+    this.mouseDownComponent = null;
+    this.gameSpaceMouseDownP = [-1, -1];
+
+    if (this.shouldSwitch ||
+        this.state !== Breadboard.state.DRAG ||
+        this.selectedObjects.objects.length === 0)
     {
-        var draggingComponent = this.draggingComponent;
-        var valid = (this.mouseOverGameStage &&
-                     this.validPosition(draggingComponent.p) &&
-                     draggingComponent.isValidPosition(this, draggingComponent.p, draggingComponent.rotation));
-        if (valid)
+        return false;
+    }
+
+    var selectedComponents = selectedObjects.components;
+    var selectedWires = selectedObjects.wires;
+    var valid = this.mouseOverGameStage && SelectedObject.areAllValid(this, selectedComponents);
+    var i;
+    if (valid)
+    {
+        for (i = 0; i < selectedComponents.length; i += 1)
         {
-            this.addComponent(draggingComponent);
+            this.addComponent(selectedComponents[i].object);
         }
-        else
+        for (i = 0; i < selectedWires.length; i += 1)
         {
-            Component.remove(this, draggingComponent);
+            var wire = selectedWires[i].object;
+            this.addWire(wire.x0, wire.y0, wire.x1, wire.y1, wire.type, false, wire);
         }
+    }
+    else
+    {
+        for (i = 0; i < selectedComponents.length; i += 1)
+        {
+            Component.removeHitbox(this, selectedComponents[i].object);
+        }
+        this.selectedObjects.clear();
     }
 
     this.state = Breadboard.state.MOVE;
     this.disableButtons();
     this.enableButton(this.moveButton);
-    this.draggingComponent = null;
+    return true;
 };
 
-Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(component, p, button)
+Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpdate(p)
 {
-    this._onComponentMouseUp(p, button);
-};
+    var i;
+    var fromTray = this.draggingFromTray;
+    var gameStage = fromTray ? this.tray.gameStage : this.gameStage;
+    var draggingPoint = this.draggingPoint = gameStage.toView(p);
+    var selectedObjects = this.selectedObjects;
+    var selectedComponents = this.selectedObjects.components;
+    var gameSpaceMouseDownP = this.gameSpaceMouseDownP;
+    var selectedObj;
+    var canDrag = fromTray || (this.state === Breadboard.state.MOVE || this.state === Breadboard.state.DRAG);
 
-Breadboard.prototype.draggingComponentUpdate = function draggingComponentUpdate(p)
-{
-    var gameStage = this.draggingFromTray ? this.tray.gameStage : this.gameStage;
-    this.draggingPoint = gameStage.toView(p);
     if (this.shouldSwitch)
     {
-        if (p[0] != this.draggingStartPoint[0] ||
-            p[1] != this.draggingStartPoint[1])
+        if (draggingPoint[0] != gameSpaceMouseDownP[0] ||
+            draggingPoint[1] != gameSpaceMouseDownP[1])
         {
-            this.disableButtons();
-            this.enableButton(this.moveButton);
-            if (!this.draggingFromTray)
+            if (canDrag)
             {
-                this.removeComponent(this.draggingComponent);
+                this.state = Breadboard.state.DRAG;
+                var mouseDownComponent = this.mouseDownComponent;
+
+                if (fromTray)
+                {
+                    this.disableButtons();
+                    this.enableButton(this.moveButton);
+                    selectedObjects.clear();
+                    selectedObj = selectedObjects.addObject(mouseDownComponent.clone(this));
+                    selectedObj.grabbedPosition = mouseDownComponent.getPosition();
+                }
+                else
+                {
+                    var selectedIndex = selectedObjects.indexOf(mouseDownComponent);
+                    if (selectedIndex !== -1)
+                    {
+                        for (i = 0; i < selectedComponents.length; i += 1)
+                        {
+                            selectedObj = selectedComponents[i];
+                            if (!this.removeComponent(selectedObj.object))
+                            {
+                                throw new Error("Unable to remove component");
+                            }
+                            selectedObj.grabbedPosition = selectedObj.object.getPosition();
+                        }
+                        var selectedWires = selectedObjects.wires;
+                        for (i = 0; i < selectedWires.length; i += 1)
+                        {
+                            selectedObj = selectedWires[i];
+                            this.removeWire(selectedObj.object);
+                            selectedObj.grabbedPosition = selectedObj.object.getPosition();
+                        }
+                        selectedObjects.connectionMapDirty = true;
+                    }
+                    else
+                    {
+                        if (mouseDownComponent.isWire())
+                        {
+                            this.removeWire(mouseDownComponent);
+                        }
+                        else
+                        {
+                            if (!this.removeComponent(mouseDownComponent))
+                            {
+                                throw new Error("Unable to remove component");
+                            }
+                        }
+                        selectedObjects.clear();
+                        selectedObj = selectedObjects.addObject(mouseDownComponent);
+                        selectedObj.grabbedPosition = mouseDownComponent.getPosition();
+                        selectedObjects.connectionMapDirty = true;
+                    }
+                }
             }
             this.shouldSwitch = false;
         }
-    }
-
-    if (!this.shouldSwitch)
-    {
-        if (this.draggingFromTray && this.mouseOverGameStage)
+        else
         {
-            this.draggingFromTray = false;
-
-            this.tray.gameStage.removeHitbox(this.draggingComponent.hitbox);
-            gameStage = this.gameStage;
-            gameStage.addHitbox(this.draggingComponent.hitbox);
+            return;
         }
-        var grabPoint = gameStage.toView(p);
-        grabPoint = [grabPoint[0] + this.draggingComponentGrabPoint[0],
-                     grabPoint[1] + this.draggingComponentGrabPoint[1]];
-        grabPoint = this.getPosition(grabPoint);
-
-        this.draggingComponent.move(this, grabPoint, this.draggingComponent.rotation);
     }
-};
 
-Breadboard.prototype.rotateComponent = function rotateComponent(component)
-{
-    var newRotation = Rotate90(component.rotation);
-    var valid = component.isValidPosition(this, component.p, newRotation);
-    if (this.state !== Breadboard.state.DRAG_COMPONENT && !valid)
+    if (this.shouldSwitch || !canDrag)
     {
+        this.shouldSwitch = false;
+        this.mouseDownComponent = null;
         return;
     }
 
-    this.draggingComponentGrabPoint = [this.draggingComponentGrabPoint[1], -this.draggingComponentGrabPoint[0]];
-
-    this.removeComponent(component);
-    component.move(this, component.p, newRotation);
-    if (valid && this.state !== Breadboard.state.DRAG_COMPONENT)
+    var localOffset;
+    if (fromTray && this.mouseOverGameStage)
     {
-        this.addComponent(component);
-        this.dirty = true;
+        var selectedObject = selectedObjects.objects[0];
+
+        localOffset = [gameSpaceMouseDownP[0] - selectedObject.grabbedPosition[0],
+                       gameSpaceMouseDownP[1] - selectedObject.grabbedPosition[1]];
+
+        draggingPoint = this.draggingPoint = this.gameStage.toView(p);
+        selectedObject.grabbedPosition = this.getPosition(draggingPoint);
+
+        gameSpaceMouseDownP[0] = selectedObject.grabbedPosition[0] + localOffset[0];
+        gameSpaceMouseDownP[1] = selectedObject.grabbedPosition[1] + localOffset[1];
+
+        gameStage = this.gameStage;
+
+        fromTray = this.draggingFromTray = false;
+        this.draggingFromTrayComponent = null;
     }
+
+    localOffset = [draggingPoint[0] - gameSpaceMouseDownP[0],
+                   draggingPoint[1] - gameSpaceMouseDownP[1]];
+    var positionOffset = this.getPosition(localOffset);
+    selectedObjects.setOffset(positionOffset);
+    var componentMovePoint;
+    for (i = 0; i < selectedObjects.objects.length; i += 1)
+    {
+        selectedObj = selectedObjects.objects[i];
+        componentMovePoint = [positionOffset[0] + selectedObj.grabbedPosition[0],
+                              positionOffset[1] + selectedObj.grabbedPosition[1]];
+        selectedObj.object.move(this, componentMovePoint, selectedObj.object.rotation);
+    }
+};
+
+Breadboard.prototype.rotateComponents = function rotateComponents()
+{
+    var fromTray = this.draggingFromTray;
+    var gameStage = fromTray ? this.tray.gameStage : this.gameStage;
+
+    var draggingPoint = this.draggingPoint;
+    var gameSpaceMouseDownP = this.gameSpaceMouseDownP;
+
+    var selectedObjects = this.selectedObjects;
+
+    var offsetX = draggingPoint[0] - gameSpaceMouseDownP[0];
+    var offsetY = draggingPoint[1] - gameSpaceMouseDownP[1];
+
+    var selectedComponents = selectedObjects.components;
+    var selectedObj;
+    var i;
+    for (i = 0; i < selectedComponents.length; i += 1)
+    {
+        selectedObj = selectedComponents[i];
+        var component = selectedObj.object;
+        var newRotation = Rotate90(component.rotation);
+
+        localOffset = [selectedObj.grabbedPosition[0] - gameSpaceMouseDownP[0],
+                       selectedObj.grabbedPosition[1] - gameSpaceMouseDownP[1]];
+        selectedObj.grabbedPosition = [Math.round(gameSpaceMouseDownP[0] + localOffset[1] + offsetX),
+                                       Math.round(gameSpaceMouseDownP[1] - localOffset[0] + offsetY)];
+
+        component.move(this, component.p0, newRotation);
+    }
+
+    var selectedWires = selectedObjects.wires;
+    for (i = 0; i < selectedWires.length; i += 1)
+    {
+        selectedObj = selectedWires[i];
+
+        localOffset = [selectedObj.grabbedPosition[0] - gameSpaceMouseDownP[0],
+                       selectedObj.grabbedPosition[1] - gameSpaceMouseDownP[1]];
+        selectedObj.grabbedPosition = [Math.round(gameSpaceMouseDownP[0] + localOffset[1] + offsetX),
+                                       Math.round(gameSpaceMouseDownP[1] - localOffset[0] + offsetY)];
+
+        var wire = selectedObj.object;
+        wire.rotate(this);
+    }
+
+    var ox = gameSpaceMouseDownP[0] - gameSpaceMouseDownP[1] + offsetX;
+    var oy = gameSpaceMouseDownP[1] + gameSpaceMouseDownP[0] + offsetY;
+    gameSpaceMouseDownP[0] = draggingPoint[0] - (ox - Math.round(ox));
+    gameSpaceMouseDownP[1] = draggingPoint[1] - (oy - Math.round(oy));
+
+    selectedObjects.setOffset([0, 0]);
+    for (i = 0; i < selectedObjects.objects.length; i += 1)
+    {
+        selectedObj = selectedObjects.objects[i];
+        selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
+    }
+    selectedObjects.connectionMapDirty = true;
 };
 
 Breadboard.prototype.addComponent = function addComponent(component)
 {
-    this.componentsList.push(component);
     var outputs = component.getConnections(this);
     var i;
+    for (i = 0; i < outputs.length; i += 1)
+    {
+        var connection = this.findConnection(outputs[i]);
+        if (connection && connection.component)
+        {
+            throw new Error("Adding component to a connection which already has a component!");
+        }
+    }
+    this.componentsList.push(component);
     for (i = 0; i < outputs.length; i += 1)
     {
         this.emplaceConnection(outputs[i]).setComponent(outputs[i], component);
@@ -1196,6 +1693,91 @@ Breadboard.prototype.addComponent = function addComponent(component)
     if (component.type === ComponentTypes.BATTERY)
     {
         this.batteries.push(component);
+    }
+
+    this.gameStage.addHitbox(component.hitbox);
+    return true;
+};
+
+Breadboard.prototype.updateSelection = function updateSelection()
+{
+    var p0 = this.gameSpaceMouse;
+    var p1 = this.selectStart;
+    var i;
+
+    var selectedObjects = this.selectedObjects;
+    var selectedWires = selectedObjects.wires;
+    if (p1[0] === p0[0] && p1[1] === p0[1])
+    {
+        for (i = 0; i < selectedWires.length; i += 1)
+        {
+            var object = selectedWires[i].object;
+            if (object.distance(p0[0], p0[1]) == 0.0)
+            {
+                this.shouldSwitch = false;
+                if (this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+                {
+                    selectedWires.splice(i, 1);
+                    return;
+                }
+            }
+        }
+    }
+    if (p1[0] === -1 && p1[1] === -1)
+    {
+        return;
+    }
+    this.shouldSwitch = false;
+
+    var selectedObj;
+
+    var x0 = this.selectStart[0];
+    var y0 = this.selectStart[1];
+    var x1 = this.gameSpaceMouse[0];
+    var y1 = this.gameSpaceMouse[1];
+
+    var border = Component.border + Component.borderLineWidth * 0.5;
+
+    var cx0 = Math.ceil(Math.min(x0, x1) - border);
+    var cy0 = Math.ceil(Math.min(y0, y1) - border);
+    var cx1 = Math.floor(Math.max(x0, x1) + border);
+    var cy1 = Math.floor(Math.max(y0, y1) + border);
+
+    var componentsList = this.componentsList;
+    for (i = 0; i < componentsList.length; i += 1)
+    {
+        component = componentsList[i];
+        var c0 = component.p0;
+        var c1 = component.p1;
+        var minx = Math.min(c0[0], c1[0]);
+        var miny = Math.min(c0[1], c1[1]);
+        var maxx = Math.max(c0[0], c1[0]);
+        var maxy = Math.max(c0[1], c1[1]);
+        if (maxx >= cx0 && cx1 >= minx &&
+            maxy >= cy0 && cy1 >= miny)
+        {
+            selectedObjects.addObject(component);
+        }
+    }
+
+    var wires = this.wires;
+    for (i = 0; i < wires.length; i += 1)
+    {
+        var wire = wires[i];
+        if (wire.boxOverlap(x0, y0, x1, y1))
+        {
+            selectedObjects.addObject(wire);
+        }
+    }
+
+    var buses = this.buses;
+    for (i = 0; i < buses.length; i += 1)
+    {
+        var bus = buses[i];
+        if (bus.boxOverlap(x0, y0, x1, y1))
+        {
+            selectedObjects.addObject(bus);
+        }
     }
 };
 
@@ -1249,7 +1831,51 @@ Breadboard.prototype.removeComponent = function removeComponent(component)
     }
     this.dirty = true;
 
+    Component.removeHitbox(this, component);
     return true;
+};
+
+Breadboard.prototype.getComponentFromMouse = function getComponentFromMouse(p)
+{
+    var q;
+    var hitbox;
+    if (!this.mouseOverGameStage)
+    {
+        q = this.tray.gameStage.toView(p);
+        hitbox = this.tray.gameStage.findHitbox(q[0], q[1]);
+        if (hitbox && hitbox.data)
+        {
+            return hitbox.data;
+        }
+        return null;
+    }
+
+    q = this.gameStage.toView(p);
+    var buses = this.buses;
+    var i;
+    for (i = 0; i < buses.length; i += 1)
+    {
+        var bus = buses[i];
+        if (bus.distance(q[0], q[1]) < 0.05)
+        {
+            return bus;
+        }
+    }
+    var wires = this.wires;
+    for (i = 0; i < wires.length; i += 1)
+    {
+        var wire = wires[i];
+        if (wire.distance(q[0], q[1]) < 0.05)
+        {
+            return wire;
+        }
+    }
+    hitbox = this.gameStage.findHitbox(q[0], q[1]);
+    if (hitbox && hitbox.data)
+    {
+        return hitbox.data;
+    }
+    return null;
 };
 
 Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
@@ -1262,22 +1888,48 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         return;
     }
 
+    this.removeFocus();
+
+    var component = this.getComponentFromMouse(p);
+    if (component)
+    {
+        if ((this.state !== Breadboard.state.DRAG) && this.onComponentMouseDown(component, p, button))
+        {
+            return;
+        }
+    }
     if (!this.mouseOverGameStage)
     {
         return;
     }
 
-    p = this.gameStage.toView(p);
-    p = this.getPosition(p);
+    q = this.gameStage.toView(p);
+    if (this.state === Breadboard.state.MOVE)
+    {
+        if (!component)
+        {
+            this.shouldSwitch = false;
+            if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
+            {
+                this.selectStart = [q[0], q[1]];
+            }
+            if (!this.stage.isKeyDown(BaseKeyCodeMap.SHIFT))
+            {
+                this.selectedObjects.clear();
+            }
+        }
+    }
+    q = this.getPosition(q);
+
     if (this.state !== Breadboard.state.ADD_WIRE)
     {
         return;
     }
 
-    if (this.validPosition(p))
+    if (this.validPosition(q))
     {
         this.state = Breadboard.state.PLACING_WIRE;
-        this.wireStart = p;
+        this.wireStart = q;
     }
 };
 
@@ -1289,9 +1941,19 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
         return;
     }
 
-    if (this.state === Breadboard.state.DRAG_COMPONENT)
+    if (this.state === Breadboard.state.DRAG)
     {
-        this._onComponentMouseUp(p, button);
+        this.onComponentMouseUp(p, button);
+        return;
+    }
+
+    var component = this.getComponentFromMouse(p);
+    if (component)
+    {
+        if (this.onComponentMouseUp(p, button))
+        {
+            return;
+        }
     }
 
     if (!this.mouseOverGameStage)
@@ -1300,7 +1962,14 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
     }
 
     p = this.gameStage.toView(p);
-    if (this.state === Breadboard.state.PLACING_WIRE)
+    this.gameSpaceMouse = [p[0], p[1]];
+
+    if (this.state === Breadboard.state.MOVE)
+    {
+        this.updateSelection();
+        this.selectStart = [-1, -1];
+    }
+    else if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.wirePlaceUpdate(p, false);
         this.state = Breadboard.state.ADD_WIRE;
@@ -1315,6 +1984,8 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 {
     this.mouseOverGameStage = gameSpace;
 
+    this.gameSpaceMouse = this.gameStage.toView(p);
+
     if (this.isScrolling)
     {
         var delta = [p[0] - this.scrollGrab[0], p[1] - this.scrollGrab[1]];
@@ -1324,23 +1995,26 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
-        p = this.gameStage.toView(p);
-        this.wirePlaceUpdate(p, true);
+        this.wirePlaceUpdate(this.gameSpaceMouse, true);
     }
     else if (this.state === Breadboard.state.REMOVE_WIRE)
     {
-        p = this.gameStage.toView(p);
-        this.wireRemoveUpdate(p, true);
+        this.wireRemoveUpdate(this.gameSpaceMouse, true);
     }
-    else if (this.state === Breadboard.state.DRAG_COMPONENT)
+
+    if (this.mouseDownComponent)
     {
-        this.draggingComponentUpdate(p);
+        this.mouseDownComponentsUpdate(p);
     }
 };
 
 Breadboard.prototype.onWheel = function onWheel(deltaY)
 {
     this.gameStage.zoomDelta(-deltaY);
+};
+
+Breadboard.prototype.onKeyUp = function onKeyUp(key, keyCode)
+{
 };
 
 Breadboard.prototype.onKeyDown = function onKeyDown(key, keyCode)

@@ -1,7 +1,8 @@
 
 function DebuggerComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.powerId = [];
     this.powerP = [-1, -1];
@@ -18,12 +19,14 @@ function DebuggerComponent(breadboard)
 
     this.previousValue = 0;
     this.value = 0;
+    this.valueSelected = true;
     this.debugType = DebuggerComponent.debugType.WRITE;
 
     this.pulsePaths = [];
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
+Component.addComponentFunctions(DebuggerComponent);
 
 DebuggerComponent.debugType = {
     WRITE: 1,
@@ -36,7 +39,7 @@ DebuggerComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.DEBUGGER,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation,
         value: this.value,
         debugType: this.debugType
@@ -54,7 +57,7 @@ DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
 
     this.powerP = [p[0], p[1]];
     this.powerId = breadboard.getIndex(p[0], p[1]);
@@ -66,6 +69,8 @@ DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
         this.pinId[i] = breadboard.getIndex(this.pinP[i][0], this.pinP[i][1]);
     }
 
+    this.p1 = this.pinP[7];
+
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.pinP[7]);
 };
@@ -73,7 +78,8 @@ DebuggerComponent.prototype.move = function move(breadboard, p, rotation)
 DebuggerComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new DebuggerComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.value = this.value;
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -99,7 +105,7 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
 
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {
@@ -127,7 +133,7 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
         ctx.fill();
     }
 
-    Component.containerPath(drawOptions, ctx, bgColor, p, pinP[7]);
+    Component.containerPath(ctx, bgColor, p, pinP[7]);
     ctx.stroke();
 
     var color;
@@ -146,11 +152,11 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.fillStyle = "#FFFFFF";
     var textBox0 = AddTransformedVector(p, rotationMatrix, [6, 0]);
     var textBox1 = AddTransformedVector(p, rotationMatrix, [1, 0]);
-    Component.containerPath(drawOptions, ctx, bgColor, textBox0, textBox1);
+    Component.containerPath(ctx, bgColor, textBox0, textBox1);
     ctx.fill();
     ctx.stroke();
 
-    var textPos = AddTransformedVector(p, rotationMatrix, [5.9, 0.0])
+    var textPos = AddTransformedVector(p, rotationMatrix, [5.9, 0.0]);
     if (this.rotation !== 2)
     {
         ctx.save();
@@ -220,10 +226,6 @@ DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.lineCap = "butt";
 };
 
-DebuggerComponent.prototype.reset = function reset()
-{
-};
-
 DebuggerComponent.prototype.update = function update(breadboard)
 {
     if (this.debugType === DebuggerComponent.debugType.READ)
@@ -252,7 +254,7 @@ DebuggerComponent.prototype.getConnections = function getConnections(breadboard)
     }
     for (i = 0; i < 7; i += 1)
     {
-        var screenP = AddTransformedVector(this.p, rotationMatrix, [i + 1, 0]);
+        var screenP = AddTransformedVector(this.p0, rotationMatrix, [i + 1, 0]);
         connections.push(breadboard.getIndex(screenP[0], screenP[1]));
     }
     return connections;
@@ -267,6 +269,11 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
     }
     if (keyCode === 8)
     {
+        if (this.valueSelected)
+        {
+            this.value = 0;
+        }
+
         this.value = (this.value / 10) | 0;
     }
     else if (key === "+")
@@ -279,12 +286,18 @@ DebuggerComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyC
     }
     else if (key === "0" || (key | 0) !== 0)
     {
+        if (this.valueSelected)
+        {
+            this.value = 0;
+        }
         this.value = (this.value + key) | 0;
     }
     else
     {
         return;
     }
+
+    this.valueSelected = false;
 
     if (this.value < 0 || this.value > 255)
     {
@@ -333,7 +346,7 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
 DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
 {
     var rotationMatrix = RotationMatrix[this.rotation];
-    var configure = AddTransformedVector(this.p, rotationMatrix, [7, 0]);
+    var configure = AddTransformedVector(this.p0, rotationMatrix, [7, 0]);
     if (p[0] === configure[0] && p[1] === configure[1])
     {
         if (this.debugType === DebuggerComponent.debugType.WRITE)
@@ -356,13 +369,14 @@ DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
         return;
     }
 
-    var screen0 = AddTransformedVector(this.p, rotationMatrix, [1, 0]);
-    var screen1 = AddTransformedVector(this.p, rotationMatrix, [6, 0]);
+    var screen0 = AddTransformedVector(this.p0, rotationMatrix, [1, 0]);
+    var screen1 = AddTransformedVector(this.p0, rotationMatrix, [6, 0]);
     var min = [Math.min(screen0[0], screen1[0]), Math.min(screen0[1], screen1[1])];
     var max = [Math.max(screen0[0], screen1[0]), Math.max(screen0[1], screen1[1])];
     if (p[0] >= min[0] && p[0] <= max[0] && p[1] >= min[1] && p[1] <= max[1])
     {
         breadboard.takeFocus(this, this.onKeyDown.bind(this));
+        this.valueSelected = true;
     }
 };
 
@@ -421,9 +435,4 @@ DebuggerComponent.prototype.isConnected = function isConnected(id0, id1)
             return this.value & (1 << (7 - i));
         }
     }
-};
-
-DebuggerComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

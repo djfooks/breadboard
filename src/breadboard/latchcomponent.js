@@ -1,7 +1,8 @@
 
 function LatchComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.baseId = -1;
     this.baseP = [-1, -1];
@@ -23,8 +24,9 @@ function LatchComponent(breadboard)
 
     this.pulsePaths = [];
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
+Component.addComponentFunctions(LatchComponent);
 
 LatchComponent.prototype.type = ComponentTypes.LATCH;
 
@@ -32,20 +34,16 @@ LatchComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.LATCH,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation
     };
-};
-
-LatchComponent.prototype.stateFromJson = function stateFromJson(json)
-{
 };
 
 LatchComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
 
     this.outP0 = [p[0], p[1]];
     this.outId0 = breadboard.getIndex(p[0], p[1]);
@@ -62,6 +60,8 @@ LatchComponent.prototype.move = function move(breadboard, p, rotation)
     this.signalP1 = AddTransformedVector(p, matrix, [1, 2]);
     this.signalId1 = breadboard.getIndex(this.signalP1[0], this.signalP1[1]);
 
+    this.p1 = this.signalP1;
+
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.signalP1);
 };
@@ -69,7 +69,7 @@ LatchComponent.prototype.move = function move(breadboard, p, rotation)
 LatchComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new LatchComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -86,12 +86,14 @@ LatchComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     var p1Component = breadboard.getComponent(p1);
     var p2Component = breadboard.getComponent(p2);
     var p3Component = breadboard.getComponent(p3);
+    var p4Component = breadboard.getComponent(p4);
 
     var isValid = true;
     isValid = isValid && breadboard.validPosition(p0) && (!p0Component || p0Component === this);
     isValid = isValid && breadboard.validPosition(p1) && (!p1Component || p1Component === this);
     isValid = isValid && breadboard.validPosition(p2) && (!p2Component || p2Component === this);
     isValid = isValid && breadboard.validPosition(p3) && (!p3Component || p3Component === this);
+    isValid = isValid && breadboard.validPosition(p4) && (!p4Component || p4Component === this);
     return isValid;
 };
 
@@ -105,7 +107,7 @@ LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
 
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {
@@ -155,7 +157,7 @@ LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     }
     ctx.stroke();
 
-    Component.containerPath(drawOptions, ctx, bgColor, outP0, signalP1);
+    Component.containerPath(ctx, bgColor, outP0, signalP1);
     ctx.stroke();
 
     var color;
@@ -187,10 +189,6 @@ LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
         ctx.lineTo(outP0[0], outP0[1]);
     }
     ctx.stroke();
-};
-
-LatchComponent.prototype.reset = function reset()
-{
 };
 
 LatchComponent.prototype.update = function update(breadboard)
@@ -261,10 +259,6 @@ LatchComponent.prototype.getConnections = function getConnections()
     return [this.baseId, this.outId0, this.outId1, this.signalId0, this.signalId1];
 };
 
-LatchComponent.prototype.toggle = function toggle()
-{
-};
-
 LatchComponent.prototype.getOutputs = function getOutputs(id)
 {
     if (id === this.baseId)
@@ -307,9 +301,4 @@ LatchComponent.prototype.isConnected = function isConnected(id0, id1)
         }
     }
     return false;
-};
-
-LatchComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

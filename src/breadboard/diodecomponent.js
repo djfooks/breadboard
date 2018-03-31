@@ -1,8 +1,6 @@
 
 function DiodeComponent(breadboard)
 {
-    this.p = [-1, -1];
-
     this.id0 = -1;
     this.p0 = [-1, -1];
 
@@ -12,15 +10,16 @@ function DiodeComponent(breadboard)
     this.rotation = 0;
     this.pulsePaths = [];
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
+Component.addComponentFunctions(DiodeComponent);
 
 DiodeComponent.prototype.type = ComponentTypes.DIODE;
 
 DiodeComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
     var matrix = RotationMatrix[this.rotation];
 
     this.p0 = [p[0], p[1]];
@@ -36,7 +35,7 @@ DiodeComponent.prototype.move = function move(breadboard, p, rotation)
 DiodeComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new DiodeComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -44,13 +43,9 @@ DiodeComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.DIODE,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation
     };
-};
-
-DiodeComponent.prototype.stateFromJson = function stateFromJson(json)
-{
 };
 
 DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
@@ -76,7 +71,7 @@ DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     var rotationMatrix = RotationMatrix[this.rotation];
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {
@@ -106,7 +101,7 @@ DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
     ctx.lineTo(arrowRight0[0], arrowRight0[1]);
     ctx.stroke();
 
-    Component.containerPath(drawOptions, ctx, bgColor, p0, p1);
+    Component.containerPath(ctx, bgColor, p0, p1);
     ctx.stroke();
 
     var value0 = drawOptions.getConnectionValue(this.id0);
@@ -114,18 +109,6 @@ DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgCo
 
     Component.drawFgNode(ctx, fgColor, value0, p0);
     Component.drawFgNode(ctx, fgColor, value1, p1);
-};
-
-DiodeComponent.prototype.reset = function reset()
-{
-};
-
-DiodeComponent.prototype.update = function update()
-{
-};
-
-DiodeComponent.prototype.toggle = function toggle()
-{
 };
 
 DiodeComponent.prototype.getConnections = function getConnections()
@@ -157,9 +140,4 @@ DiodeComponent.prototype.isConnected = function isConnected(id0, id1)
         return false;
     }
     throw new Error();
-};
-
-DiodeComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

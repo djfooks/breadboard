@@ -1,27 +1,26 @@
 
 function SwitchComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
+    this.p1 = [-1, -1];
 
     this.id0 = -1;
-    this.p0 = [-1, -1];
-
     this.id1 = -1;
-    this.p1 = [-1, -1];
 
     this.connected = false;
     this.rotation = 0;
     this.pulsePaths = [];
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
+Component.addComponentFunctions(SwitchComponent);
 
 SwitchComponent.prototype.type = ComponentTypes.SWITCH;
 
 SwitchComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
     var matrix = RotationMatrix[this.rotation];
 
     this.p0 = [p[0], p[1]];
@@ -30,7 +29,6 @@ SwitchComponent.prototype.move = function move(breadboard, p, rotation)
     this.p1 = AddTransformedVector(this.p0, matrix, [0, 1]);
     this.id1 = breadboard.getIndex(this.p1[0], this.p1[1]);
 
-
     this.pulsePaths = [];
     Component.updateHitbox(this, p, this.p1);
 };
@@ -38,7 +36,8 @@ SwitchComponent.prototype.move = function move(breadboard, p, rotation)
 SwitchComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new SwitchComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.connected = this.connected;
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -46,7 +45,7 @@ SwitchComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.SWITCH,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation,
         connected: this.connected
     };
@@ -82,7 +81,7 @@ SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgC
 
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {
@@ -112,7 +111,7 @@ SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgC
         ctx.stroke();
     }
 
-    Component.containerPath(drawOptions, ctx, bgColor, p0, p1);
+    Component.containerPath(ctx, bgColor, p0, p1);
     ctx.stroke();
 
     var value0 = drawOptions.getConnectionValue(this.id0);
@@ -131,14 +130,6 @@ SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgC
         ctx.lineTo(p1[0], p1[1]);
         ctx.stroke();
     }
-};
-
-SwitchComponent.prototype.reset = function reset()
-{
-};
-
-SwitchComponent.prototype.update = function update()
-{
 };
 
 SwitchComponent.prototype.toggle = function toggle()
@@ -195,9 +186,4 @@ SwitchComponent.prototype.isConnected = function isConnected(id0, id1)
         return true;
     }
     throw new Error();
-};
-
-SwitchComponent.prototype.getBusPosition = function getBusPosition()
-{
-    return null;
 };

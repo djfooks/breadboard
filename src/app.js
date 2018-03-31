@@ -110,12 +110,12 @@ App.prototype.debugInfo = function debugInfo(str)
 {
     this.debugMsg += str + "<br>";
     document.getElementById("debugText").innerHTML = this.debugMsg;
-}
+};
 
 App.prototype.onError = function onError(message, source, lineno, colno, error)
 {
     this.debugInfo("Error: " + source + ":" + lineno + " " + message);
-}
+};
 
 App.prototype.save = function save()
 {
@@ -126,6 +126,6 @@ App.prototype.save = function save()
         var jsonStr = JSON.stringify(json);
         window.localStorage.setItem("breadboard", jsonStr);
     }
-}
+};
 
-new App();
+var app = new App();

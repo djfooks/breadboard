@@ -1,7 +1,8 @@
 
 function BusInputComponent(breadboard)
 {
-    this.p = [-1, -1];
+    this.p0 = [-1, -1];
+    this.p1 = this.p0;
 
     this.busId = -1;
     this.busP = [-1, -1];
@@ -17,8 +18,9 @@ function BusInputComponent(breadboard)
 
     this.signalValue = false;
 
-    Component.addHitbox(breadboard, this);
+    this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
+Component.addComponentFunctions(BusInputComponent);
 
 BusInputComponent.prototype.type = ComponentTypes.BUS_INPUT;
 
@@ -26,7 +28,7 @@ BusInputComponent.prototype.toJson = function toJson()
 {
     return {
         type: ComponentTypes.BUS_INPUT,
-        p: this.p,
+        p0: this.p0,
         rotation: this.rotation,
         busKey: this.busKey
     };
@@ -41,7 +43,7 @@ BusInputComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
     var matrix = RotationMatrix[this.rotation];
-    this.p = [p[0], p[1]];
+    this.p0 = [p[0], p[1]];
 
     this.busP = [p[0], p[1]];
     this.busId = breadboard.getIndex(p[0], p[1]);
@@ -52,13 +54,16 @@ BusInputComponent.prototype.move = function move(breadboard, p, rotation)
     this.signalP = AddTransformedVector(p, matrix, [0, 2]);
     this.signalId = breadboard.getIndex(this.signalP[0], this.signalP[1]);
 
+    this.p1 = this.signalP;
+
     Component.updateHitbox(this, p, this.signalP);
 };
 
 BusInputComponent.prototype.clone = function clone(breadboard)
 {
     var cloneComponent = new BusInputComponent(breadboard);
-    cloneComponent.move(breadboard, this.p, this.rotation);
+    cloneComponent.busKey = this.busKey;
+    cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
 };
 
@@ -90,7 +95,7 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
 
     if (!p)
     {
-        p = this.p;
+        p = this.p0;
     }
     else
     {
@@ -122,11 +127,11 @@ BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, f
     ctx.arc(signalP[0], signalP[1], radius, 0, Math.PI * 2.0);
     ctx.fill();
 
-    Component.containerPath(drawOptions, ctx, bgColor, busP, signalP);
+    Component.containerPath(ctx, bgColor, busP, signalP);
     ctx.stroke();
 
     ctx.fillStyle = "#FFFFFF";
-    Component.containerPath(drawOptions, ctx, bgColor, settingP, settingP);
+    Component.containerPath(ctx, bgColor, settingP, settingP);
     ctx.fill();
     ctx.stroke();
 
@@ -163,6 +168,11 @@ BusInputComponent.prototype.getConnections = function getConnections()
     return [this.busId, this.settingId, this.signalId];
 };
 
+BusInputComponent.prototype.getOutputs = function getOutputs(id)
+{
+    return [];
+};
+
 BusInputComponent.prototype.toggle = function toggle(breadboard, p)
 {
     var settingP = this.settingP;
@@ -170,16 +180,6 @@ BusInputComponent.prototype.toggle = function toggle(breadboard, p)
     {
         breadboard.takeFocus(this, this.onKeyDown.bind(this));
     }
-};
-
-BusInputComponent.prototype.getOutputs = function getOutputs(id)
-{
-    return [];
-};
-
-BusInputComponent.prototype.isConnected = function isConnected(id0, id1)
-{
-    return false;
 };
 
 BusInputComponent.prototype.onKeyDown = function onKeyDown(breadboard, key, keyCode)

@@ -8,28 +8,20 @@ var ComponentTypes = {
     BUS_INPUT: 6,
     BUS_OUTPUT: 7,
     LATCH: 8,
+    WIRE: 9,
+    BUS: 10,
 };
 
 var Component = {};
 
 Component.border = 0.45;
+Component.selectionBorder = 0.55;
 Component.borderLineWidth = 0.05;
 
-Component.addHitbox = function addHitbox(breadboard, component)
+Component.removeHitbox = function removeHitbox(breadboard, component)
 {
-    var hitbox = component.hitbox = new Hitbox(0, 0, 0, 0);
-
-    hitbox.onMouseDown = breadboard.onComponentMouseDown.bind(breadboard, component);
-    hitbox.onMouseUp = breadboard.onComponentMouseUp.bind(breadboard, component);
-};
-
-Component.remove = function remove(breadboard, component)
-{
-    breadboard.stage.removeHitbox(component.hitbox);
     breadboard.gameStage.removeHitbox(component.hitbox);
-    component.hitbox.onMouseDown = null;
-    component.hitbox.onMouseUp = null;
-    component.hitbox = null;
+    component.hitbox.clearCallbacks();
 };
 
 Component.updateHitbox = function updateHitbox(component, p0, p1)
@@ -45,9 +37,8 @@ Component.updateHitbox = function updateHitbox(component, p0, p1)
     hitbox.maxY = max[1] + border;
 };
 
-Component.containerPath = function containerPath(drawOptions, ctx, bgColor, p0, p1)
+Component.drawContainerPath = function containerPath(ctx, bgColor, p0, p1, border)
 {
-    var border = Component.border;
     var min = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1])];
     var max = [Math.max(p0[0], p1[0]), Math.max(p0[1], p1[1])];
     var x0 = min[0] - border;
@@ -65,6 +56,11 @@ Component.containerPath = function containerPath(drawOptions, ctx, bgColor, p0, 
     ctx.lineTo(x0, y0);
 };
 
+Component.containerPath = function containerPath(ctx, bgColor, p0, p1)
+{
+    this.drawContainerPath(ctx, bgColor, p0, p1, Component.border);
+};
+
 Component.connectionFgRadius = 0.25;
 Component.connectionBgRadius = 0.30;
 
@@ -75,9 +71,24 @@ Component.drawFgNode = function drawFgNode(ctx, fgColor, value0, p)
     ctx.beginPath();
     ctx.arc(p[0], p[1], Component.connectionFgRadius, 0, Math.PI * 2);
     ctx.fill();
-}
+};
 
-Component.getGrabPoint = function getGrabPoint(component, p)
+Component.addComponentFunctions = function addComponentFunctions(componentType)
 {
-    return [component.p[0] - p[0], component.p[1] - p[1]];
+    componentType.prototype.drawSelection = function drawSelection(ctx, color)
+    {
+        Component.drawContainerPath(ctx, color, this.p0, this.p1, Component.selectionBorder);
+        ctx.stroke();
+    };
+    componentType.prototype.getPosition = function getPosition()
+    {
+        return [this.p0[0], this.p0[1]];
+    };
+    componentType.prototype.isWire = function isWire() { return false; };
+    componentType.prototype.stateFromJson = function stateFromJson(json) {};
+    componentType.prototype.reset = function reset() {};
+    componentType.prototype.update = function update() {};
+    componentType.prototype.toggle = function toggle() {};
+    componentType.prototype.isConnected = function isConnected(id0, id1) { return false; };
+    componentType.prototype.getBusPosition = function getBusPosition() { return null; };
 };
