@@ -87,7 +87,8 @@ var App = function ()
 
 App.prototype.update = function update()
 {
-    if (TextureManager.loading())
+    if (TextureManager.loading() ||
+        this.shadersLoading > 0)
     {
         return;
     }
@@ -95,6 +96,7 @@ App.prototype.update = function update()
     if (this.loading)
     {
         this.loading = false;
+        this.postLoad();
         this.breadboard.postLoad();
     }
 
@@ -115,63 +117,39 @@ App.prototype.updateGame = function updateGame()
 
 };
 
-App.prototype.initWebGL = function initWebGL()
+App.prototype.loadShader = function loadShader(vertex_url, fragment_url, onLoad, onProgress, onError) {
+    this.shadersLoading += 1;
+
+    var vertex_loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
+    vertex_loader.setResponseType('text');
+    vertex_loader.load(vertex_url, function (vertex_text)
+    {
+        var fragment_loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
+        fragment_loader.setResponseType('text');
+        fragment_loader.load(fragment_url, function (fragment_text)
+        {
+            onLoad(vertex_text, fragment_text);
+            this.shadersLoading -= 1;
+        });
+    }, onProgress, onError);
+};
+
+App.prototype.postLoad = function postLoad()
 {
-    // this.scene = new THREE.Scene();
-
-    // this.geometry = new THREE.BoxBufferGeometry( 0.75, 0.75, 0.75 );
-
-    // var mesh = new THREE.Mesh(this.geometry, this.material);
-
-    // this.scene.add(mesh);
-
-    // this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
-    // this.renderer.setPixelRatio( window.devicePixelRatio );
-
-    var  renderer = new THREE.WebGLRenderer({canvas: this.canvas});
-
-    // There's no reason to set the aspect here because we're going
-    // to set it every frame any
-
-    var aspect = this.canvas.width / this.canvas.height;
-    var frustumSize = 600;
-
-    var  camera = new THREE.OrthographicCamera(-1, 1, -1, 1, 0, 5);
-    camera.position.z = 2;
-
-    var scene = new THREE.Scene();
     var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
-
-    var vertexShaderStr = `
-            varying vec2 vUv;
-            void main()
-            {
-                vUv = uv;
-                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0 );
-                gl_Position = projectionMatrix * mvPosition;
-            }
-    `;
-
-    var fragmentShaderStr = `
-            varying vec2 vUv;
-            void main( void ) {
-                gl_FragColor = vec4( 0.5 - vUv.y * 0.5, vUv.x, vUv.y, 1.0 );
-            }
-    `;
-
-    var material = new THREE.ShaderMaterial({
+    this.material = new THREE.ShaderMaterial({
         uniforms: {},
-        vertexShader: vertexShaderStr,
-        fragmentShader: fragmentShaderStr
+        vertexShader: this.vertexShader,
+        fragmentShader: this.fragmentShader
     });
-
-    var mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+    var mesh = new THREE.Mesh(geometry, this.material);
+    this.scene.add(mesh);
 
     var light1 = new THREE.PointLight(0xff80C0, 2, 0);
     light1.position.set(200, 100, 300);
-    scene.add(light1);
+    this.scene.add(light1);
 
+    var that = this;
     function animate(time)
     {
         time *= 0.001;  // seconds
@@ -179,11 +157,30 @@ App.prototype.initWebGL = function initWebGL()
         mesh.rotation.x = time * 0.5;
         mesh.rotation.y = time * 1;
 
-        renderer.render(scene, camera);
+        that.renderer.render(that.scene, that.camera);
         requestAnimationFrame(animate);
     }
 
     requestAnimationFrame(animate);
+};
+
+App.prototype.initWebGL = function initWebGL()
+{
+    this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
+
+    this.camera = new THREE.OrthographicCamera(-1, 1, -1, 1, 0, 5);
+    this.camera.position.z = 2;
+
+    this.scene = new THREE.Scene();
+
+    var that = this;
+    this.vertexShader = "";
+    this.fragmentShader = "";
+    this.loadShader("src/shaders/shader.vert", "src/shaders/shader.frag", function (vertex_text, fragment_text)
+    {
+        that.vertexShader = vertex_text;
+        that.fragmentShader = fragment_text;
+    });
 };
 
 App.prototype.debugInfo = function debugInfo(str)
