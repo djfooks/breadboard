@@ -140,43 +140,75 @@ App.prototype.postLoad = function postLoad()
 
     var geometry = new THREE.BufferGeometry();
 
-    var vertices = new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
+    var maxNumWires = 100;
+    var indicesArray = new Uint16Array(maxNumWires * 6);
+    var verticesArray = new Uint8Array(maxNumWires * 8);
+    var i;
+    var index;
+    var vertexIndex;
+    var vertex;
+    for (i = 0; i < maxNumWires; i += 1)
+    {
+        index = i * 6;
+        vertexIndex = i * 4;
+        indicesArray[index + 0] = vertexIndex + 0;
+        indicesArray[index + 1] = vertexIndex + 1;
+        indicesArray[index + 2] = vertexIndex + 2;
+        indicesArray[index + 3] = vertexIndex + 2;
+        indicesArray[index + 4] = vertexIndex + 3;
+        indicesArray[index + 5] = vertexIndex + 0;
 
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0
-    ]);
+        vertex = i * 8;
+        verticesArray[vertex + 0] = 0;
+        verticesArray[vertex + 1] = 0;
+        verticesArray[vertex + 2] = 1;
+        verticesArray[vertex + 3] = 0;
+        verticesArray[vertex + 4] = 1;
+        verticesArray[vertex + 5] = 1;
+        verticesArray[vertex + 6] = 0;
+        verticesArray[vertex + 7] = 1;
+    }
 
-    var p1 = [0.0, 0.0];
-    var k = 5;
-    var p2 = [p1[0] + k, p1[1]];
+    var indices = new THREE.BufferAttribute(indicesArray, 1);
 
-    var p1s = new Float32Array([
-         p1[0], p1[1],
-         p1[0], p1[1],
-         p1[0], p1[1],
+    var wires = [];
+    wires.push(0, 0, 0, 5);
+    wires.push(0, 0, 5, 5);
 
-         p1[0], p1[1],
-         p1[0], p1[1],
-         p1[0], p1[1]
-    ]);
+    var numWires = wires.length / 4;
 
-    var p2s = new Float32Array([
-         p2[0], p2[1],
-         p2[0], p2[1],
-         p2[0], p2[1],
+    var p1s = new Int16Array(numWires * 8);
+    var p2s = new Int16Array(numWires * 8);
+    var wireIndex;
 
-         p2[0], p2[1],
-         p2[0], p2[1],
-         p2[0], p2[1]
-    ]);
+    for (i = 0; i < numWires; i += 1)
+    {
+        index = i * 8;
+        wireIndex = i * 4;
+        p1s[index + 0] = wires[wireIndex + 0];
+        p1s[index + 1] = wires[wireIndex + 1];
+        p1s[index + 2] = wires[wireIndex + 0];
+        p1s[index + 3] = wires[wireIndex + 1];
+        p1s[index + 4] = wires[wireIndex + 0];
+        p1s[index + 5] = wires[wireIndex + 1];
+        p1s[index + 6] = wires[wireIndex + 0];
+        p1s[index + 7] = wires[wireIndex + 1];
 
-    geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 2));
+        p2s[index + 0] = wires[wireIndex + 2];
+        p2s[index + 1] = wires[wireIndex + 3];
+        p2s[index + 2] = wires[wireIndex + 2];
+        p2s[index + 3] = wires[wireIndex + 3];
+        p2s[index + 4] = wires[wireIndex + 2];
+        p2s[index + 5] = wires[wireIndex + 3];
+        p2s[index + 6] = wires[wireIndex + 2];
+        p2s[index + 7] = wires[wireIndex + 3];
+    }
+
+    geometry.setIndex(indices);
+    geometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
     geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 2));
     geometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 2));
+    geometry.setDrawRange(0, 6 * numWires);
 
     geometry.boundingSphere = new THREE.Sphere();
     geometry.boundingSphere.radius = 99999;
