@@ -17,14 +17,10 @@ void main()
 
     vec2 n = p1 - p2;
     n = normalize(n);
+    vec2 m = vec2(n.y, -n.x);
 
-    vec2 q1 = p1;
-    vec2 q2 = p2;
-    q1 += n;
-    q2 -= n;
-
-    vec2 p = vec2(mix(q1.x, q2.x, position.x * 0.5 + 0.5),
-                  mix(q1.y, q2.y, position.y * 0.5 + 0.5));
+    vec2 p = mix(p1 + n, p2 - n, position.x);
+    p += mix(-m, m, position.y);
 
     vP = p;
     vec4 mvPosition = vec4(p, 0.0, 1.0);
