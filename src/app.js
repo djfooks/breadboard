@@ -188,7 +188,7 @@ App.prototype.postLoad = function postLoad()
     geometry.boundingSphere = new THREE.Sphere();
     geometry.boundingSphere.radius = 99999;
 
-    this.material = new THREE.ShaderMaterial({
+    this.material = new THREE.RawShaderMaterial({
         uniforms: {},
         vertexShader: this.vertexShader,
         fragmentShader: this.fragmentShader,
@@ -213,7 +213,8 @@ App.prototype.initWebGL = function initWebGL()
 {
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
 
-    this.camera = new THREE.OrthographicCamera(-10, 10, -10, 10, 0, 100);
+    var aspect = canvas.width / canvas.height;
+    this.camera = new THREE.OrthographicCamera(-10 * aspect, 10 * aspect, -10, 10, 0, 100);
     this.camera.position.z = 100;
 
     this.scene = new THREE.Scene();
