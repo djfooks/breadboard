@@ -136,26 +136,46 @@ App.prototype.loadShader = function loadShader(vertex_url, fragment_url, onLoad,
 
 App.prototype.postLoad = function postLoad()
 {
-    var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
+    //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
+
+    var geometry = new THREE.BufferGeometry();
+    var h = 0.5;
+    var vertices = new Float32Array([
+        -h, -h,  0.0,
+         h, -h,  0.0,
+         h,  h,  0.0,
+
+         h,  h,  0.0,
+        -h,  h,  0.0,
+        -h, -h,  0.0
+    ]);
+
+    var uvs = new Float32Array([
+        -1.0, -1.0,
+         1.0, -1.0,
+         1.0,  1.0,
+
+         1.0,  1.0,
+        -1.0,  1.0,
+        -1.0, -1.0
+    ]);
+
+    geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+
     this.material = new THREE.ShaderMaterial({
         uniforms: {},
         vertexShader: this.vertexShader,
-        fragmentShader: this.fragmentShader
+        fragmentShader: this.fragmentShader,
+        side: THREE.DoubleSide
     });
     var mesh = new THREE.Mesh(geometry, this.material);
     this.scene.add(mesh);
-
-    var light1 = new THREE.PointLight(0xff80C0, 2, 0);
-    light1.position.set(200, 100, 300);
-    this.scene.add(light1);
 
     var that = this;
     function animate(time)
     {
         time *= 0.001;  // seconds
-
-        mesh.rotation.x = time * 0.5;
-        mesh.rotation.y = time * 1;
 
         that.renderer.render(that.scene, that.camera);
         requestAnimationFrame(animate);
