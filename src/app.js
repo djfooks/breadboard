@@ -141,18 +141,18 @@ App.prototype.postLoad = function postLoad()
     var geometry = new THREE.BufferGeometry();
 
     var vertices = new Float32Array([
-        -1.0, -1.0,
-         1.0, -1.0,
-         1.0,  1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
 
-         1.0,  1.0,
-        -1.0,  1.0,
-        -1.0, -1.0
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0
     ]);
 
-    var p1 = [5.0, 5.0];
+    var p1 = [0.0, 0.0];
     var k = 5;
-    var p2 = [p1[0] - k, p1[1] - k];
+    var p2 = [p1[0] + k, p1[1]];
 
     var p1s = new Float32Array([
          p1[0], p1[1],
