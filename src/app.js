@@ -83,12 +83,14 @@ var App = function ()
     TextureManager.request("move-enabled.png");
     TextureManager.request("truck.png");
     TextureManager.request("truck-enabled.png");
+
+    this.filesLoading = 0;
 };
 
 App.prototype.update = function update()
 {
     if (TextureManager.loading() ||
-        this.shadersLoading > 0)
+        this.filesLoading > 0)
     {
         return;
     }
@@ -117,20 +119,15 @@ App.prototype.updateGame = function updateGame()
 
 };
 
-App.prototype.loadShader = function loadShader(vertex_url, fragment_url, onLoad, onProgress, onError) {
-    this.shadersLoading += 1;
+App.prototype.loadFile = function loadFile(url, onLoad, onProgress, onError) {
+    this.filesLoading += 1;
 
     var vertex_loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
     vertex_loader.setResponseType('text');
-    vertex_loader.load(vertex_url, function (vertex_text)
+    vertex_loader.load(url, function (text)
     {
-        var fragment_loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
-        fragment_loader.setResponseType('text');
-        fragment_loader.load(fragment_url, function (fragment_text)
-        {
-            onLoad(vertex_text, fragment_text);
-            this.shadersLoading -= 1;
-        });
+        onLoad(text);
+        this.filesLoading -= 1;
     }, onProgress, onError);
 };
 
@@ -174,6 +171,8 @@ App.prototype.postLoad = function postLoad()
     var wires = [];
     wires.push(0, 0, 0, 5);
     wires.push(0, 0, 5, 5);
+    wires.push(5, 2, 2, 2);
+    wires.push(-1, -1, 2, -4);
 
     var numWires = wires.length / 4;
 
@@ -213,13 +212,42 @@ App.prototype.postLoad = function postLoad()
     geometry.boundingSphere = new THREE.Sphere();
     geometry.boundingSphere.radius = 99999;
 
-    this.material = new THREE.RawShaderMaterial({
+    this.wireCirclesBgMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            radius: { value: 0.4 },
+            color: { value: 0.0 }
+        },
+        vertexShader: this.vertexShader,
+        fragmentShader: this.wireCirclesFragmentShader,
+        side: THREE.DoubleSide
+    });
+    this.wireCirclesBgMaterial.transparent = true;
+
+    this.wireMaterial = new THREE.RawShaderMaterial({
         uniforms: {},
         vertexShader: this.vertexShader,
         fragmentShader: this.fragmentShader,
         side: THREE.DoubleSide
     });
-    var mesh = new THREE.Mesh(geometry, this.material);
+    this.wireMaterial.transparent = true;
+
+    this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            radius: { value: 0.35 },
+            color: { value: 1.0 }
+        },
+        vertexShader: this.vertexShader,
+        fragmentShader: this.wireCirclesFragmentShader,
+        side: THREE.DoubleSide
+    });
+    this.wireCirclesFgMaterial.transparent = true;
+
+    var mesh;
+    mesh = new THREE.Mesh(geometry, this.wireCirclesBgMaterial);
+    this.scene.add(mesh);
+    mesh = new THREE.Mesh(geometry, this.wireMaterial);
+    this.scene.add(mesh);
+    mesh = new THREE.Mesh(geometry, this.wireCirclesFgMaterial);
     this.scene.add(mesh);
 
     var that = this;
@@ -247,10 +275,18 @@ App.prototype.initWebGL = function initWebGL()
     var that = this;
     this.vertexShader = "";
     this.fragmentShader = "";
-    this.loadShader("src/shaders/shader.vert", "src/shaders/shader.frag", function (vertex_text, fragment_text)
+    this.wireCirclesFragmentShader = "";
+    this.loadFile("src/shaders/shader.vert", function (text)
     {
-        that.vertexShader = vertex_text;
-        that.fragmentShader = fragment_text;
+        that.vertexShader = text;
+    });
+    this.loadFile("src/shaders/shader.frag", function (text)
+    {
+        that.fragmentShader = text;
+    });
+    this.loadFile("src/shaders/wireCirclesShader.frag", function (text)
+    {
+        that.wireCirclesFragmentShader = text;
     });
 };
 
