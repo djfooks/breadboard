@@ -139,18 +139,8 @@ App.prototype.postLoad = function postLoad()
     //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
 
     var geometry = new THREE.BufferGeometry();
-    var h = 5;
+
     var vertices = new Float32Array([
-        -h, -h,
-         h, -h,
-         h,  h,
-
-         h,  h,
-        -h,  h,
-        -h, -h
-    ]);
-
-    var uvs = new Float32Array([
         -1.0, -1.0,
          1.0, -1.0,
          1.0,  1.0,
@@ -160,28 +150,31 @@ App.prototype.postLoad = function postLoad()
         -1.0, -1.0
     ]);
 
-    var p1s = new Float32Array([
-         1.0,  1.0,
-         1.0,  1.0,
-         1.0,  1.0,
+    var p1 = [5.0, 5.0];
+    var k = 5;
+    var p2 = [p1[0] - k, p1[1] - k];
 
-         1.0,  1.0,
-         1.0,  1.0,
-         1.0,  1.0
+    var p1s = new Float32Array([
+         p1[0], p1[1],
+         p1[0], p1[1],
+         p1[0], p1[1],
+
+         p1[0], p1[1],
+         p1[0], p1[1],
+         p1[0], p1[1]
     ]);
 
     var p2s = new Float32Array([
-         0.0,  0.0,
-         0.0,  0.0,
-         0.0,  0.0,
+         p2[0], p2[1],
+         p2[0], p2[1],
+         p2[0], p2[1],
 
-         0.0,  0.0,
-         0.0,  0.0,
-         0.0,  0.0
+         p2[0], p2[1],
+         p2[0], p2[1],
+         p2[0], p2[1]
     ]);
 
     geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 2));
-    geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 2));
     geometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 2));
 
