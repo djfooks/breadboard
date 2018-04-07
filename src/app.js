@@ -139,15 +139,15 @@ App.prototype.postLoad = function postLoad()
     //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
 
     var geometry = new THREE.BufferGeometry();
-    var h = 0.5;
+    var h = 5;
     var vertices = new Float32Array([
-        -h, -h,  0.0,
-         h, -h,  0.0,
-         h,  h,  0.0,
+        -h, -h,
+         h, -h,
+         h,  h,
 
-         h,  h,  0.0,
-        -h,  h,  0.0,
-        -h, -h,  0.0
+         h,  h,
+        -h,  h,
+        -h, -h
     ]);
 
     var uvs = new Float32Array([
@@ -160,8 +160,33 @@ App.prototype.postLoad = function postLoad()
         -1.0, -1.0
     ]);
 
-    geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    var p1s = new Float32Array([
+         1.0,  1.0,
+         1.0,  1.0,
+         1.0,  1.0,
+
+         1.0,  1.0,
+         1.0,  1.0,
+         1.0,  1.0
+    ]);
+
+    var p2s = new Float32Array([
+         0.0,  0.0,
+         0.0,  0.0,
+         0.0,  0.0,
+
+         0.0,  0.0,
+         0.0,  0.0,
+         0.0,  0.0
+    ]);
+
+    geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 2));
     geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 2));
+    geometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 2));
+
+    geometry.boundingSphere = new THREE.Sphere();
+    geometry.boundingSphere.radius = 99999;
 
     this.material = new THREE.ShaderMaterial({
         uniforms: {},
@@ -188,8 +213,8 @@ App.prototype.initWebGL = function initWebGL()
 {
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
 
-    this.camera = new THREE.OrthographicCamera(-1, 1, -1, 1, 0, 5);
-    this.camera.position.z = 2;
+    this.camera = new THREE.OrthographicCamera(-10, 10, -10, 10, 0, 100);
+    this.camera.position.z = 100;
 
     this.scene = new THREE.Scene();
 
