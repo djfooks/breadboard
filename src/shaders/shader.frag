@@ -1,14 +1,12 @@
 precision highp float;
 precision highp int;
 
-varying vec2 vUv;
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
 
 void main(void) {
-    // gl_FragColor = vec4(0.5 - vUv.y * 0.5, vUv.x, vUv.y, 1.0);
-
+    //gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
     vec2 offset1 = vP - vP1;
     float d1 = length(offset1);
     vec2 offset2 = vP - vP2;
