@@ -136,7 +136,7 @@ App.prototype.addGrid = function addGrid()
 
     this.gridMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            box: { value: [this.camera.left, this.camera.top, this.camera.right, this.camera.bottom] }
+            box: { value: [0.0, 0.0, 0.0, 0.0] }
         },
         vertexShader: ShaderManager.get("src/shaders/grid.vert"),
         fragmentShader: ShaderManager.get("src/shaders/grid.frag"),
@@ -277,6 +277,19 @@ App.prototype.postLoad = function postLoad()
     {
         time *= 0.001;  // seconds
 
+        var canvas = that.canvas;
+        var aspect = canvas.width / canvas.height;
+        that.breadboard.gameStage.update();
+        var size = that.breadboard.gameStage.invZoom + 1.0;
+        var offsetX = 1.23;
+        var offsetY = 2.34;
+        var camera = that.camera = new THREE.OrthographicCamera(-size * aspect + offsetX, size * aspect + offsetX, -size + offsetY, size + offsetY, 0, 100);
+        camera.position.z = 100;
+        that.feather = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
+
+        that.wireMaterial.uniforms.feather.value = that.feather;
+        that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
+
         that.renderer.render(that.scene, that.camera);
         requestAnimationFrame(animate);
     }
@@ -287,12 +300,6 @@ App.prototype.postLoad = function postLoad()
 App.prototype.initWebGL = function initWebGL()
 {
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
-
-    var aspect = canvas.width / canvas.height;
-    var size = 5.0;
-    var camera = this.camera = new THREE.OrthographicCamera(-size * aspect, size * aspect, -size, size, 0, 100);
-    this.feather = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
-    camera.position.z = 100;
 
     this.scene = new THREE.Scene();
 
