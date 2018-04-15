@@ -20,20 +20,19 @@ void main(void) {
     float minY = min(vP1.y, vP2.y);
     float maxY = max(vP1.y, vP2.y);
     const float innerWire = 0.06;
-    float outerWire = 0.063 + feather;
-    bool inOuterWire = vP.x >= minX - outerWire && vP.x <= maxX + outerWire && vP.y >= minY - outerWire && vP.y <= maxY + outerWire;
+    const float outerWire = 0.09;
+    float outerBounds = outerWire + feather;
+    bool inOuterWire = vP.x >= minX - outerBounds && vP.x <= maxX + outerBounds && vP.y >= minY - outerBounds && vP.y <= maxY + outerBounds;
 
     if (inOuterWire)
     {
-        if (dWire < innerWire)
-        {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-        }
-        else if (dWire < outerWire + feather)
-        {
-            float v = (dWire - outerWire) / feather;
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0 - v);
-        }
+        float v = (dWire - outerWire) / feather;
+        float alpha = 1.0 - v;
+
+        v = (dWire - innerWire) / feather;
+        float wireColor = 1.0 - v;
+
+        gl_FragColor = vec4(wireColor, 0.0, 0.0, alpha);
     }
     else
     {
