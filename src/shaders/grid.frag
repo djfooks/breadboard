@@ -23,7 +23,6 @@ float grid(vec2 s)
 
 void main(void)
 {
-
     vec2 q = distanceToInt(vP);
     const float every = 10.0;
     vec2 r = distanceToInt(vP / every) * every;
