@@ -136,6 +136,7 @@ App.prototype.addGrid = function addGrid()
 
     this.gridMaterial = new THREE.RawShaderMaterial({
         uniforms: {
+            feather: this.feather,
             box: { value: [0.0, 0.0, 0.0, 0.0] }
         },
         vertexShader: ShaderManager.get("src/shaders/grid.vert"),
@@ -231,8 +232,10 @@ App.prototype.postLoad = function postLoad()
     var wireVertexShader = ShaderManager.get("src/shaders/wire.vert");
     var wireCirclesFragmentShader = ShaderManager.get("src/shaders/wirecirclesshader.frag");
 
+    this.feather = { value: 0.0 };
     this.wireCirclesBgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
+            feather: this.feather,
             radius: { value: 0.4 },
             color: { value: 0.0 }
         },
@@ -244,7 +247,7 @@ App.prototype.postLoad = function postLoad()
 
     this.wireMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather : {value : this.feather }
+            feather: this.feather
         },
         vertexShader: wireVertexShader,
         fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
@@ -254,6 +257,7 @@ App.prototype.postLoad = function postLoad()
 
     this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
+            feather: this.feather,
             radius: { value: 0.35 },
             color: { value: 1.0 }
         },
@@ -285,9 +289,8 @@ App.prototype.postLoad = function postLoad()
         var offsetY = 2.34;
         var camera = that.camera = new THREE.OrthographicCamera(-size * aspect + offsetX, size * aspect + offsetX, -size + offsetY, size + offsetY, 0, 100);
         camera.position.z = 100;
-        that.feather = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
+        that.feather.value = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
 
-        that.wireMaterial.uniforms.feather.value = that.feather;
         that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
 
         that.renderer.render(that.scene, that.camera);
