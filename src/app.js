@@ -293,6 +293,8 @@ App.prototype.postLoad = function postLoad()
 
         that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
 
+        that.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
+        that.renderer.setScissorTest(true);
         that.renderer.render(that.scene, that.camera);
         requestAnimationFrame(animate);
     }
