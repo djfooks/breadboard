@@ -228,8 +228,8 @@ App.prototype.postLoad = function postLoad()
     geometry.boundingSphere = new THREE.Sphere();
     geometry.boundingSphere.radius = 99999;
 
-    var wireVertexShader = ShaderManager.get("src/shaders/shader.vert");
-    var wireCirclesFragmentShader = ShaderManager.get("src/shaders/wireCirclesShader.frag");
+    var wireVertexShader = ShaderManager.get("src/shaders/wire.vert");
+    var wireCirclesFragmentShader = ShaderManager.get("src/shaders/wirecirclesshader.frag");
 
     this.wireCirclesBgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
@@ -245,7 +245,7 @@ App.prototype.postLoad = function postLoad()
     this.wireMaterial = new THREE.RawShaderMaterial({
         uniforms: {},
         vertexShader: wireVertexShader,
-        fragmentShader: ShaderManager.get("src/shaders/shader.frag"),
+        fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
         side: THREE.DoubleSide
     });
     this.wireMaterial.transparent = true;
@@ -292,10 +292,10 @@ App.prototype.initWebGL = function initWebGL()
 
     this.scene = new THREE.Scene();
 
-    ShaderManager.request("src/shaders/shader.vert");
-    ShaderManager.request("src/shaders/shader.frag");
+    ShaderManager.request("src/shaders/wire.vert");
+    ShaderManager.request("src/shaders/wire.frag");
 
-    ShaderManager.request("src/shaders/wireCirclesShader.frag");
+    ShaderManager.request("src/shaders/wirecirclesshader.frag");
 
     ShaderManager.request("src/shaders/grid.vert");
     ShaderManager.request("src/shaders/grid.frag");
