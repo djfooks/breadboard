@@ -16,7 +16,7 @@ void main()
     vP2 = p2;
 
     vec2 n = p1 - p2;
-    n = normalize(n) * 0.5;
+    n = normalize(n) * 1.0;
     vec2 m = vec2(n.y, -n.x);
 
     vec2 p = mix(p1 + n, p2 - n, position.x);
