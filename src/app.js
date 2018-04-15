@@ -83,14 +83,12 @@ var App = function ()
     TextureManager.request("move-enabled.png");
     TextureManager.request("truck.png");
     TextureManager.request("truck-enabled.png");
-
-    this.filesLoading = 0;
 };
 
 App.prototype.update = function update()
 {
     if (TextureManager.loading() ||
-        this.filesLoading > 0)
+        ShaderManager.loading())
     {
         return;
     }
@@ -119,16 +117,33 @@ App.prototype.updateGame = function updateGame()
 
 };
 
-App.prototype.loadFile = function loadFile(url, onLoad, onProgress, onError) {
-    this.filesLoading += 1;
+App.prototype.addGrid = function addGrid()
+{
+    var vertices = new Float32Array([
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
 
-    var vertex_loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
-    vertex_loader.setResponseType('text');
-    vertex_loader.load(url, function (text)
-    {
-        onLoad(text);
-        this.filesLoading -= 1;
-    }, onProgress, onError);
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0
+    ]);
+    var gridGeometry = new THREE.BufferGeometry();
+    gridGeometry.addAttribute('position', new THREE.BufferAttribute(vertices, 2));
+
+    gridGeometry.boundingSphere = new THREE.Sphere();
+    gridGeometry.boundingSphere.radius = 99999;
+
+    this.gridMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            box: { value: [this.camera.left, this.camera.top, this.camera.right, this.camera.bottom] }
+        },
+        vertexShader: ShaderManager.get("src/shaders/grid.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/grid.frag"),
+        side: THREE.DoubleSide
+    });
+    var mesh = new THREE.Mesh(gridGeometry, this.gridMaterial);
+    this.scene.add(mesh);
 };
 
 App.prototype.postLoad = function postLoad()
@@ -173,6 +188,7 @@ App.prototype.postLoad = function postLoad()
     wires.push(0, 0, 5, 5);
     wires.push(5, 2, 2, 2);
     wires.push(-1, -1, 2, -4);
+    wires.push(-5, -3, 5, -3);
 
     var numWires = wires.length / 4;
 
@@ -212,21 +228,24 @@ App.prototype.postLoad = function postLoad()
     geometry.boundingSphere = new THREE.Sphere();
     geometry.boundingSphere.radius = 99999;
 
+    var wireVertexShader = ShaderManager.get("src/shaders/shader.vert");
+    var wireCirclesFragmentShader = ShaderManager.get("src/shaders/wireCirclesShader.frag");
+
     this.wireCirclesBgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             radius: { value: 0.4 },
             color: { value: 0.0 }
         },
-        vertexShader: this.vertexShader,
-        fragmentShader: this.wireCirclesFragmentShader,
+        vertexShader: wireVertexShader,
+        fragmentShader: wireCirclesFragmentShader,
         side: THREE.DoubleSide
     });
     this.wireCirclesBgMaterial.transparent = true;
 
     this.wireMaterial = new THREE.RawShaderMaterial({
         uniforms: {},
-        vertexShader: this.vertexShader,
-        fragmentShader: this.fragmentShader,
+        vertexShader: wireVertexShader,
+        fragmentShader: ShaderManager.get("src/shaders/shader.frag"),
         side: THREE.DoubleSide
     });
     this.wireMaterial.transparent = true;
@@ -236,13 +255,14 @@ App.prototype.postLoad = function postLoad()
             radius: { value: 0.35 },
             color: { value: 1.0 }
         },
-        vertexShader: this.vertexShader,
-        fragmentShader: this.wireCirclesFragmentShader,
+        vertexShader: wireVertexShader,
+        fragmentShader: wireCirclesFragmentShader,
         side: THREE.DoubleSide
     });
     this.wireCirclesFgMaterial.transparent = true;
 
     var mesh;
+    this.addGrid();
     mesh = new THREE.Mesh(geometry, this.wireCirclesBgMaterial);
     this.scene.add(mesh);
     mesh = new THREE.Mesh(geometry, this.wireMaterial);
@@ -272,22 +292,13 @@ App.prototype.initWebGL = function initWebGL()
 
     this.scene = new THREE.Scene();
 
-    var that = this;
-    this.vertexShader = "";
-    this.fragmentShader = "";
-    this.wireCirclesFragmentShader = "";
-    this.loadFile("src/shaders/shader.vert", function (text)
-    {
-        that.vertexShader = text;
-    });
-    this.loadFile("src/shaders/shader.frag", function (text)
-    {
-        that.fragmentShader = text;
-    });
-    this.loadFile("src/shaders/wireCirclesShader.frag", function (text)
-    {
-        that.wireCirclesFragmentShader = text;
-    });
+    ShaderManager.request("src/shaders/shader.vert");
+    ShaderManager.request("src/shaders/shader.frag");
+
+    ShaderManager.request("src/shaders/wireCirclesShader.frag");
+
+    ShaderManager.request("src/shaders/grid.vert");
+    ShaderManager.request("src/shaders/grid.frag");
 };
 
 App.prototype.debugInfo = function debugInfo(str)
