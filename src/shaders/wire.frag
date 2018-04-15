@@ -13,7 +13,7 @@ void main(void) {
     n = normalize(n);
     n = vec2(n.y, -n.x);
     vec2 wireOffset = vP - vP1;
-    float dWire = abs(dot(wireOffset, n));
+    float d = abs(dot(wireOffset, n));
 
     float minX = min(vP1.x, vP2.x);
     float maxX = max(vP1.x, vP2.x);
@@ -26,10 +26,10 @@ void main(void) {
 
     if (inOuterWire)
     {
-        float v = (dWire - outerWire) / feather;
+        float v = (d - outerWire) / feather;
         float alpha = 1.0 - v;
 
-        v = (dWire - innerWire) / feather;
+        v = (d - innerWire) / feather;
         float wireColor = 1.0 - v;
 
         gl_FragColor = vec4(wireColor, 0.0, 0.0, alpha);
