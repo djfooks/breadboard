@@ -243,7 +243,9 @@ App.prototype.postLoad = function postLoad()
     this.wireCirclesBgMaterial.transparent = true;
 
     this.wireMaterial = new THREE.RawShaderMaterial({
-        uniforms: {},
+        uniforms: {
+            feather : {value : this.feather }
+        },
         vertexShader: wireVertexShader,
         fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
         side: THREE.DoubleSide
@@ -287,8 +289,10 @@ App.prototype.initWebGL = function initWebGL()
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
 
     var aspect = canvas.width / canvas.height;
-    this.camera = new THREE.OrthographicCamera(-10 * aspect, 10 * aspect, -10, 10, 0, 100);
-    this.camera.position.z = 100;
+    var size = 5.0;
+    var camera = this.camera = new THREE.OrthographicCamera(-size * aspect, size * aspect, -size, size, 0, 100);
+    this.feather = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
+    camera.position.z = 100;
 
     this.scene = new THREE.Scene();
 
