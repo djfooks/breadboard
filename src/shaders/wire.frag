@@ -1,6 +1,8 @@
 precision highp float;
 precision highp int;
 
+uniform float feather;
+
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
@@ -11,25 +13,26 @@ void main(void) {
     n = normalize(n);
     n = vec2(n.y, -n.x);
     vec2 wireOffset = vP - vP1;
-    float dWire = dot(wireOffset, n);
+    float dWire = abs(dot(wireOffset, n));
 
     float minX = min(vP1.x, vP2.x);
     float maxX = max(vP1.x, vP2.x);
     float minY = min(vP1.y, vP2.y);
     float maxY = max(vP1.y, vP2.y);
-    const float innerWire = 0.12;
-    const float outerWire = 0.18;
+    const float innerWire = 0.06;
+    float outerWire = 0.063 + feather;
     bool inOuterWire = vP.x >= minX - outerWire && vP.x <= maxX + outerWire && vP.y >= minY - outerWire && vP.y <= maxY + outerWire;
 
     if (inOuterWire)
     {
-        if (abs(dWire) < innerWire)
+        if (dWire < innerWire)
         {
             gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
         }
-        else if (abs(dWire) < outerWire)
+        else if (dWire < outerWire + feather)
         {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            float v = (dWire - outerWire) / feather;
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0 - v);
         }
     }
     else
