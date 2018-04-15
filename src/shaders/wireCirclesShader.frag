@@ -17,5 +17,5 @@ void main(void) {
 
     float d = min(d1, d2);
 
-    gl_FragColor = vec4(color, color, color, (radius - d) * 40.0);
+    gl_FragColor = vec4(color, color, color, (radius - d) * 30.0);
 }
