@@ -153,7 +153,7 @@ App.prototype.postLoad = function postLoad()
 
     var geometry = new THREE.BufferGeometry();
 
-    var maxNumWires = 100;
+    var maxNumWires = 80000;
     var indicesArray = new Uint16Array(maxNumWires * 6);
     var verticesArray = new Uint8Array(maxNumWires * 8);
     var i;
@@ -191,7 +191,22 @@ App.prototype.postLoad = function postLoad()
     wires.push(-1, -1, 2, -4);
     wires.push(-5, -3, 5, -3);
 
+    for (i = 0; i < 79900; i += 1)
+    {
+        var l = (3 + Math.random() * 15) | 0;
+        var x = (-500 + Math.random() * 1000) | 0;
+        var y = (-500 + Math.random() * 1000) | 0;
+        var dx = Math.round(-1 + Math.random() * 2);
+        var dy = Math.round(-1 + Math.random() * 2);
+        if (!dx && !dy)
+        {
+            continue;
+        }
+        wires.push(x, y, x + dx * l, y + dy * l);
+    }
+
     var numWires = wires.length / 4;
+    console.log(numWires);
 
     var p1s = new Int16Array(numWires * 8);
     var p2s = new Int16Array(numWires * 8);
