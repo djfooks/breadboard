@@ -83,6 +83,14 @@ var App = function ()
     TextureManager.request("move-enabled.png");
     TextureManager.request("truck.png");
     TextureManager.request("truck-enabled.png");
+
+    ShaderManager.request("src/shaders/wire.vert");
+    ShaderManager.request("src/shaders/wire.frag");
+    ShaderManager.request("src/shaders/wirecirclesshader.frag");
+    ShaderManager.request("src/shaders/grid.vert");
+    ShaderManager.request("src/shaders/grid.frag");
+    ShaderManager.request("src/shaders/circle.vert");
+    ShaderManager.request("src/shaders/circle.frag");
 };
 
 App.prototype.update = function update()
@@ -147,6 +155,54 @@ App.prototype.addGrid = function addGrid()
     this.scene.add(mesh);
 };
 
+App.prototype.addCircles = function addCircles()
+{
+    var x = 10.0;
+    var y = 10.0;
+    var r = 1.0;
+
+    var uvs = new Float32Array([
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0
+    ]);
+
+    var circles = new Float32Array([
+        x, y, r,
+        x, y, r,
+        x, y, r,
+
+        x, y, r,
+        x, y, r,
+        x, y, r
+    ]);
+
+    var circleGeometry = new THREE.BufferGeometry();
+    circleGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    circleGeometry.addAttribute('circle', new THREE.BufferAttribute(circles, 3));
+    circleGeometry.setDrawRange(0, 6);
+
+    circleGeometry.boundingSphere = new THREE.Sphere();
+    circleGeometry.boundingSphere.radius = 99999;
+
+    this.circleMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            feather: this.feather
+        },
+        vertexShader: ShaderManager.get("src/shaders/circle.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/circle.frag"),
+        side: THREE.DoubleSide
+    });
+    this.circleMaterial.transparent = true;
+
+    var mesh = new THREE.Mesh(circleGeometry, this.circleMaterial);
+    this.scene.add(mesh);
+};
+
 App.prototype.postLoad = function postLoad()
 {
     //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
@@ -191,19 +247,19 @@ App.prototype.postLoad = function postLoad()
     wires.push(-1, -1, 2, -4);
     wires.push(-5, -3, 5, -3);
 
-    for (i = 0; i < 79900; i += 1)
-    {
-        var l = (3 + Math.random() * 15) | 0;
-        var x = (-500 + Math.random() * 1000) | 0;
-        var y = (-500 + Math.random() * 1000) | 0;
-        var dx = Math.round(-1 + Math.random() * 2);
-        var dy = Math.round(-1 + Math.random() * 2);
-        if (!dx && !dy)
-        {
-            continue;
-        }
-        wires.push(x, y, x + dx * l, y + dy * l);
-    }
+    // for (i = 0; i < 30000; i += 1)
+    // {
+    //     var l = (3 + Math.random() * 5) | 0;
+    //     var x = (-500 + Math.random() * 1000) | 0;
+    //     var y = 300 - 30 * Math.floor(i / 1000);
+    //     var dx = Math.round(-1 + Math.random() * 2);
+    //     var dy = Math.round(-1 + Math.random() * 2);
+    //     if (!dx && !dy)
+    //     {
+    //         continue;
+    //     }
+    //     wires.push(x, y, x + dx * l, y + dy * l);
+    // }
 
     var numWires = wires.length / 4;
     console.log(numWires);
@@ -291,6 +347,8 @@ App.prototype.postLoad = function postLoad()
     mesh = new THREE.Mesh(geometry, this.wireCirclesFgMaterial);
     this.scene.add(mesh);
 
+    this.addCircles();
+
     var that = this;
     function animate(time)
     {
@@ -322,14 +380,6 @@ App.prototype.initWebGL = function initWebGL()
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
 
     this.scene = new THREE.Scene();
-
-    ShaderManager.request("src/shaders/wire.vert");
-    ShaderManager.request("src/shaders/wire.frag");
-
-    ShaderManager.request("src/shaders/wirecirclesshader.frag");
-
-    ShaderManager.request("src/shaders/grid.vert");
-    ShaderManager.request("src/shaders/grid.frag");
 };
 
 App.prototype.debugInfo = function debugInfo(str)
