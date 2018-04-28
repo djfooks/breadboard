@@ -155,6 +155,37 @@ App.prototype.addGrid = function addGrid()
     this.scene.add(mesh);
 };
 
+App.prototype.updateCircles = function updateCircles(time)
+{
+    var x = 5.0 + Math.sin(time * 1.0) * 5.0;
+    var y = 5.0;
+    var r = 1.5;
+
+    var circles = this.circles;
+    circles[0]  = x;
+    circles[1]  = y;
+    circles[2]  = r;
+    circles[3]  = x;
+    circles[4]  = y;
+    circles[5]  = r;
+    circles[6]  = x;
+    circles[7]  = y;
+    circles[8]  = r;
+    circles[9]  = x;
+    circles[10] = y;
+    circles[11] = r;
+    circles[12] = x;
+    circles[13] = y;
+    circles[14] = r;
+    circles[15] = x;
+    circles[16] = y;
+    circles[17] = r;
+
+    var circlesAttribute = this.circleGeometry.getAttribute('circle');
+    circlesAttribute.dynamic = true;
+    circlesAttribute.needsUpdate = true;
+};
+
 App.prototype.addCircles = function addCircles()
 {
     var x = 10.0;
@@ -171,7 +202,7 @@ App.prototype.addCircles = function addCircles()
         0.0, 0.0
     ]);
 
-    var circles = new Float32Array([
+    this.circles = new Float32Array([
         x, y, r,
         x, y, r,
         x, y, r,
@@ -181,9 +212,9 @@ App.prototype.addCircles = function addCircles()
         x, y, r
     ]);
 
-    var circleGeometry = new THREE.BufferGeometry();
+    var circleGeometry = this.circleGeometry = new THREE.BufferGeometry();
     circleGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    circleGeometry.addAttribute('circle', new THREE.BufferAttribute(circles, 3));
+    circleGeometry.addAttribute('circle', new THREE.BufferAttribute(this.circles, 3));
     circleGeometry.setDrawRange(0, 6);
 
     circleGeometry.boundingSphere = new THREE.Sphere();
@@ -365,6 +396,8 @@ App.prototype.postLoad = function postLoad()
         that.feather.value = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
 
         that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
+
+        that.updateCircles(time);
 
         that.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
         that.renderer.setScissorTest(true);
