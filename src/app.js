@@ -157,9 +157,20 @@ App.prototype.addGrid = function addGrid()
 
 App.prototype.updateCircles = function updateCircles(time)
 {
-    var x = 5.0 + Math.sin(time * 1.0) * 5.0;
-    var y = 5.0;
-    var r = 1.5;
+    var p = this.breadboard.mouseP || [0,0];
+    var x = p[0];
+    var y = p[1];
+
+    x = (x / this.renderer.domElement.clientWidth) * 2 - 1;
+    y = (-y / this.renderer.domElement.clientHeight) * 2 + 1;
+
+    var v3 = new THREE.Vector3(x, y, 0.0);
+    v3 = v3.applyMatrix4(this.invProjectionMatrix);
+
+    x = v3.x;
+    y = v3.y;
+
+    var r = 0.5;
 
     var circles = this.circles;
     circles[0]  = x;
@@ -239,6 +250,8 @@ App.prototype.postLoad = function postLoad()
     //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
 
     var geometry = new THREE.BufferGeometry();
+
+    this.invProjectionMatrix = new THREE.Matrix4();
 
     var maxNumWires = 80000;
     var indicesArray = new Uint16Array(maxNumWires * 6);
@@ -394,6 +407,8 @@ App.prototype.postLoad = function postLoad()
         var camera = that.camera = new THREE.OrthographicCamera(-size * aspect + offsetX, size * aspect + offsetX, -size + offsetY, size + offsetY, 0, 100);
         camera.position.z = 100;
         that.feather.value = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
+
+        that.invProjectionMatrix.getInverse(camera.projectionMatrix);
 
         that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
 

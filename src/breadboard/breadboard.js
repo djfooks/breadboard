@@ -26,7 +26,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.onKeyDownFn = null;
 
     this.gameStage = new GameStage(1, 1, 601, 601);
-    this.stage.addHitbox(this.gameStage.gameStageHitbox);
+    //this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
     this.gameStage.onMouseDown = this.onMouseDown.bind(this);
     this.gameStage.onMouseUp = this.onMouseUp.bind(this);
@@ -2040,6 +2040,7 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
 
 Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 {
+    this.mouseP = p;
     this.mouseOverGameStage = gameSpace;
 
     this.gameSpaceMouse = this.gameStage.toView(p);
