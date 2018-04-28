@@ -29,13 +29,14 @@ float lerpWeight(float s)
 
 void main(void)
 {
-    vec2 q = distanceToInt(vP);
     const float every = 10.0;
+    const float everySq = every * every;
+    vec2 q = distanceToInt(vP);
     vec2 r = distanceToInt(vP / every) * every;
-    vec2 s = distanceToInt(vP / (every * every)) * (every * every);
+    vec2 s = distanceToInt(vP / (everySq)) * (everySq);
 
     float v = mix(grid(q), grid(r), lerpWeight(10.0 / every));
-    v = mix(v, grid(s), lerpWeight(20.0 / (every * every)));
+    v = mix(v, grid(s), lerpWeight(20.0 / (everySq)));
     //float v = grid(s);
 
     gl_FragColor = vec4(v, v, v, 1.0);
