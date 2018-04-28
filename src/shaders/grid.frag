@@ -21,13 +21,22 @@ float grid(vec2 s)
     return clamp(v, 0.0, 1.0) + 0.4;
 }
 
+float lerpWeight(float s)
+{
+    float w = s * feather;
+    return clamp(w, 0.0, 1.0);
+}
+
 void main(void)
 {
     vec2 q = distanceToInt(vP);
     const float every = 10.0;
     vec2 r = distanceToInt(vP / every) * every;
+    vec2 s = distanceToInt(vP / (every * every)) * (every * every);
 
-    float v = mix(grid(q), grid(r), 10.0 * feather / every);
+    float v = mix(grid(q), grid(r), lerpWeight(10.0 / every));
+    v = mix(v, grid(s), lerpWeight(20.0 / (every * every)));
+    //float v = grid(s);
 
     gl_FragColor = vec4(v, v, v, 1.0);
 }
