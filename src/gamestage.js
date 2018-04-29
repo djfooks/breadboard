@@ -29,7 +29,7 @@ function GameStage(minX, minY, maxX, maxY)
     this.onMouseUp = null;
     this.onMouseMove = null;
 
-    this.debugClippping = false;
+    this.debugClipping = false;
 }
 
 GameStage.prototype.setZoom = function setZoom(zoom)
@@ -69,7 +69,7 @@ GameStage.prototype.update = function update(deltaTime)
     this.view[0] += offsetX * centerVelocity * 0.05;
     this.view[1] += offsetY * centerVelocity * 0.05;
 
-    if (this.debugClippping)
+    if (this.debugClipping)
     {
         this.gameMin = this.toView([this.minX + 50, this.minY + 50]);
         this.gameMax = this.toView([this.maxX - 50, this.maxY - 50]);
@@ -217,7 +217,7 @@ GameStage.prototype.boxOverlaps = function boxOverlaps(x0, y0, x1, y1, padding)
 GameStage.prototype.drawBorder = function drawBorder(ctx)
 {
     var padding = 1;
-    if (this.debugClippping)
+    if (this.debugClipping)
     {
         padding -= 50;
     }
