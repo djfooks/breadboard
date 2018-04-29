@@ -11,5 +11,5 @@ void main(void) {
     float d = length(offset1);
 
     float alpha = 1.0 - ((d - radius) / feather);
-    gl_FragColor = vec4(1.0, 0.0, 0.0, alpha);
+    gl_FragColor = vec4(0.0, 0.0, 1.0, alpha);
 }
