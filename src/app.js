@@ -162,7 +162,7 @@ App.prototype.updateCircles = function updateCircles(time)
     var y = p[1];
 
     x = (x / this.renderer.domElement.clientWidth) * 2 - 1;
-    y = (-y / this.renderer.domElement.clientHeight) * 2 + 1;
+    y = -((y / this.renderer.domElement.clientHeight) * 2 - 1);
 
     var v3 = new THREE.Vector3(x, y, 0.0);
     v3 = v3.applyMatrix4(this.invProjectionMatrix);
@@ -308,37 +308,58 @@ App.prototype.postLoad = function postLoad()
     var numWires = wires.length / 4;
     console.log(numWires);
 
-    var p1s = new Int16Array(numWires * 8);
-    var p2s = new Int16Array(numWires * 8);
+    var p1s = new Int16Array(numWires * 12);
+    var p2s = new Int16Array(numWires * 12);
     var wireIndex;
 
     for (i = 0; i < numWires; i += 1)
     {
-        index = i * 8;
+        index = i * 12;
         wireIndex = i * 4;
-        p1s[index + 0] = wires[wireIndex + 0];
-        p1s[index + 1] = wires[wireIndex + 1];
-        p1s[index + 2] = wires[wireIndex + 0];
-        p1s[index + 3] = wires[wireIndex + 1];
-        p1s[index + 4] = wires[wireIndex + 0];
-        p1s[index + 5] = wires[wireIndex + 1];
-        p1s[index + 6] = wires[wireIndex + 0];
-        p1s[index + 7] = wires[wireIndex + 1];
+        var texture1 = 0;
+        var texture2 = 10;
+        p1s[index + 0]  = wires[wireIndex + 0];
+        p1s[index + 1]  = wires[wireIndex + 1];
+        p1s[index + 2]  = texture1;
+        p1s[index + 3]  = wires[wireIndex + 0];
+        p1s[index + 4]  = wires[wireIndex + 1];
+        p1s[index + 5]  = texture1;
+        p1s[index + 6]  = wires[wireIndex + 0];
+        p1s[index + 7]  = wires[wireIndex + 1];
+        p1s[index + 8]  = texture1;
+        p1s[index + 9]  = wires[wireIndex + 0];
+        p1s[index + 10] = wires[wireIndex + 1];
+        p1s[index + 11] = texture1;
 
-        p2s[index + 0] = wires[wireIndex + 2];
-        p2s[index + 1] = wires[wireIndex + 3];
-        p2s[index + 2] = wires[wireIndex + 2];
-        p2s[index + 3] = wires[wireIndex + 3];
-        p2s[index + 4] = wires[wireIndex + 2];
-        p2s[index + 5] = wires[wireIndex + 3];
-        p2s[index + 6] = wires[wireIndex + 2];
-        p2s[index + 7] = wires[wireIndex + 3];
+        p2s[index + 0]  = wires[wireIndex + 2];
+        p2s[index + 1]  = wires[wireIndex + 3];
+        p2s[index + 2]  = texture2;
+        p2s[index + 3]  = wires[wireIndex + 2];
+        p2s[index + 4]  = wires[wireIndex + 3];
+        p2s[index + 5]  = texture2;
+        p2s[index + 6]  = wires[wireIndex + 2];
+        p2s[index + 7]  = wires[wireIndex + 3];
+        p2s[index + 8]  = texture2;
+        p2s[index + 9]  = wires[wireIndex + 2];
+        p2s[index + 10] = wires[wireIndex + 3];
+        p2s[index + 11] = texture2;
     }
+
+    var textureSize = 32;
+    var textureData = this.textureData = new Uint8Array(textureSize);
+    for (i = 0; i < textureSize; i += 1)
+    {
+        textureData[i] = 255;
+    }
+    var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
+    dataTexture.magFilter = THREE.NearestFilter;
+    dataTexture.wrapS = dataTexture.wrapT = THREE.RepeatWrapping;
+    dataTexture.needsUpdate = true;
 
     geometry.setIndex(indices);
     geometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-    geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 2));
-    geometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 2));
+    geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 3));
+    geometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 3));
     geometry.setDrawRange(0, 6 * numWires);
 
     geometry.boundingSphere = new THREE.Sphere();
@@ -362,7 +383,9 @@ App.prototype.postLoad = function postLoad()
 
     this.wireMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: this.feather
+            feather: this.feather,
+            texture: {value : dataTexture},
+            textureSize: {value : textureSize},
         },
         vertexShader: wireVertexShader,
         fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
@@ -393,10 +416,23 @@ App.prototype.postLoad = function postLoad()
 
     this.addCircles();
 
+    this.wireValueIndex = 0;
+    this.nextWireValue = 0;
+
     var that = this;
     function animate(time)
     {
         time *= 0.001;  // seconds
+
+        that.wireValueIndex += 1;
+        if (that.wireValueIndex >= dataTexture.image.width)
+        {
+            that.wireValueIndex = 0;
+            that.nextWireValue = that.nextWireValue ? 0 : 255;
+        }
+
+        that.textureData[that.wireValueIndex] = that.nextWireValue;
+        dataTexture.needsUpdate = true;
 
         var canvas = that.canvas;
         var aspect = canvas.width / canvas.height;
