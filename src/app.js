@@ -285,11 +285,13 @@ App.prototype.postLoad = function postLoad()
     var indices = new THREE.BufferAttribute(indicesArray, 1);
 
     var wires = [];
+    wires.push(-5, -6, -4, -6);
     wires.push(0, 0, 0, 5);
     wires.push(0, 0, 5, 5);
     wires.push(5, 2, 2, 2);
     wires.push(-1, -1, 2, -4);
     wires.push(-5, -3, 5, -3);
+    wires.push(-5, -5, 15, -5);
 
     // for (i = 0; i < 30000; i += 1)
     // {
@@ -317,7 +319,10 @@ App.prototype.postLoad = function postLoad()
         index = i * 12;
         wireIndex = i * 4;
         var texture1 = 0;
-        var texture2 = 10;
+
+        var texture2 = Math.max(Math.abs(wires[wireIndex + 0] - wires[wireIndex + 2]),
+                                Math.abs(wires[wireIndex + 1] - wires[wireIndex + 3]));
+
         p1s[index + 0]  = wires[wireIndex + 0];
         p1s[index + 1]  = wires[wireIndex + 1];
         p1s[index + 2]  = texture1;
@@ -349,7 +354,7 @@ App.prototype.postLoad = function postLoad()
     var textureData = this.textureData = new Uint8Array(textureSize);
     for (i = 0; i < textureSize; i += 1)
     {
-        textureData[i] = 255;
+        textureData[i] = 0;
     }
     var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
     dataTexture.magFilter = THREE.NearestFilter;
