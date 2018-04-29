@@ -373,7 +373,8 @@ App.prototype.postLoad = function postLoad()
         uniforms: {
             feather: this.feather,
             radius: { value: 0.4 },
-            color: { value: 0.0 }
+            fg: { value: 0.0 },
+            textureSize: {value : textureSize}
         },
         vertexShader: wireVertexShader,
         fragmentShader: wireCirclesFragmentShader,
@@ -397,7 +398,8 @@ App.prototype.postLoad = function postLoad()
         uniforms: {
             feather: this.feather,
             radius: { value: 0.35 },
-            color: { value: 1.0 }
+            fg: { value: 1.0 },
+            textureSize: {value : textureSize}
         },
         vertexShader: wireVertexShader,
         fragmentShader: wireCirclesFragmentShader,
