@@ -293,15 +293,16 @@ App.prototype.postLoad = function postLoad()
     wires.push(-5, -3, 5, -3);
     wires.push(-5, -5, 15, -5);
 
-    // for (i = 0; i < 30000; i += 1)
+    // for (i = 0; i < 1000; i += 1)
     // {
     //     var l = (3 + Math.random() * 5) | 0;
     //     var x = (-500 + Math.random() * 1000) | 0;
-    //     var y = 300 - 30 * Math.floor(i / 1000);
+    //     var y = 15 - 30 * Math.floor(i / 1000);
     //     var dx = Math.round(-1 + Math.random() * 2);
     //     var dy = Math.round(-1 + Math.random() * 2);
     //     if (!dx && !dy)
     //     {
+    //         i -= 1;
     //         continue;
     //     }
     //     wires.push(x, y, x + dx * l, y + dy * l);
@@ -314,14 +315,17 @@ App.prototype.postLoad = function postLoad()
     var p2s = new Int16Array(numWires * 12);
     var wireIndex;
 
+    var wireValueIndex = 0;
     for (i = 0; i < numWires; i += 1)
     {
         index = i * 12;
         wireIndex = i * 4;
-        var texture1 = 0;
 
-        var texture2 = Math.max(Math.abs(wires[wireIndex + 0] - wires[wireIndex + 2]),
-                                Math.abs(wires[wireIndex + 1] - wires[wireIndex + 3]));
+        var wireLength = Math.max(Math.abs(wires[wireIndex + 0] - wires[wireIndex + 2]),
+                                  Math.abs(wires[wireIndex + 1] - wires[wireIndex + 3]));
+        var texture1 = wireValueIndex;
+        wireValueIndex += wireLength;
+        var texture2 = wireValueIndex;
 
         p1s[index + 0]  = wires[wireIndex + 0];
         p1s[index + 1]  = wires[wireIndex + 1];
@@ -350,15 +354,14 @@ App.prototype.postLoad = function postLoad()
         p2s[index + 11] = texture2;
     }
 
-    var textureSize = 32;
+    var textureSize = wireValueIndex;
     var textureData = this.textureData = new Uint8Array(textureSize);
     for (i = 0; i < textureSize; i += 1)
     {
-        textureData[i] = 0;
+        textureData[i] = 255;
     }
     var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
     dataTexture.magFilter = THREE.NearestFilter;
-    dataTexture.wrapS = dataTexture.wrapT = THREE.RepeatWrapping;
     dataTexture.needsUpdate = true;
 
     geometry.setIndex(indices);
