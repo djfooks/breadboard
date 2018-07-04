@@ -585,7 +585,7 @@ Breadboard.prototype.drawSelection = function drawSelection()
     var x1 = this.gameSpaceMouse[0];
     var y1 = this.gameSpaceMouse[1];
 
-    var scale = this.gameStage.invZoom;
+    var scale = this.gameStage.size;
 
     ctx.beginPath();
     ctx.lineWidth = 2 * scale;
