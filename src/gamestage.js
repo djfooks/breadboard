@@ -23,9 +23,9 @@ function GameStage(canvas, minX, minY, maxX, maxY)
     var view = this.view = [1.23, 2.34];
     this.zoomVelocity = 0;
     this.zoomLevel = -82;
-    this.setZoom(20);
+    this.setZoom(Math.pow(1.05, this.zoomLevel));
 
-    var size = this.invZoom;
+    var size = this.size;
     this.feather = { value: 0.0 };
     this.camera = new THREE.OrthographicCamera(1, 1, 1, 1, 0, 100);
     this.camera.position.z = 100;
@@ -48,7 +48,7 @@ GameStage.prototype.updateCamera = function updateCamera()
     var aspect = canvas.width / canvas.height;
 
     var view = this.view;
-    var size = this.invZoom;
+    var size = this.size;
     var camera = this.camera;
     camera.left   = view[0] - size * aspect;
     camera.right  = view[0] + size * aspect;
@@ -64,7 +64,7 @@ GameStage.prototype.updateCamera = function updateCamera()
 GameStage.prototype.setZoom = function setZoom(zoom)
 {
     this.zoom = zoom;
-    this.invZoom = 1 / zoom;
+    this.size = 1 / zoom;
 };
 
 GameStage.prototype.scroll = function scroll(delta)
@@ -86,17 +86,25 @@ GameStage.prototype.update = function update(deltaTime)
     }
     this.setZoom(Math.pow(1.05, this.zoomLevel));
 
-    // keep whatever is under the mouse stationary during the zoom
-    this.view[0] = ((this.view[0] + this.mousePos[0]) * (this.zoom / oldZoom)) - this.mousePos[0];
-    this.view[1] = ((this.view[1] + this.mousePos[1]) * (this.zoom / oldZoom)) - this.mousePos[1];
+    var gameMouse = this.toView(this.mousePos);
 
-    var offsetX = this.mousePos[0] - (this.maxX - this.minX) * 0.5;
-    var offsetY = this.mousePos[1] - (this.maxX - this.minX) * 0.5;
+    // keep whatever is under the mouse stationary during the zoom
+    var lerp = oldZoom / this.zoom;
+    this.view[0] = this.view[0] * lerp + gameMouse[0] * (1 - lerp);
+    this.view[1] = this.view[1] * lerp + gameMouse[1] * (1 - lerp);
 
     // move the view slightly so that whatever is under the mouse moves to the center of the game space
-    var centerVelocity = Math.abs(this.zoomVelocity);
-    this.view[0] += offsetX * centerVelocity * 0.05;
-    this.view[1] += offsetY * centerVelocity * 0.05;
+    // var centerVelocity;
+    // if (this.zoomVelocity < 0)
+    // {
+    //     centerVelocity = -this.zoomVelocity;
+    // }
+    // else
+    // {
+    //     centerVelocity = this.zoomVelocity * 3;
+    // }
+    // this.view[0] += (gameMouse[0] - gameCenter[0]) * centerVelocity * 0.05;
+    // this.view[1] += (gameMouse[1] - gameCenter[1]) * centerVelocity * 0.05;
 
     if (this.debugClipping)
     {
@@ -229,12 +237,19 @@ GameStage.prototype.toView = function toView(p)
 
 GameStage.prototype.fromView = function fromView(p)
 {
-    var x = (p[0] / this.canvas.clientWidth) * 2 - 1;
-    var y = -((p[1] / this.canvas.clientHeight) * 2 - 1);
+    var x = p[0];
+    var y = p[1];
 
     var v3 = new THREE.Vector3(x, y, 0.0);
-    v3 = v3.applyMatrix4(this.invProjectionMatrix);
-    return [v3[0], v3[1]];
+    v3 = v3.applyMatrix4(this.camera.projectionMatrix);
+
+    x = (x + 1) * 0.5 * this.canvas.clientWidth;
+    y = -(y + 1) * 0.5 * this.canvas.clientHeight;
+
+    // untested
+    throw new error();
+
+    return [x, y];
 };
 
 GameStage.prototype.hitboxOverlaps = function hitboxOverlaps(hitbox)
@@ -283,7 +298,7 @@ GameStage.prototype.drawHitboxes = function drawHitboxes(ctx)
     {
         var hitbox = this.hitboxes[i];
         ctx.beginPath();
-        ctx.lineWidth = 1 * this.invZoom;
+        ctx.lineWidth = 1 * this.size;
         ctx.strokeStyle = "#0000FF";
         ctx.moveTo(hitbox.minX, hitbox.minY);
         ctx.lineTo(hitbox.minX, hitbox.maxY);
