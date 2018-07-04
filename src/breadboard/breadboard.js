@@ -25,8 +25,9 @@ function Breadboard(stage, top, left, cols, rows)
 
     this.onKeyDownFn = null;
 
-    this.gameStage = new GameStage(1, 1, 601, 601);
-    //this.stage.addHitbox(this.gameStage.gameStageHitbox);
+    var canvas = this.stage.canvas;
+    this.gameStage = new GameStage(canvas, 1, 1, 601, 601);
+    this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
     this.gameStage.onMouseDown = this.onMouseDown.bind(this);
     this.gameStage.onMouseUp = this.onMouseUp.bind(this);
@@ -35,7 +36,6 @@ function Breadboard(stage, top, left, cols, rows)
 
     this.isScrolling = false;
     this.scrollGrab = [0, 0];
-    this.scrollGrabView = [0, 0];
 
     this.top = top;
     this.left = left;
@@ -1941,8 +1941,7 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
     if (button === 1 && this.mouseOverGameStage)
     {
         this.isScrolling = true;
-        this.scrollGrab = p;
-        this.scrollGrabView = this.gameStage.view;
+        this.scrollGrab = this.gameStage.toView(p);
         return;
     }
 
@@ -2043,12 +2042,17 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
     this.mouseP = p;
     this.mouseOverGameStage = gameSpace;
 
-    this.gameSpaceMouse = this.gameStage.toView(p);
+    var gameSpaceMouse = this.gameSpaceMouse = this.gameStage.toView(p);
 
     if (this.isScrolling)
     {
-        var delta = [p[0] - this.scrollGrab[0], p[1] - this.scrollGrab[1]];
-        this.gameStage.view = [this.scrollGrabView[0] - delta[0], this.scrollGrabView[1] - delta[1]];
+        var delta = [this.scrollGrab[0] - gameSpaceMouse[0], this.scrollGrab[1] - gameSpaceMouse[1]];
+        var view = this.gameStage.view;
+        view[0] += delta[0];
+        view[1] += delta[1];
+        this.gameStage.update();
+        gameSpaceMouse = this.gameSpaceMouse = this.gameStage.toView(p);
+        this.scrollGrab = [gameSpaceMouse[0], gameSpaceMouse[1]];
         return;
     }
 
