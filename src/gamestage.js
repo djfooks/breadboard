@@ -94,17 +94,9 @@ GameStage.prototype.update = function update(deltaTime)
     this.view[1] = this.view[1] * lerp + gameMouse[1] * (1 - lerp);
 
     // move the view slightly so that whatever is under the mouse moves to the center of the game space
-    // var centerVelocity;
-    // if (this.zoomVelocity < 0)
-    // {
-    //     centerVelocity = -this.zoomVelocity;
-    // }
-    // else
-    // {
-    //     centerVelocity = this.zoomVelocity * 3;
-    // }
-    // this.view[0] += (gameMouse[0] - gameCenter[0]) * centerVelocity * 0.05;
-    // this.view[1] += (gameMouse[1] - gameCenter[1]) * centerVelocity * 0.05;
+    var centerVelocity = Math.abs(this.zoomVelocity);
+    this.view[0] += (gameMouse[0] - this.view[0]) * centerVelocity * 0.05;
+    this.view[1] += (gameMouse[1] - this.view[1]) * centerVelocity * 0.05;
 
     if (this.debugClipping)
     {
