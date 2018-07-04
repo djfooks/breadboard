@@ -1,5 +1,5 @@
 
-function GameStage(minX, minY, maxX, maxY)
+function GameStage(canvas, minX, minY, maxX, maxY)
 {
     this.minX = minX;
     this.minY = minY;
@@ -17,10 +17,20 @@ function GameStage(minX, minY, maxX, maxY)
 
     this.hitboxes = [];
 
-    this.view = [0, 0];
+    this.canvas = canvas;
+    var aspect = canvas.width / canvas.height;
+
+    var view = this.view = [1.23, 2.34];
     this.zoomVelocity = 0;
-    this.zoomLevel = 70;
+    this.zoomLevel = -82;
     this.setZoom(20);
+
+    var size = this.invZoom;
+    this.feather = { value: 0.0 };
+    this.camera = new THREE.OrthographicCamera(1, 1, 1, 1, 0, 100);
+    this.camera.position.z = 100;
+    this.invProjectionMatrix = new THREE.Matrix4();
+    this.updateCamera();
 
     this.mousePos = [(this.maxX - this.minX) * 0.5,
                      (this.maxX - this.minX) * 0.5];
@@ -31,6 +41,25 @@ function GameStage(minX, minY, maxX, maxY)
 
     this.debugClipping = false;
 }
+
+GameStage.prototype.updateCamera = function updateCamera()
+{
+    var canvas = this.canvas;
+    var aspect = canvas.width / canvas.height;
+
+    var view = this.view;
+    var size = this.invZoom;
+    var camera = this.camera;
+    camera.left   = view[0] - size * aspect;
+    camera.right  = view[0] + size * aspect;
+    camera.top    = view[1] - size;
+    camera.bottom = view[1] + size;
+
+    camera.updateProjectionMatrix();
+    this.invProjectionMatrix.getInverse(camera.projectionMatrix);
+
+    this.feather.value = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
+};
 
 GameStage.prototype.setZoom = function setZoom(zoom)
 {
@@ -79,6 +108,8 @@ GameStage.prototype.update = function update(deltaTime)
         this.gameMin = this.toView([this.minX, this.minY]);
         this.gameMax = this.toView([this.maxX, this.maxY]);
     }
+
+    this.updateCamera();
 };
 
 GameStage.prototype.clearHitboxes = function clearHitboxes()
@@ -188,14 +219,22 @@ GameStage.prototype.transformContext = function transformContext(ctx)
 
 GameStage.prototype.toView = function toView(p)
 {
-    return [(p[0] - this.minX + this.view[0]) * this.invZoom,
-            (p[1] - this.minY + this.view[1]) * this.invZoom];
+    var x = (p[0] / this.canvas.clientWidth) * 2 - 1;
+    var y = -((p[1] / this.canvas.clientHeight) * 2 - 1);
+
+    var v3 = new THREE.Vector3(x, y, 0.0);
+    v3 = v3.applyMatrix4(this.invProjectionMatrix);
+    return [v3.x, v3.y];
 };
 
 GameStage.prototype.fromView = function fromView(p)
 {
-    return [p[0] * this.zoom + this.minX - this.view[0],
-            p[1] * this.zoom + this.minY - this.view[1]];
+    var x = (p[0] / this.canvas.clientWidth) * 2 - 1;
+    var y = -((p[1] / this.canvas.clientHeight) * 2 - 1);
+
+    var v3 = new THREE.Vector3(x, y, 0.0);
+    v3 = v3.applyMatrix4(this.invProjectionMatrix);
+    return [v3[0], v3[1]];
 };
 
 GameStage.prototype.hitboxOverlaps = function hitboxOverlaps(hitbox)

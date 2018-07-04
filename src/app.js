@@ -144,7 +144,7 @@ App.prototype.addGrid = function addGrid()
 
     this.gridMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: this.feather,
+            feather: this.breadboard.gameStage.feather,
             box: { value: [0.0, 0.0, 0.0, 0.0] }
         },
         vertexShader: ShaderManager.get("src/shaders/grid.vert"),
@@ -161,11 +161,12 @@ App.prototype.updateCircles = function updateCircles(time)
     var x = p[0];
     var y = p[1];
 
+
     x = (x / this.renderer.domElement.clientWidth) * 2 - 1;
     y = -((y / this.renderer.domElement.clientHeight) * 2 - 1);
 
     var v3 = new THREE.Vector3(x, y, 0.0);
-    v3 = v3.applyMatrix4(this.invProjectionMatrix);
+    v3 = v3.applyMatrix4(this.breadboard.gameStage.invProjectionMatrix);
 
     x = v3.x;
     y = v3.y;
@@ -233,7 +234,7 @@ App.prototype.addCircles = function addCircles()
 
     this.circleMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: this.feather
+            feather: this.breadboard.gameStage.feather
         },
         vertexShader: ShaderManager.get("src/shaders/circle.vert"),
         fragmentShader: ShaderManager.get("src/shaders/circle.frag"),
@@ -250,8 +251,6 @@ App.prototype.postLoad = function postLoad()
     //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
 
     var geometry = new THREE.BufferGeometry();
-
-    this.invProjectionMatrix = new THREE.Matrix4();
 
     var maxNumWires = 80000;
     var indicesArray = new Uint16Array(maxNumWires * 6);
@@ -376,10 +375,9 @@ App.prototype.postLoad = function postLoad()
     var wireVertexShader = ShaderManager.get("src/shaders/wire.vert");
     var wireCirclesFragmentShader = ShaderManager.get("src/shaders/wirecirclesshader.frag");
 
-    this.feather = { value: 0.0 };
     this.wireCirclesBgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: this.feather,
+            feather: this.breadboard.gameStage.feather,
             radius: { value: 0.4 },
             fg: { value: 0.0 },
             textureSize: {value : textureSize}
@@ -392,7 +390,7 @@ App.prototype.postLoad = function postLoad()
 
     this.wireMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: this.feather,
+            feather: this.breadboard.gameStage.feather,
             texture: {value : dataTexture},
             textureSize: {value : textureSize},
         },
@@ -404,7 +402,7 @@ App.prototype.postLoad = function postLoad()
 
     this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: this.feather,
+            feather: this.breadboard.gameStage.feather,
             radius: { value: 0.35 },
             fg: { value: 1.0 },
             textureSize: {value : textureSize}
@@ -446,15 +444,10 @@ App.prototype.postLoad = function postLoad()
 
         var canvas = that.canvas;
         var aspect = canvas.width / canvas.height;
-        that.breadboard.gameStage.update();
-        var size = that.breadboard.gameStage.invZoom + 1.0;
-        var offsetX = 1.23;
-        var offsetY = 2.34;
-        var camera = that.camera = new THREE.OrthographicCamera(-size * aspect + offsetX, size * aspect + offsetX, -size + offsetY, size + offsetY, 0, 100);
-        camera.position.z = 100;
-        that.feather.value = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
 
-        that.invProjectionMatrix.getInverse(camera.projectionMatrix);
+        var gameStage = that.breadboard.gameStage;
+        gameStage.update();
+        var camera = gameStage.camera;
 
         that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
 
@@ -462,7 +455,7 @@ App.prototype.postLoad = function postLoad()
 
         that.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
         that.renderer.setScissorTest(true);
-        that.renderer.render(that.scene, that.camera);
+        that.renderer.render(that.scene, camera);
         requestAnimationFrame(animate);
     }
 
