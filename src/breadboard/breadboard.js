@@ -42,8 +42,9 @@ function Breadboard(stage, top, left, cols, rows)
     this.cols = cols;
     this.rows = rows;
 
-    this.wireRenderer = new WireRenderer();
     this.scene = stage.scene;
+    this.gridRenderer = new GridRenderer();
+    this.wireRenderer = new WireRenderer();
 
     this.clear();
 
@@ -113,6 +114,7 @@ Breadboard.prototype.postLoad = function postLoad()
         button.disabledTexture = TextureManager.get(button.disabledTexture);
     }
 
+    this.gridRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
 };
 
@@ -499,6 +501,10 @@ Breadboard.prototype.draw = function draw()
 {
     var stage = this.stage;
     var canvas = stage.canvas;
+    var camera = this.gameStage.camera;
+
+    this.gridRenderer.updateGeometry(camera);
+
     stage.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
     stage.renderer.setScissorTest(true);
     stage.renderer.render(stage.scene, this.gameStage.camera);

@@ -124,36 +124,6 @@ App.prototype.updateGame = function updateGame()
 
 };
 
-App.prototype.addGrid = function addGrid()
-{
-    var vertices = new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0
-    ]);
-    var gridGeometry = new THREE.BufferGeometry();
-    gridGeometry.addAttribute('position', new THREE.BufferAttribute(vertices, 2));
-
-    gridGeometry.boundingSphere = new THREE.Sphere();
-    gridGeometry.boundingSphere.radius = 99999;
-
-    this.gridMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            feather: this.breadboard.gameStage.feather,
-            box: { value: [0.0, 0.0, 0.0, 0.0] }
-        },
-        vertexShader: ShaderManager.get("src/shaders/grid.vert"),
-        fragmentShader: ShaderManager.get("src/shaders/grid.frag"),
-        side: THREE.DoubleSide
-    });
-    var mesh = new THREE.Mesh(gridGeometry, this.gridMaterial);
-    this.scene.add(mesh);
-};
-
 App.prototype.updateCircles = function updateCircles(time)
 {
     var p = this.breadboard.mouseP || [0,0];
@@ -275,7 +245,6 @@ App.prototype.postLoad = function postLoad()
     // }
 
     var mesh;
-    this.addGrid();
 
     this.addCircles();
 
@@ -301,7 +270,6 @@ App.prototype.postLoad = function postLoad()
         gameStage.update();
         var camera = gameStage.camera;
 
-        that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
 
         requestAnimationFrame(animate);
     }
