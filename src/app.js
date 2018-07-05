@@ -217,64 +217,7 @@ App.prototype.addCircles = function addCircles()
 
 App.prototype.postLoad = function postLoad()
 {
-    //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
-
-
-    var wires = [];
-    wires.push(-5, -6, -4, -6);
-    wires.push(0, 0, 0, 5);
-    wires.push(0, 0, 5, 5);
-    wires.push(5, 2, 2, 2);
-    wires.push(-1, -1, 2, -4);
-    wires.push(-5, -3, 5, -3);
-    wires.push(-5, -5, 15, -5);
-
-    // for (i = 0; i < 1000; i += 1)
-    // {
-    //     var l = (3 + Math.random() * 5) | 0;
-    //     var x = (-500 + Math.random() * 1000) | 0;
-    //     var y = 15 - 30 * Math.floor(i / 1000);
-    //     var dx = Math.round(-1 + Math.random() * 2);
-    //     var dy = Math.round(-1 + Math.random() * 2);
-    //     if (!dx && !dy)
-    //     {
-    //         i -= 1;
-    //         continue;
-    //     }
-    //     wires.push(x, y, x + dx * l, y + dy * l);
-    // }
-
-    var mesh;
-
     this.addCircles();
-
-    this.wireValueIndex = 0;
-    this.nextWireValue = 0;
-
-    var that = this;
-    function animate(time)
-    {
-        time *= 0.001;  // seconds
-
-        that.wireValueIndex += 1;
-        if (that.wireValueIndex >= dataTexture.image.width)
-        {
-            that.wireValueIndex = 0;
-            that.nextWireValue = that.nextWireValue ? 0 : 255;
-        }
-
-        that.textureData[that.wireValueIndex] = that.nextWireValue;
-        dataTexture.needsUpdate = true;
-
-        var gameStage = that.breadboard.gameStage;
-        gameStage.update();
-        var camera = gameStage.camera;
-
-
-        requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
 };
 
 App.prototype.initWebGL = function initWebGL()

@@ -147,11 +147,12 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires)
     {
         textureData[i] = 255;
     }
-    var dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
+    var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
     dataTexture.magFilter = THREE.NearestFilter;
     dataTexture.needsUpdate = true;
 
     this.texture.value = dataTexture;
+    this.textureSize.value = textureSize;
 
     var geometry = this.geometry;
     geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 3));

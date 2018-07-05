@@ -505,6 +505,31 @@ Breadboard.prototype.draw = function draw()
 
     this.gridRenderer.updateGeometry(camera);
 
+    var that = this;
+    var wire;
+    var textureData = this.wireRenderer.textureData;
+    var connections = this._connections;
+    function wireIterate(x, y, index)
+    {
+        var id = that.getIndex(x, y);
+        var connection = connections[id];
+        var connectionValue = 0;
+        if (connection)
+        {
+            connectionValue = connection.getDirectionValue(wire.directionId);
+        }
+
+        textureData[wire.texture0 + index] = connectionValue ? 255 : 0;
+    }
+
+    var i;
+    for (i = 0; i < this.wires.length; i += 1)
+    {
+        wire = this.wires[i];
+        wire.iterate(wireIterate);
+    }
+    this.wireRenderer.dataTexture.needsUpdate = true;
+
     stage.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
     stage.renderer.setScissorTest(true);
     stage.renderer.render(stage.scene, this.gameStage.camera);
