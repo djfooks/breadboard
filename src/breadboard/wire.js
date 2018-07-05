@@ -20,6 +20,9 @@ function Wire(x0, y0, x1, y1, id0, id1, type)
     this.directionId = Connection.getDirectionId(dx, dy);
     this.bit0 = Connection.getDirectionFlag( dx,  dy);
     this.bit1 = Connection.getDirectionFlag(-dx, -dy);
+
+    this.texture0 = 0;
+    this.texture1 = 0;
 }
 
 Wire.prototype.clone = function clone()

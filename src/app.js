@@ -5,7 +5,6 @@ var App = function ()
     this.debugText = "";
 
     this.canvas = document.getElementById("canvas");
-    //this.ctx = this.canvas.getContext("2d");
     this.gl = this.canvas.getContext("webgl");
 
     if (!this.gl) {
@@ -15,7 +14,7 @@ var App = function ()
 
     this.initWebGL();
 
-    this.stage = new Stage(this.canvas);
+    this.stage = new Stage(this.canvas, this.renderer, this.scene);
     this.stage.enable();
 
     this.fps = 30;
@@ -104,7 +103,7 @@ App.prototype.update = function update()
     if (this.loading)
     {
         this.loading = false;
-        this.postLoad();
+        //this.postLoad();
         this.breadboard.postLoad();
     }
 
@@ -116,7 +115,7 @@ App.prototype.update = function update()
         this.nextTick = 30;
     }
 
-    //this.breadboard.update();
+    this.breadboard.update();
     this.save();
 };
 
@@ -250,38 +249,6 @@ App.prototype.postLoad = function postLoad()
 {
     //var geometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
 
-    var geometry = new THREE.BufferGeometry();
-
-    var maxNumWires = 80000;
-    var indicesArray = new Uint16Array(maxNumWires * 6);
-    var verticesArray = new Uint8Array(maxNumWires * 8);
-    var i;
-    var index;
-    var vertexIndex;
-    var vertex;
-    for (i = 0; i < maxNumWires; i += 1)
-    {
-        index = i * 6;
-        vertexIndex = i * 4;
-        indicesArray[index + 0] = vertexIndex + 0;
-        indicesArray[index + 1] = vertexIndex + 1;
-        indicesArray[index + 2] = vertexIndex + 2;
-        indicesArray[index + 3] = vertexIndex + 2;
-        indicesArray[index + 4] = vertexIndex + 3;
-        indicesArray[index + 5] = vertexIndex + 0;
-
-        vertex = i * 8;
-        verticesArray[vertex + 0] = 0;
-        verticesArray[vertex + 1] = 0;
-        verticesArray[vertex + 2] = 1;
-        verticesArray[vertex + 3] = 0;
-        verticesArray[vertex + 4] = 1;
-        verticesArray[vertex + 5] = 1;
-        verticesArray[vertex + 6] = 0;
-        verticesArray[vertex + 7] = 1;
-    }
-
-    var indices = new THREE.BufferAttribute(indicesArray, 1);
 
     var wires = [];
     wires.push(-5, -6, -4, -6);
@@ -307,120 +274,8 @@ App.prototype.postLoad = function postLoad()
     //     wires.push(x, y, x + dx * l, y + dy * l);
     // }
 
-    var numWires = wires.length / 4;
-    console.log(numWires);
-
-    var p1s = new Int16Array(numWires * 12);
-    var p2s = new Int16Array(numWires * 12);
-    var wireIndex;
-
-    var wireValueIndex = 0;
-    for (i = 0; i < numWires; i += 1)
-    {
-        index = i * 12;
-        wireIndex = i * 4;
-
-        var wireLength = Math.max(Math.abs(wires[wireIndex + 0] - wires[wireIndex + 2]),
-                                  Math.abs(wires[wireIndex + 1] - wires[wireIndex + 3]));
-        var texture1 = wireValueIndex;
-        wireValueIndex += wireLength;
-        var texture2 = wireValueIndex;
-
-        p1s[index + 0]  = wires[wireIndex + 0];
-        p1s[index + 1]  = wires[wireIndex + 1];
-        p1s[index + 2]  = texture1;
-        p1s[index + 3]  = wires[wireIndex + 0];
-        p1s[index + 4]  = wires[wireIndex + 1];
-        p1s[index + 5]  = texture1;
-        p1s[index + 6]  = wires[wireIndex + 0];
-        p1s[index + 7]  = wires[wireIndex + 1];
-        p1s[index + 8]  = texture1;
-        p1s[index + 9]  = wires[wireIndex + 0];
-        p1s[index + 10] = wires[wireIndex + 1];
-        p1s[index + 11] = texture1;
-
-        p2s[index + 0]  = wires[wireIndex + 2];
-        p2s[index + 1]  = wires[wireIndex + 3];
-        p2s[index + 2]  = texture2;
-        p2s[index + 3]  = wires[wireIndex + 2];
-        p2s[index + 4]  = wires[wireIndex + 3];
-        p2s[index + 5]  = texture2;
-        p2s[index + 6]  = wires[wireIndex + 2];
-        p2s[index + 7]  = wires[wireIndex + 3];
-        p2s[index + 8]  = texture2;
-        p2s[index + 9]  = wires[wireIndex + 2];
-        p2s[index + 10] = wires[wireIndex + 3];
-        p2s[index + 11] = texture2;
-    }
-
-    var textureSize = wireValueIndex;
-    var textureData = this.textureData = new Uint8Array(textureSize);
-    for (i = 0; i < textureSize; i += 1)
-    {
-        textureData[i] = 255;
-    }
-    var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
-    dataTexture.magFilter = THREE.NearestFilter;
-    dataTexture.needsUpdate = true;
-
-    geometry.setIndex(indices);
-    geometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-    geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 3));
-    geometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 3));
-    geometry.setDrawRange(0, 6 * numWires);
-
-    geometry.boundingSphere = new THREE.Sphere();
-    geometry.boundingSphere.radius = 99999;
-
-    var wireVertexShader = ShaderManager.get("src/shaders/wire.vert");
-    var wireCirclesFragmentShader = ShaderManager.get("src/shaders/wirecirclesshader.frag");
-
-    this.wireCirclesBgMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            feather: this.breadboard.gameStage.feather,
-            radius: { value: 0.4 },
-            fg: { value: 0.0 },
-            textureSize: {value : textureSize}
-        },
-        vertexShader: wireVertexShader,
-        fragmentShader: wireCirclesFragmentShader,
-        side: THREE.DoubleSide
-    });
-    this.wireCirclesBgMaterial.transparent = true;
-
-    this.wireMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            feather: this.breadboard.gameStage.feather,
-            texture: {value : dataTexture},
-            textureSize: {value : textureSize},
-        },
-        vertexShader: wireVertexShader,
-        fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
-        side: THREE.DoubleSide
-    });
-    this.wireMaterial.transparent = true;
-
-    this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            feather: this.breadboard.gameStage.feather,
-            radius: { value: 0.35 },
-            fg: { value: 1.0 },
-            textureSize: {value : textureSize}
-        },
-        vertexShader: wireVertexShader,
-        fragmentShader: wireCirclesFragmentShader,
-        side: THREE.DoubleSide
-    });
-    this.wireCirclesFgMaterial.transparent = true;
-
     var mesh;
     this.addGrid();
-    mesh = new THREE.Mesh(geometry, this.wireCirclesBgMaterial);
-    this.scene.add(mesh);
-    mesh = new THREE.Mesh(geometry, this.wireMaterial);
-    this.scene.add(mesh);
-    mesh = new THREE.Mesh(geometry, this.wireCirclesFgMaterial);
-    this.scene.add(mesh);
 
     this.addCircles();
 
@@ -442,20 +297,12 @@ App.prototype.postLoad = function postLoad()
         that.textureData[that.wireValueIndex] = that.nextWireValue;
         dataTexture.needsUpdate = true;
 
-        var canvas = that.canvas;
-        var aspect = canvas.width / canvas.height;
-
         var gameStage = that.breadboard.gameStage;
         gameStage.update();
         var camera = gameStage.camera;
 
         that.gridMaterial.uniforms.box.value = [camera.left, camera.top, camera.right, camera.bottom];
 
-        that.updateCircles(time);
-
-        that.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
-        that.renderer.setScissorTest(true);
-        that.renderer.render(that.scene, camera);
         requestAnimationFrame(animate);
     }
 
@@ -465,7 +312,6 @@ App.prototype.postLoad = function postLoad()
 App.prototype.initWebGL = function initWebGL()
 {
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
-
     this.scene = new THREE.Scene();
 };
 

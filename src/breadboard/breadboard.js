@@ -42,6 +42,9 @@ function Breadboard(stage, top, left, cols, rows)
     this.cols = cols;
     this.rows = rows;
 
+    this.wireRenderer = new WireRenderer();
+    this.scene = stage.scene;
+
     this.clear();
 
     this.debugDrawHitboxes = false;
@@ -109,6 +112,8 @@ Breadboard.prototype.postLoad = function postLoad()
         button.enabledTexture = TextureManager.get(button.enabledTexture);
         button.disabledTexture = TextureManager.get(button.disabledTexture);
     }
+
+    this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
 };
 
 Breadboard.prototype.clear = function clearFn()
@@ -492,77 +497,79 @@ Breadboard.prototype.pulseReset = function pulseReset()
 
 Breadboard.prototype.draw = function draw()
 {
-    var canvas = this.stage.canvas;
-    var ctx = this.stage.ctx;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    this.gameStage.drawBorder(ctx);
+    var stage = this.stage;
+    var canvas = stage.canvas;
+    stage.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
+    stage.renderer.setScissorTest(true);
+    stage.renderer.render(stage.scene, this.gameStage.camera);
+    // this.gameStage.drawBorder(ctx);
 
-    this.tray.draw(ctx);
-    this.drawButtons();
+    // this.tray.draw(ctx);
+    // this.drawButtons();
 
-    var gs = this.gameStage;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(gs.minX, gs.minY, gs.maxX - gs.minY, gs.maxY - gs.minY);
-    ctx.clip();
-
-    gs.transformContext(ctx);
-
-    if (this.debugDrawConnections)
-    {
-        this.drawConnections(ctx);
-    }
-
-    this.drawGrid();
-
-    this.drawSelection();
-
-    this.drawComponents();
-    this.drawWires(this.wires, "#000000", this.wireDrawParameters);
-    this.drawBuses(this.buses, "#000000", this.wireDrawParameters);
-    if (this.wireType == ComponentTypes.WIRE)
-    {
-        this.drawWires(this.virtualWires, "#000000", this.wireDrawParameters);
-    }
-    else /*if (this.wireType == ComponentTypes.BUS)*/
-    {
-        this.drawBuses(this.virtualWires, "#000000", this.wireDrawParameters);
-    }
-
-    if (this.debugDrawHitboxes)
-    {
-        this.gameStage.drawHitboxes(ctx);
-    }
-
-    // ctx.fillStyle = "blue";
+    // var gs = this.gameStage;
+    // ctx.save();
     // ctx.beginPath();
-    // ctx.arc(this.draggingPoint[0], this.draggingPoint[1], 0.1, 0, Math.PI * 2);
-    // ctx.fill();
+    // ctx.rect(gs.minX, gs.minY, gs.maxX - gs.minY, gs.maxY - gs.minY);
+    // ctx.clip();
 
-    // ctx.fillStyle = "red";
-    // ctx.beginPath();
-    // ctx.arc(this.gameSpaceMouseDownP[0], this.gameSpaceMouseDownP[1], 2, 0, Math.PI * 2);
-    // ctx.fill();
+    // gs.transformContext(ctx);
 
-    ctx.restore();
+    // if (this.debugDrawConnections)
+    // {
+    //     this.drawConnections(ctx);
+    // }
 
-    if (this.debugDrawHitboxes)
-    {
-        ctx.save();
-        this.tray.gameStage.transformContext(ctx);
-        this.tray.gameStage.drawHitboxes(ctx);
-        ctx.restore();
-    }
-    else
-    {
-        this.drawDraggedObjects();
-    }
+    // this.drawGrid();
 
-    var i;
-    for (i = 0; i < this.debugDrawList.length; i += 1)
-    {
-        this.debugDrawList[i](ctx);
-    }
+    // this.drawSelection();
+
+    // this.drawComponents();
+    // this.drawWires(this.wires, "#000000", this.wireDrawParameters);
+    // this.drawBuses(this.buses, "#000000", this.wireDrawParameters);
+    // if (this.wireType == ComponentTypes.WIRE)
+    // {
+    //     this.drawWires(this.virtualWires, "#000000", this.wireDrawParameters);
+    // }
+    // else /*if (this.wireType == ComponentTypes.BUS)*/
+    // {
+    //     this.drawBuses(this.virtualWires, "#000000", this.wireDrawParameters);
+    // }
+
+    // if (this.debugDrawHitboxes)
+    // {
+    //     this.gameStage.drawHitboxes(ctx);
+    // }
+
+    // // ctx.fillStyle = "blue";
+    // // ctx.beginPath();
+    // // ctx.arc(this.draggingPoint[0], this.draggingPoint[1], 0.1, 0, Math.PI * 2);
+    // // ctx.fill();
+
+    // // ctx.fillStyle = "red";
+    // // ctx.beginPath();
+    // // ctx.arc(this.gameSpaceMouseDownP[0], this.gameSpaceMouseDownP[1], 2, 0, Math.PI * 2);
+    // // ctx.fill();
+
+    // ctx.restore();
+
+    // if (this.debugDrawHitboxes)
+    // {
+    //     ctx.save();
+    //     this.tray.gameStage.transformContext(ctx);
+    //     this.tray.gameStage.drawHitboxes(ctx);
+    //     ctx.restore();
+    // }
+    // else
+    // {
+    //     this.drawDraggedObjects();
+    // }
+
+    // var i;
+    // for (i = 0; i < this.debugDrawList.length; i += 1)
+    // {
+    //     this.debugDrawList[i](ctx);
+    // }
 };
 
 Breadboard.prototype.drawSelection = function drawSelection()
@@ -1303,6 +1310,7 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
         if (type == ComponentTypes.WIRE)
         {
             this.wires.push(wire);
+            this.wireRenderer.updateGeometry(this.wires);
         }
         else /*if (type == ComponentTypes.BUS)*/
         {
