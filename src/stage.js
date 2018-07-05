@@ -47,10 +47,13 @@ function Button(x, y, width, height)
     this.hitbox = new Hitbox(x, y, x + width, y + height, null);
 }
 
-function Stage(canvas)
+function Stage(canvas, renderer, scene)
 {
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+    this.gl = canvas.getContext("webgl");
+    this.renderer = renderer;
+    this.scene = scene;
+
     this.hitboxes = [];
     this.buttons = [];
 
