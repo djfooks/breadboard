@@ -242,13 +242,15 @@ Wire.prototype.iterate = function iterate(fn)
     var y1 = this.y1;
     var dx = this.dx;
     var dy = this.dy;
+    var i = 0;
     while (x !== x1 || y !== y1)
     {
-        fn(x, y);
+        fn(x, y, i);
         x += dx;
         y += dy;
+        i += 1;
     }
-    fn(x, y);
+    fn(x, y, i);
 };
 
 Wire.prototype.toJson = function toJson()
