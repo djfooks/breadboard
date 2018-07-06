@@ -27,7 +27,10 @@ void main(void) {
     const float innerWire = 0.06;
     const float outerWire = 0.09;
     float outerBounds = outerWire + feather;
-    bool inOuterWire = vP.x >= minX - outerBounds && vP.x <= maxX + outerBounds && vP.y >= minY - outerBounds && vP.y <= maxY + outerBounds;
+    bool inOuterWire = vP.x >= minX - outerBounds &&
+                       vP.x <= maxX + outerBounds &&
+                       vP.y >= minY - outerBounds &&
+                       vP.y <= maxY + outerBounds;
 
     if (inOuterWire)
     {
