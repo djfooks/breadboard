@@ -44,7 +44,7 @@ ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.rectangleMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            border: { value: Component.border }
+            border: { value: 0.05 }//Component.border }
         },
         vertexShader: ShaderManager.get("src/shaders/rectangle.vert"),
         fragmentShader: ShaderManager.get("src/shaders/rectangle.frag"),
