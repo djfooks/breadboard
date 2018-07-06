@@ -16,14 +16,7 @@ void main()
     vP1 = p1.xy;
     vP2 = p2.xy;
 
-    vec2 o = vP1 - vP2;
-    float d = length(o);
-    vec2 n = o / d;
-    vec2 m = vec2(n.y, -n.x);
-
-    vec2 p = mix(vP1 + n, vP2 - n, position.x);
-    p += mix(-m, m, position.y);
-
+    vec2 p = mix(p1 - vec2(0.5, 0.5), p2 + vec2(0.5, 0.5), position);
     vP = p;
     vec4 mvPosition = vec4(p, 0.0, 1.0);
     gl_Position = projectionMatrix * mvPosition;
