@@ -90,6 +90,8 @@ var App = function ()
     ShaderManager.request("src/shaders/grid.frag");
     ShaderManager.request("src/shaders/circle.vert");
     ShaderManager.request("src/shaders/circle.frag");
+    ShaderManager.request("src/shaders/rectangle.vert");
+    ShaderManager.request("src/shaders/rectangle.frag");
 };
 
 App.prototype.update = function update()
