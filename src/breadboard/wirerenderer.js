@@ -139,6 +139,8 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires)
         p2s[index + 9]  = wire.x1;
         p2s[index + 10] = wire.y1;
         p2s[index + 11] = texture1;
+
+        wireValueIndex += 1;
     }
 
     var textureSize = wireValueIndex;
