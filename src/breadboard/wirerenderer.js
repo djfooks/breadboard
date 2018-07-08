@@ -50,7 +50,7 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.wireCirclesBgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            radius: { value: 0.4 },
+            radius: { value: 0.19 },
             fg: { value: 0.0 },
             texture: this.texture,
             textureSize: this.textureSize
@@ -76,7 +76,7 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            radius: { value: 0.35 },
+            radius: { value: 0.14 },
             fg: { value: 1.0 },
             texture: this.texture,
             textureSize: this.textureSize
