@@ -24,8 +24,8 @@ void main(void) {
     float maxX = max(vP1.x, vP2.x);
     float minY = min(vP1.y, vP2.y);
     float maxY = max(vP1.y, vP2.y);
-    const float innerWire = 0.06;
-    const float outerWire = 0.09;
+    const float innerWire = 0.03;
+    const float outerWire = 0.07;
     float outerBounds = outerWire + feather;
     bool inOuterWire = vP.x >= minX - outerBounds &&
                        vP.x <= maxX + outerBounds &&
@@ -40,9 +40,10 @@ void main(void) {
         v = (d - innerWire) / feather;
 
         float wireValue = texture2D(texture, vec2(vUV / textureSize, 0.0)).x;
-        vec3 wireColor = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 0.0), wireValue);
 
-        wireColor = mix(wireColor, vec3(0.0, 0.0, 0.0), v);
+        vec3 wireColor = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.53, 0.53), wireValue);
+
+        wireColor = mix(wireColor, vec3(0.0, 0.0, 0.0), max(min(v, 1.0), 0.0));
 
         gl_FragColor = vec4(wireColor.rgb, alpha);
     }
