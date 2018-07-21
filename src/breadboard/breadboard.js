@@ -134,6 +134,7 @@ Breadboard.prototype.clear = function clearFn()
     this.batteries = [];
     this.removeWireId = -1;
     this.dirty = false;
+    this.geometryDirty = true;
 
     this.shouldSwitch = false;
     this.state = Breadboard.state.ADD_WIRE;
@@ -506,6 +507,11 @@ Breadboard.prototype.draw = function draw()
     var camera = this.gameStage.camera;
 
     this.gridRenderer.updateGeometry(camera);
+    if (this.geometryDirty)
+    {
+        this.wireRenderer.updateGeometry(this.wires, this);
+        this.geometryDirty = false;
+    }
 
     var that = this;
     var wire;
@@ -1343,7 +1349,6 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
         if (type == ComponentTypes.WIRE)
         {
             this.wires.push(wire);
-            this.wireRenderer.updateGeometry(this.wires);
         }
         else /*if (type == ComponentTypes.BUS)*/
         {
@@ -1371,6 +1376,8 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
             connection.addWire(id, bit1, type);
         }
         connection.addWireComponent(id, wire);
+
+        this.geometryDirty = true;
     }
 };
 
