@@ -126,24 +126,44 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesFgMaterial));
 };
 
-WireRenderer.prototype.updateGeometry = function updateGeometry(wires)
+WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboard)
 {
     var numWires = wires.length;
 
     var p1s = new Int16Array(numWires * 12);
     var p2s = new Int16Array(numWires * 12);
 
-    var numCircles = numWires * 2;
-    var circles = new Int16Array(numCircles * 12);
+    var circlesMap = {};
+    var numCircles = 0;
+    var wire;
+    function wireIterate(x, y, index)
+    {
+        var id = breadboard.getIndex(x, y);
+        var connection = breadboard.getConnection(id);
+        if (connection.hasDot)
+        {
+            if (!circlesMap.hasOwnProperty(id))
+            {
+                circlesMap[id] = wire;
+                numCircles += 1;
+            }
+        }
+    }
 
     var wireValueIndex = 0;
     var i;
     var index;
-    var circlesIndex;
+    var circlesIndex = 0;
+    for (i = 0; i < numWires; i += 1)
+    {
+        wire = wires[i];
+        wire.iterate(wireIterate);
+    }
+
     for (i = 0; i < numWires; i += 1)
     {
         index = i * 12;
-        var wire = wires[i];
+        wire = wires[i];
 
         var wireLength = Math.max(Math.abs(wire.x0 - wire.x1),
                                   Math.abs(wire.y0 - wire.y1));
@@ -178,34 +198,31 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires)
         p2s[index + 11] = texture1;
 
         wireValueIndex += 1;
+    }
 
-        circlesIndex = i * 24;
+    var circles = new Int16Array(numCircles * 12);
+    var id;
+    for (id in circlesMap)
+    {
+        wire = circlesMap[id];
+        var p = breadboard.getPositionFromIndex(id);
 
-        circles[circlesIndex + 0]  = wire.x0;
-        circles[circlesIndex + 1]  = wire.y0;
-        circles[circlesIndex + 2]  = texture0;
-        circles[circlesIndex + 3]  = wire.x0;
-        circles[circlesIndex + 4]  = wire.y0;
-        circles[circlesIndex + 5]  = texture0;
-        circles[circlesIndex + 6]  = wire.x0;
-        circles[circlesIndex + 7]  = wire.y0;
-        circles[circlesIndex + 8]  = texture0;
-        circles[circlesIndex + 9]  = wire.x0;
-        circles[circlesIndex + 10] = wire.y0;
-        circles[circlesIndex + 11] = texture0;
+        var dist = Math.abs(p[0] - wire.x0) + Math.abs(p[1] - wire.y1);
+        var texture = wire.texture0 + dist;
 
-        circles[circlesIndex + 12] = wire.x1;
-        circles[circlesIndex + 13] = wire.y1;
-        circles[circlesIndex + 14] = texture1;
-        circles[circlesIndex + 15] = wire.x1;
-        circles[circlesIndex + 16] = wire.y1;
-        circles[circlesIndex + 17] = texture1;
-        circles[circlesIndex + 18] = wire.x1;
-        circles[circlesIndex + 19] = wire.y1;
-        circles[circlesIndex + 20] = texture1;
-        circles[circlesIndex + 21] = wire.x1;
-        circles[circlesIndex + 22] = wire.y1;
-        circles[circlesIndex + 23] = texture1;
+        circles[circlesIndex + 0]  = p[0];
+        circles[circlesIndex + 1]  = p[1];
+        circles[circlesIndex + 2]  = texture;
+        circles[circlesIndex + 3]  = p[0];
+        circles[circlesIndex + 4]  = p[1];
+        circles[circlesIndex + 5]  = texture;
+        circles[circlesIndex + 6]  = p[0];
+        circles[circlesIndex + 7]  = p[1];
+        circles[circlesIndex + 8]  = texture;
+        circles[circlesIndex + 9]  = p[0];
+        circles[circlesIndex + 10] = p[1];
+        circles[circlesIndex + 11] = texture;
+        circlesIndex += 12;
     }
 
     var textureSize = wireValueIndex;
