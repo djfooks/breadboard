@@ -85,6 +85,7 @@ var App = function ()
 
     ShaderManager.request("src/shaders/wire.vert");
     ShaderManager.request("src/shaders/wire.frag");
+    ShaderManager.request("src/shaders/wirecirclesshader.vert");
     ShaderManager.request("src/shaders/wirecirclesshader.frag");
     ShaderManager.request("src/shaders/grid.vert");
     ShaderManager.request("src/shaders/grid.frag");
