@@ -120,6 +120,8 @@ Breadboard.prototype.postLoad = function postLoad()
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentNodeRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
+
+    this.componentNodeRenderer.addWireTexture(this.wireRenderer);
 };
 
 Breadboard.prototype.clear = function clearFn()
@@ -506,6 +508,8 @@ Breadboard.prototype.draw = function draw()
     if (this.geometryDirty)
     {
         this.wireRenderer.updateGeometry(this.wires, this);
+        this.componentBoxRenderer.updateGeometry(this.componentsList);
+        this.componentNodeRenderer.updateGeometry(this.componentsList, this);
         this.geometryDirty = false;
     }
 
@@ -1798,8 +1802,7 @@ Breadboard.prototype.addComponent = function addComponent(component)
     }
 
     this.gameStage.addHitbox(component.hitbox);
-    this.componentBoxRenderer.updateGeometry(this.componentsList);
-    this.componentNodeRenderer.updateGeometry(this.componentsList, this);
+    this.geometryDirty = true;
     return true;
 };
 
