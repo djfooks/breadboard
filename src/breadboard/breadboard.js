@@ -46,6 +46,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.gridRenderer = new GridRenderer();
     this.wireRenderer = new WireRenderer();
     this.componentBoxRenderer = new ComponentBoxRenderer();
+    this.componentNodeRenderer = new ComponentNodeRenderer();
 
     this.clear();
 
@@ -117,6 +118,7 @@ Breadboard.prototype.postLoad = function postLoad()
 
     this.gridRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
+    this.componentNodeRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
 };
 
@@ -1797,6 +1799,7 @@ Breadboard.prototype.addComponent = function addComponent(component)
 
     this.gameStage.addHitbox(component.hitbox);
     this.componentBoxRenderer.updateGeometry(this.componentsList);
+    this.componentNodeRenderer.updateGeometry(this.componentsList, this);
     return true;
 };
 

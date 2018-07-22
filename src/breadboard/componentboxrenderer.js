@@ -60,8 +60,8 @@ ComponentBoxRenderer.prototype.updateGeometry = function updateGeometry(componen
 {
     var numComponents = components.length;
 
-    var p1s = new Int16Array(numComponents * 12);
-    var p2s = new Int16Array(numComponents * 12);
+    var p1s = new Int16Array(numComponents * 8);
+    var p2s = new Int16Array(numComponents * 8);
 
     var i;
     var index;
