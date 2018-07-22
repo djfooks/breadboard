@@ -82,6 +82,15 @@ ComponentNodeRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     //scene.add(new THREE.Mesh(this.inputNodeGeometry, this.componentInputNodeMaterial));
 };
 
+ComponentNodeRenderer.prototype.addWireTexture = function addWireTexture(wireRenderer)
+{
+    this.componentNodeMaterial.uniforms.textureSize = wireRenderer.textureSize;
+    this.componentNodeMaterial.uniforms.texture = wireRenderer.texture;
+
+    this.componentInputNodeMaterial.uniforms.textureSize = wireRenderer.textureSize;
+    this.componentInputNodeMaterial.uniforms.texture = wireRenderer.texture;
+};
+
 ComponentNodeRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)
 {
     var numComponents = components.length;
@@ -96,7 +105,7 @@ ComponentNodeRenderer.prototype.updateGeometry = function updateGeometry(compone
         numNodes += component.getConnections(breadboard).length;
     }
 
-    var circles = new Int16Array(numNodes * 8);
+    var circles = new Int16Array(numNodes * 12);
 
     var index = 0;
     for (i = 0; i < numComponents; i += 1)
@@ -105,21 +114,35 @@ ComponentNodeRenderer.prototype.updateGeometry = function updateGeometry(compone
         var connections = component.getConnections(breadboard);
         for (j = 0; j < connections.length; j += 1)
         {
-            var q = breadboard.getPositionFromIndex(connections[j]);
-            circles[index + 0] = q[0];
-            circles[index + 1] = q[1];
-            circles[index + 2] = q[0];
-            circles[index + 3] = q[1];
-            circles[index + 4] = q[0];
-            circles[index + 5] = q[1];
-            circles[index + 6] = q[0];
-            circles[index + 7] = q[1];
+            var id = connections[j];
+            var q = breadboard.getPositionFromIndex(id);
 
-            index += 8;
+            var connection = breadboard.getConnection(id);
+            var textureIndex = 0;
+            if (connection.wires.length > 0)
+            {
+                var wire = connection.wires[0];
+                textureIndex = wire.texture0 + Math.abs(wire.x0 - q[0]) + Math.abs(wire.y0 - q[1]);
+            }
+
+            circles[index + 0]  = q[0];
+            circles[index + 1]  = q[1];
+            circles[index + 2]  = textureIndex;
+            circles[index + 3]  = q[0];
+            circles[index + 4]  = q[1];
+            circles[index + 5]  = textureIndex;
+            circles[index + 6]  = q[0];
+            circles[index + 7]  = q[1];
+            circles[index + 8]  = textureIndex;
+            circles[index + 9]  = q[0];
+            circles[index + 10] = q[1];
+            circles[index + 11] = textureIndex;
+
+            index += 12;
         }
     }
 
     var nodeGeometry = this.nodeGeometry;
-    nodeGeometry.addAttribute('circle', new THREE.BufferAttribute(circles, 2));
+    nodeGeometry.addAttribute('circle', new THREE.BufferAttribute(circles, 3));
     nodeGeometry.setDrawRange(0, 6 * numNodes);
 };

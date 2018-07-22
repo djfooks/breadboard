@@ -150,7 +150,7 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
         }
     }
 
-    var wireValueIndex = 0;
+    var wireValueIndex = 1;
     var i;
     var index;
     var circlesIndex = 0;
@@ -229,7 +229,7 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
     var textureData = this.textureData = new Uint8Array(textureSize);
     for (i = 0; i < textureSize; i += 1)
     {
-        textureData[i] = 255;
+        textureData[i] = 0;
     }
     var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
     dataTexture.magFilter = THREE.NearestFilter;
