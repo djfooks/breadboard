@@ -44,7 +44,8 @@ function ComponentNodeRenderer()
     inputNodeGeometry.boundingSphere = new THREE.Sphere();
     inputNodeGeometry.boundingSphere.radius = 99999;
 
-    this.radius = { value: 0.3 };
+    this.innerRadius = { value: 0.26 };
+    this.outerRadius = { value: 0.31 };
     this.width = { value: 0.01 };
     this.color = { value: new THREE.Vector3(0.0, 0.0, 0.0)};
     this.inputColor = { value: new THREE.Vector3(0.0, 1.0, 0.0)};
@@ -52,18 +53,31 @@ function ComponentNodeRenderer()
 
 ComponentNodeRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
-    this.componentNodeMaterial = new THREE.RawShaderMaterial({
+    this.componentBgNodeMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            radius: this.radius,
+            radius: this.outerRadius,
             width: this.width,
-            color: this.color
+            fg: { value: 0.0 }
         },
         vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
         fragmentShader: ShaderManager.get("src/shaders/componentnode.frag"),
         side: THREE.DoubleSide
     });
-    this.componentNodeMaterial.transparent = true;
+    this.componentBgNodeMaterial.transparent = true;
+
+    this.componentFgNodeMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            feather: feather,
+            radius: this.innerRadius,
+            width: this.width,
+            fg: { value: 1.0 }
+        },
+        vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/componentnode.frag"),
+        side: THREE.DoubleSide
+    });
+    this.componentFgNodeMaterial.transparent = true;
 
     this.componentInputNodeMaterial = new THREE.RawShaderMaterial({
         uniforms: {
@@ -78,14 +92,18 @@ ComponentNodeRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     });
     this.componentInputNodeMaterial.transparent = true;
 
-    scene.add(new THREE.Mesh(this.nodeGeometry, this.componentNodeMaterial));
+    scene.add(new THREE.Mesh(this.nodeGeometry, this.componentBgNodeMaterial));
+    scene.add(new THREE.Mesh(this.nodeGeometry, this.componentFgNodeMaterial));
     //scene.add(new THREE.Mesh(this.inputNodeGeometry, this.componentInputNodeMaterial));
 };
 
 ComponentNodeRenderer.prototype.addWireTexture = function addWireTexture(wireRenderer)
 {
-    this.componentNodeMaterial.uniforms.textureSize = wireRenderer.textureSize;
-    this.componentNodeMaterial.uniforms.texture = wireRenderer.texture;
+    this.componentBgNodeMaterial.uniforms.textureSize = wireRenderer.textureSize;
+    this.componentBgNodeMaterial.uniforms.texture = wireRenderer.texture;
+
+    this.componentFgNodeMaterial.uniforms.textureSize = wireRenderer.textureSize;
+    this.componentFgNodeMaterial.uniforms.texture = wireRenderer.texture;
 
     this.componentInputNodeMaterial.uniforms.textureSize = wireRenderer.textureSize;
     this.componentInputNodeMaterial.uniforms.texture = wireRenderer.texture;
