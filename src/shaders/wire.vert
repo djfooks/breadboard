@@ -21,7 +21,7 @@ void main()
     vec2 n = o / d;
     vec2 m = vec2(n.y, -n.x);
 
-    vec2 p = mix(vP1 + n, vP2 - n, position.x);
+    vec2 p = mix(vP1, vP2, position.x);
     p += mix(-m, m, position.y);
 
     float uv = (dot(vP1 - p, n) + 0.5) / d;
