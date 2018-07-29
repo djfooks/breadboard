@@ -9,12 +9,14 @@ function DebuggerComponent(breadboard)
 
     this.pinId = [];
     this.pinP = [];
+    this.pinTextureIndex = [];
 
     var i;
     for (i = 0; i < 8; i += 1)
     {
         this.pinId.push(-1);
         this.pinP.push([-1, -1]);
+        this.pinTextureIndex.push(-1);
     }
 
     this.previousValue = 0;
@@ -95,6 +97,29 @@ DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboar
         isValid = isValid && breadboard.validPosition(pin) && (!component || component === this);
     }
     return isValid;
+};
+
+DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
+{
+    componentRenderer.outputNodes.count += 8;
+};
+
+DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+{
+    var i;
+    for (i = 0; i < 8; i += 1)
+    {
+        this.pinTextureIndex[i] = componentRenderer.addOutputNode(breadboard, this.pinP[i]);
+    }
+};
+
+DebuggerComponent.prototype.render = function render(renderer)
+{
+    var i;
+    for (i = 0; i < 8; i += 1)
+    {
+        renderer.textureData[this.pinTextureIndex[i]] = ((this.value & (1 << (7 - i))) != 0) ? 255 : 0;
+    }
 };
 
 DebuggerComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)

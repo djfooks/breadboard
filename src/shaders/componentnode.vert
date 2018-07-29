@@ -13,8 +13,7 @@ attribute vec2 position;
 attribute vec3 circle;
 
 varying vec2 vP;
-varying vec2 vCircle;
-varying float vValue;
+varying vec3 vCircle;
 
 void main()
 {
@@ -24,9 +23,9 @@ void main()
 
     vec2 p = vec2(mix(p1.x, p2.x, position.x), mix(p1.y, p2.y, position.y));
 
-    vValue = texture2D(texture, vec2(circle.z / textureSize, 0.0)).x;
+    float value = texture2D(texture, vec2(circle.z / textureSize, 0.0)).x;
     vP = p;
-    vCircle = circle.xy;
+    vCircle = vec3(circle.xy, value);
     vec4 mvPosition = vec4(p, 0.0, 1.0);
     gl_Position = projectionMatrix * mvPosition;
 }
