@@ -1,6 +1,8 @@
 
-function WireRenderer()
+function WireRenderer(renderer)
 {
+    this.renderer = renderer;
+
     var maxNumWires = 10000;
     var indicesArray = new Uint16Array(maxNumWires * 6);
     var verticesArray = new Uint8Array(maxNumWires * 8);
@@ -70,9 +72,6 @@ function WireRenderer()
     circleGeometry.addAttribute('position', new THREE.BufferAttribute(circleVerticesArray, 2));
     circleGeometry.boundingSphere = new THREE.Sphere();
     circleGeometry.boundingSphere.radius = 99999;
-
-    this.textureSize = {value : 0};
-    this.texture = {value : null};
 }
 
 WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
@@ -86,8 +85,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             feather: feather,
             radius: { value: 0.19 },
             fg: { value: 0.0 },
-            texture: this.texture,
-            textureSize: this.textureSize
+            texture: this.renderer.texture,
+            textureSize: this.renderer.textureSize
         },
         vertexShader: wireCirclesVertexShader,
         fragmentShader: wireCirclesFragmentShader,
@@ -98,8 +97,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.wireMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            texture: this.texture,
-            textureSize: this.textureSize,
+            texture: this.renderer.texture,
+            textureSize: this.renderer.textureSize
         },
         vertexShader: wireVertexShader,
         fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
@@ -112,8 +111,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             feather: feather,
             radius: { value: 0.14 },
             fg: { value: 1.0 },
-            texture: this.texture,
-            textureSize: this.textureSize
+            texture: this.renderer.texture,
+            textureSize: this.renderer.textureSize
         },
         vertexShader: wireCirclesVertexShader,
         fragmentShader: wireCirclesFragmentShader,
@@ -225,18 +224,7 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
         circlesIndex += 12;
     }
 
-    var textureSize = wireValueIndex;
-    var textureData = this.textureData = new Uint8Array(textureSize);
-    for (i = 0; i < textureSize; i += 1)
-    {
-        textureData[i] = 0;
-    }
-    var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
-    dataTexture.magFilter = THREE.NearestFilter;
-    dataTexture.needsUpdate = true;
-
-    this.texture.value = dataTexture;
-    this.textureSize.value = textureSize;
+    this.renderer.textureSize.value += wireValueIndex;
 
     var wireGeometry = this.wireGeometry;
     wireGeometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 3));
