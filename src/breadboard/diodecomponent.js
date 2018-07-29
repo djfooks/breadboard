@@ -63,6 +63,17 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     return isValid;
 };
 
+DiodeComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
+{
+    componentRenderer.outputNodes.count += 2;
+};
+
+DiodeComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+{
+    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p0, this.id0);
+    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p1, this.id1);
+};
+
 DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var p0 = this.p0;
