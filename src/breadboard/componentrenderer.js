@@ -40,6 +40,12 @@ function ComponentRenderer(renderer)
     switchGeometry.boundingSphere = new THREE.Sphere();
     switchGeometry.boundingSphere.radius = 99999;
 
+    var outputNodeGeometry = this.outputNodeGeometry = new THREE.BufferGeometry();
+    outputNodeGeometry.setIndex(indices);
+    outputNodeGeometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
+    outputNodeGeometry.boundingSphere = new THREE.Sphere();
+    outputNodeGeometry.boundingSphere.radius = 99999;
+
     this.innerRadius = { value: 0.26 };
     this.outerRadius = { value: 0.31 };
     this.width = { value: 0.01 };
@@ -54,16 +60,26 @@ function ComponentRenderer(renderer)
         p1: null,
         signal: null,
     };
+
+    this.outputNodes = {
+        count: 0,
+        index: 0,
+        p: null
+    };
+
+    this.inputNodes = {
+        count: 0,
+        index: 0,
+        p: null
+    };
 }
 
 ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
     this.componentSwitchMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: feather,
             radius: this.outerRadius,
-            width: this.width,
-            fg: { value: 0.0 },
+            feather: feather,
             texture: this.renderer.texture,
             textureSize: this.renderer.textureSize
         },
@@ -73,7 +89,39 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     });
     this.componentSwitchMaterial.transparent = true;
 
+    this.outputNodeMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            radius: this.outerRadius,
+            feather: feather,
+            texture: this.renderer.texture,
+            textureSize: this.renderer.textureSize
+        },
+        vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/componentnode.frag"),
+        side: THREE.DoubleSide
+    });
+    this.outputNodeMaterial.transparent = true;
+
     scene.add(new THREE.Mesh(this.switchGeometry, this.componentSwitchMaterial));
+    scene.add(new THREE.Mesh(this.outputNodeGeometry, this.outputNodeMaterial));
+};
+
+ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p)
+{
+    var index = this.outputNodes.index * 12;
+    var textureIndex = breadboard.renderer.textureSize.value;
+    breadboard.renderer.textureSize.value += 1;
+    this.addPositionAndTextureIndex(this.outputNodes.p, index, p, textureIndex);
+    this.outputNodes.index += 1;
+    return textureIndex;
+};
+
+ComponentRenderer.prototype.addInputNode = function addInputNode(breadboard, p, id)
+{
+    var index = this.inputNodes.index * 12;
+    var textureIndex = this.getWireTextureIndex(breadboard, id, p);
+    this.addPositionAndTextureIndex(this.inputNodes.p, index, p, textureIndex);
+    this.inputNodes.index += 1;
 };
 
 ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(breadboard, id, p)
@@ -116,6 +164,13 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
 {
     this.switches.count = 0;
     this.switches.index = 0;
+
+    this.outputNodes.count = 0;
+    this.outputNodes.index = 0;
+
+    this.inputNodes.count = 0;
+    this.inputNodes.index = 0;
+
     var numComponents = components.length;
 
     var i;
@@ -130,6 +185,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     this.switches.p1 = new Int16Array(this.switches.count * 12);
     this.switches.signal = new Int16Array(this.switches.count * 4);
 
+    this.outputNodes.p = new Int16Array(this.outputNodes.count * 12);
+    this.inputNodes.p = new Int16Array(this.inputNodes.count * 12);
+
     var index = 0;
     for (i = 0; i < numComponents; i += 1)
     {
@@ -143,4 +201,8 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     switchGeometry.addAttribute('p1', new THREE.BufferAttribute(this.switches.p1, 3));
     switchGeometry.addAttribute('signal', new THREE.BufferAttribute(this.switches.signal, 1));
     switchGeometry.setDrawRange(0, 6 * this.switches.count);
+
+    var outputNodeGeometry = this.outputNodeGeometry;
+    outputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.outputNodes.p, 3));
+    outputNodeGeometry.setDrawRange(0, 6 * this.outputNodes.count);
 };
