@@ -14,7 +14,7 @@ var ComponentTypes = {
 
 var Component = {};
 
-Component.border = 0.45;
+Component.border = 0.4;
 Component.selectionBorder = 0.55;
 Component.borderLineWidth = 0.05;
 

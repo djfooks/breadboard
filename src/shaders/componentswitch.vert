@@ -14,10 +14,8 @@ attribute vec3 circle1;
 attribute float connected;
 
 varying vec2 vP;
-varying vec2 vCircle0;
-varying vec2 vCircle1;
-varying float vValue0;
-varying float vValue1;
+varying vec3 vCircle0;
+varying vec3 vCircle1;
 varying float vConnected;
 
 void main()
@@ -33,12 +31,16 @@ void main()
 
     vec2 p = vec2(mix(min.x, max.x, position.x), mix(min.y, max.y, position.y));
 
-    vP = p;
-    vCircle0 = circle0.xy;
-    vCircle1 = circle1.xy;
-    vValue0 = texture2D(texture, vec2(circle0.z / textureSize, 0.0)).x;
-    vValue1 = texture2D(texture, vec2(circle1.z / textureSize, 0.0)).x;
+    float value0 = texture2D(texture, vec2(circle0.z / textureSize, 0.0)).x;
+    float value1 = texture2D(texture, vec2(circle1.z / textureSize, 0.0)).x;
+
     vConnected = texture2D(texture, vec2(connected / textureSize, 0.0)).x;
+    value0 = value0 + value1 * vConnected;
+    value1 = value1 + value0 * vConnected;
+
+    vP = p;
+    vCircle0 = vec3(circle0.xy, value0);
+    vCircle1 = vec3(circle1.xy, value1);
 
     vec4 mvPosition = vec4(p, 0.0, 1.0);
     gl_Position = projectionMatrix * mvPosition;
