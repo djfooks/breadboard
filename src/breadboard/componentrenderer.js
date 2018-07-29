@@ -116,12 +116,12 @@ ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p
     return textureIndex;
 };
 
-ComponentRenderer.prototype.addInputNode = function addInputNode(breadboard, p, id)
+ComponentRenderer.prototype.addNode = function addNode(breadboard, nodeType, p, id)
 {
-    var index = this.inputNodes.index * 12;
+    var index = nodeType.index * 12;
     var textureIndex = this.getWireTextureIndex(breadboard, id, p);
-    this.addPositionAndTextureIndex(this.inputNodes.p, index, p, textureIndex);
-    this.inputNodes.index += 1;
+    this.addPositionAndTextureIndex(nodeType.p, index, p, textureIndex);
+    nodeType.index += 1;
 };
 
 ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(breadboard, id, p)
