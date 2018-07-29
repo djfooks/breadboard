@@ -15,6 +15,7 @@ Renderer.prototype.createValuesTexture = function createValuesTexture()
     {
         textureData[i] = 0;
     }
+    textureData[1] = 255;
     var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
     dataTexture.magFilter = THREE.NearestFilter;
     dataTexture.needsUpdate = true;
