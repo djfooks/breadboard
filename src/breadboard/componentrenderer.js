@@ -80,6 +80,7 @@ ComponentRenderer.prototype.addWireTexture = function addWireTexture(wireRendere
 ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)
 {
     this.switches.count = 0;
+    this.switches.index = 0;
     var numComponents = components.length;
 
     var i;
