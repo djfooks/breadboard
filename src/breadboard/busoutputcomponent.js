@@ -20,6 +20,7 @@ function BusOutputComponent(breadboard)
     this.bus = null;
 
     this.signalValue = false;
+    this.signalValueIndex = -1;
 
     this.hitbox = new Hitbox(0, 0, 0, 0, this);
 }
@@ -92,6 +93,37 @@ BusOutputComponent.prototype.isValidPosition = function isValidPosition(breadboa
     isValid = isValid && breadboard.validPosition(p2) && (!p2Component || p2Component === this);
     isValid = isValid && breadboard.validPosition(p3) && (!p3Component || p3Component === this);
     return isValid;
+};
+
+BusOutputComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
+{
+    componentRenderer.switches.count += 1;
+};
+
+BusOutputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+{
+    var index = componentRenderer.switches.index * 12;
+
+    var inP = this.inP;
+    var outP = this.outP;
+    var textureIndexIn = componentRenderer.getWireTextureIndex(breadboard, this.inId, inP);
+    var textureIndexOut = componentRenderer.getWireTextureIndex(breadboard, this.outId, outP);
+    componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, inP, textureIndexIn);
+    componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, inP, textureIndexIn);
+    componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, outP, textureIndexOut);
+
+    this.signalValueIndex = breadboard.renderer.textureSize.value;
+    breadboard.renderer.textureSize.value += 1;
+
+    var signalIndex = componentRenderer.switches.index * 4;
+    componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);
+
+    componentRenderer.switches.index += 1;
+};
+
+BusOutputComponent.prototype.render = function render(renderer)
+{
+    renderer.textureData[this.signalValueIndex] = this.signalValue ? 255 : 0;
 };
 
 BusOutputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
