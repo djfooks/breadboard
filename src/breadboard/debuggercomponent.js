@@ -101,7 +101,7 @@ DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboar
 
 DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
-    componentRenderer.outputNodes.count += 8;
+    componentRenderer.outputNodes.count += 9;
 };
 
 DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
@@ -111,6 +111,7 @@ DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer
     {
         this.pinTextureIndex[i] = componentRenderer.addOutputNode(breadboard, this.pinP[i]);
     }
+    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.powerP, this.powerId);
 };
 
 DebuggerComponent.prototype.render = function render(renderer)
