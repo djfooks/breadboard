@@ -149,7 +149,7 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
         }
     }
 
-    var wireValueIndex = 1;
+    var wireValueIndex = 2;
     var i;
     var index;
     var circlesIndex = 0;
