@@ -8,6 +8,7 @@ function SwitchComponent(breadboard)
     this.id1 = -1;
 
     this.connected = false;
+    this.connectedTextureIndex = -1;
     this.rotation = 0;
     this.pulsePaths = [];
 
@@ -74,13 +75,21 @@ SwitchComponent.prototype.addGeometry = function addGeometry(componentRenderer, 
     circle1[circleIndex + 10] = p1[1];
     circle1[circleIndex + 11] = textureIndex1;
 
-    var connectedIndex = 0; // TODO this!
-    connected[connectedIndex + 0] = connectedIndex;
-    connected[connectedIndex + 1] = connectedIndex;
-    connected[connectedIndex + 2] = connectedIndex;
-    connected[connectedIndex + 3] = connectedIndex;
+    this.connectedTextureIndex = breadboard.renderer.textureSize.value;
+    breadboard.renderer.textureSize.value += 1;
+
+    var connectedTextureIndex = this.connectedTextureIndex;
+    connected[connectedIndex + 0] = connectedTextureIndex;
+    connected[connectedIndex + 1] = connectedTextureIndex;
+    connected[connectedIndex + 2] = connectedTextureIndex;
+    connected[connectedIndex + 3] = connectedTextureIndex;
 
     componentRenderer.switches.index += 1;
+};
+
+SwitchComponent.prototype.render = function render(renderer)
+{
+    renderer.textureData[this.connectedTextureIndex] = this.connected ? 255 : 0;
 };
 
 SwitchComponent.prototype.move = function move(breadboard, p, rotation)

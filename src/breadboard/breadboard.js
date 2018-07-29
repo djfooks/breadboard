@@ -43,10 +43,11 @@ function Breadboard(stage, top, left, cols, rows)
     this.rows = rows;
 
     this.scene = stage.scene;
+    this.renderer = new Renderer();
     this.gridRenderer = new GridRenderer();
-    this.wireRenderer = new WireRenderer();
+    this.wireRenderer = new WireRenderer(this.renderer);
     this.componentBoxRenderer = new ComponentBoxRenderer();
-    this.componentRenderer = new ComponentRenderer();
+    this.componentRenderer = new ComponentRenderer(this.renderer);
 
     this.clear();
 
@@ -120,8 +121,6 @@ Breadboard.prototype.postLoad = function postLoad()
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
-
-    this.componentRenderer.addWireTexture(this.wireRenderer);
 };
 
 Breadboard.prototype.clear = function clearFn()
@@ -513,15 +512,18 @@ Breadboard.prototype.draw = function draw()
     this.gridRenderer.updateGeometry(camera);
     if (this.geometryDirty)
     {
+        this.renderer.textureSize.value = 0;
         this.wireRenderer.updateGeometry(this.wires, this);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
         this.componentRenderer.updateGeometry(this.componentsList, this);
+
+        this.renderer.createValuesTexture();
         this.geometryDirty = false;
     }
 
     var that = this;
     var wire;
-    var textureData = this.wireRenderer.textureData;
+    var textureData = this.renderer.textureData;
     var connections = this._connections;
     function wireIterate(x, y, index)
     {
@@ -542,7 +544,11 @@ Breadboard.prototype.draw = function draw()
         wire = this.wires[i];
         wire.iterate(wireIterate);
     }
-    this.wireRenderer.dataTexture.needsUpdate = true;
+    for (i = 0; i < this.componentsList.length; i += 1)
+    {
+        this.componentsList[i].render(this.renderer);
+    }
+    this.renderer.dataTexture.needsUpdate = true;
 
     stage.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
     stage.renderer.setScissorTest(true);

@@ -1,6 +1,8 @@
 
-function ComponentRenderer()
+function ComponentRenderer(renderer)
 {
+    this.renderer = renderer;
+
     var maxNum = 10000;
     var indicesArray = new Uint16Array(maxNum * 6);
     var verticesArray = new Uint8Array(maxNum * 8);
@@ -60,7 +62,9 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             feather: feather,
             radius: this.outerRadius,
             width: this.width,
-            fg: { value: 0.0 }
+            fg: { value: 0.0 },
+            texture: this.renderer.texture,
+            textureSize: this.renderer.textureSize
         },
         vertexShader: ShaderManager.get("src/shaders/componentswitch.vert"),
         fragmentShader: ShaderManager.get("src/shaders/componentswitch.frag"),
@@ -69,12 +73,6 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.componentSwitchMaterial.transparent = true;
 
     scene.add(new THREE.Mesh(this.switchGeometry, this.componentSwitchMaterial));
-};
-
-ComponentRenderer.prototype.addWireTexture = function addWireTexture(wireRenderer)
-{
-    this.componentSwitchMaterial.uniforms.textureSize = wireRenderer.textureSize;
-    this.componentSwitchMaterial.uniforms.texture = wireRenderer.texture;
 };
 
 ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)

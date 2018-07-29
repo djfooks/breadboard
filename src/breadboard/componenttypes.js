@@ -93,4 +93,5 @@ Component.addComponentFunctions = function addComponentFunctions(componentType)
     componentType.prototype.getBusPosition = function getBusPosition() { return null; };
     componentType.prototype.addGeometry = function addGeometry(nodes, connections) {};
     componentType.prototype.prepareGeometry = function prepareGeometry(componentRenderer) {};
+    componentType.prototype.render = function render(renderer) {};
 };
