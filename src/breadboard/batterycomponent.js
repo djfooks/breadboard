@@ -67,6 +67,18 @@ BatteryComponent.prototype.isValidPosition = function isValidPosition(breadboard
     return isValid;
 };
 
+BatteryComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
+{
+    componentRenderer.outputNodes.count += 1;
+};
+
+BatteryComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+{
+    var index = componentRenderer.outputNodes.index * 12;
+    componentRenderer.addPositionAndTextureIndex(componentRenderer.outputNodes.p, index, this.p1, 1);
+    componentRenderer.outputNodes.index += 1;
+};
+
 BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var p0 = this.p0;
