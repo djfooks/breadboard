@@ -49,9 +49,10 @@ function ComponentRenderer(renderer)
     this.switches = {
         count: 0,
         index: 0,
-        circle0: null,
-        circle1: null,
-        connected: null,
+        base: null,
+        p0: null,
+        p1: null,
+        signal: null,
     };
 }
 
@@ -75,6 +76,18 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.switchGeometry, this.componentSwitchMaterial));
 };
 
+ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(breadboard, id, p)
+{
+    var connectionBase = breadboard.getConnection(id);
+    var textureIndexBase = 0;
+    if (connectionBase.wires.length > 0)
+    {
+        var wireBase = connectionBase.wires[0];
+        textureIndexBase = wireBase.texture0 + Math.max(Math.abs(wireBase.x0 - p[0]), Math.abs(wireBase.y0 - p[1]));
+    }
+    return textureIndexBase;
+};
+
 ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)
 {
     this.switches.count = 0;
@@ -88,12 +101,10 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
         component.prepareGeometry(this);
     }
 
-    this.switches.circle0 = new Int16Array(this.switches.count * 12);
-    this.switches.circle0Index = 0;
-    this.switches.circle1 = new Int16Array(this.switches.count * 12);
-    this.switches.circle1Index = 0;
-    this.switches.connected = new Int16Array(this.switches.count * 4);
-    this.switches.connectedIndex = 0;
+    this.switches.base = new Int16Array(this.switches.count * 12);
+    this.switches.p0 = new Int16Array(this.switches.count * 12);
+    this.switches.p1 = new Int16Array(this.switches.count * 12);
+    this.switches.signal = new Int16Array(this.switches.count * 4);
 
     var index = 0;
     for (i = 0; i < numComponents; i += 1)
@@ -103,8 +114,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     }
 
     var switchGeometry = this.switchGeometry;
-    switchGeometry.addAttribute('circle0', new THREE.BufferAttribute(this.switches.circle0, 3));
-    switchGeometry.addAttribute('circle1', new THREE.BufferAttribute(this.switches.circle1, 3));
-    switchGeometry.addAttribute('connected', new THREE.BufferAttribute(this.switches.connected, 1));
+    switchGeometry.addAttribute('base', new THREE.BufferAttribute(this.switches.base, 3));
+    switchGeometry.addAttribute('p0', new THREE.BufferAttribute(this.switches.p0, 3));
+    switchGeometry.addAttribute('p1', new THREE.BufferAttribute(this.switches.p1, 3));
+    switchGeometry.addAttribute('signal', new THREE.BufferAttribute(this.switches.signal, 1));
     switchGeometry.setDrawRange(0, 6 * this.switches.count);
 };

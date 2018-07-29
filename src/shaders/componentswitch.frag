@@ -6,8 +6,9 @@ uniform float feather;
 uniform sampler2D texture;
 
 varying vec2 vP;
-varying vec3 vCircle0;
-varying vec3 vCircle1;
+varying vec3 vBase;
+varying vec3 vP0;
+varying vec3 vP1;
 varying float vConnected;
 
 vec4 blend(vec4 color, vec3 inColor, float alpha)
@@ -29,18 +30,23 @@ vec3 getWireColor(float wireValue)
     return mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.53, 0.53), wireValue);
 }
 
-vec4 wire()
+vec4 wire(vec3 base, vec3 pConnected)
 {
-    vec2 n = vCircle0.xy - vCircle1.xy;
-    n = normalize(n);
+    vec2 n = base.xy - pConnected.xy;
+    float l = length(n);
+    if (l == 0.0)
+    {
+        return vec4(0.0, 0.0, 0.0, 0.0);
+    }
+    n = n / l;
     n = vec2(n.y, -n.x);
-    vec2 wireOffset = vP - vCircle0.xy;
+    vec2 wireOffset = vP - base.xy;
     float d = abs(dot(wireOffset, n));
 
-    float minX = min(vCircle0.x, vCircle1.x);
-    float maxX = max(vCircle0.x, vCircle1.x);
-    float minY = min(vCircle0.y, vCircle1.y);
-    float maxY = max(vCircle0.y, vCircle1.y);
+    float minX = min(base.x, pConnected.x);
+    float maxX = max(base.x, pConnected.x);
+    float minY = min(base.y, pConnected.y);
+    float maxY = max(base.y, pConnected.y);
     const float innerWire = 0.07;
     const float outerWire = 0.14;
 
@@ -59,7 +65,7 @@ vec4 wire()
 
     v = (d - innerWire) / feather;
 
-    float wireValue = sign(vCircle0.z + vCircle1.z);
+    float wireValue = sign(base.z + pConnected.z);
 
     vec3 wireColor = getWireColor(wireValue);
     wireColor = mix(wireColor, vec3(0.0, 0.0, 0.0), max(min(v, 1.0), 0.0));
@@ -68,36 +74,41 @@ vec4 wire()
 }
 
 void main(void) {
+    // gl_FragColor = vec4(vBase.z, 0.0, 0.0, 1.0);
     // gl_FragColor = vec4(0.9, 0.0, 0.0, 1.0);
     const float innerRadius = 0.26;
     const float outerRadius = 0.31;
     float outerR = outerRadius - feather * 0.5;
     float innerR = innerRadius - feather * 0.5;
 
-    vec2 offset0 = vP - vCircle0.xy;
+    vec2 offsetBase = vP - vBase.xy;
+    float dBase = length(offsetBase);
+    vec2 offset0 = vP - vP0.xy;
     float d0 = length(offset0);
-    vec2 offset1 = vP - vCircle1.xy;
+    vec2 offset1 = vP - vP1.xy;
     float d1 = length(offset1);
 
     // bg
-    float alphaBg = 1.0 - ((d0 - outerR) / feather);
+    float alphaBg = 1.0 - ((dBase - outerR) / feather);
+    alphaBg = max(alphaBg, 1.0 - ((d0 - outerR) / feather));
     alphaBg = max(alphaBg, 1.0 - ((d1 - outerR) / feather));
-
     vec4 color = vec4(0.0, 0.0, 0.0, alphaBg);
 
-    if (vConnected == 1.0)
-    {
-        vec4 wireColor = wire();
-        color = blend(color, wireColor.rgb, wireColor.a);
-    }
+    // wire
+    vec4 wireColor = wire(vBase, vConnected == 1.0 ? vP1 : vP0);
+    color = blend(color, wireColor.rgb, wireColor.a);
 
     // fg
+    float alphaFgBase = 1.0 - ((dBase - innerR) / feather);
+    vec3 fgColorBase = getWireColor(vBase.z);
+    color = blend(color, fgColorBase, alphaFgBase);
+
     float alphaFg0 = 1.0 - ((d0 - innerR) / feather);
-    vec3 fgColor0 = getWireColor(vCircle0.z);
+    vec3 fgColor0 = getWireColor(vP0.z);
     color = blend(color, fgColor0, alphaFg0);
 
     float alphaFg1 = 1.0 - ((d1 - innerR) / feather);
-    vec3 fgColor1 = getWireColor(vCircle1.z);
+    vec3 fgColor1 = getWireColor(vP1.z);
     color = blend(color, fgColor1, alphaFg1);
 
     gl_FragColor = color;
