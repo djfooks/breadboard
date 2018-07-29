@@ -35,8 +35,8 @@ void main()
     float value1 = texture2D(texture, vec2(circle1.z / textureSize, 0.0)).x;
 
     vConnected = texture2D(texture, vec2(connected / textureSize, 0.0)).x;
-    value0 = value0 + value1 * vConnected;
-    value1 = value1 + value0 * vConnected;
+    value0 = sign(value0 + value1 * vConnected);
+    value1 = sign(value1 + value0 * vConnected);
 
     vP = p;
     vCircle0 = vec3(circle0.xy, value0);
