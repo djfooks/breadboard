@@ -46,11 +46,17 @@ function ComponentRenderer(renderer)
     outputNodeGeometry.boundingSphere = new THREE.Sphere();
     outputNodeGeometry.boundingSphere.radius = 99999;
 
+    var inputNodeGeometry = this.inputNodeGeometry = new THREE.BufferGeometry();
+    inputNodeGeometry.setIndex(indices);
+    inputNodeGeometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
+    inputNodeGeometry.boundingSphere = new THREE.Sphere();
+    inputNodeGeometry.boundingSphere.radius = 99999;
+
     this.innerRadius = { value: 0.26 };
     this.outerRadius = { value: 0.31 };
     this.width = { value: 0.01 };
-    this.color = { value: new THREE.Vector3(0.0, 0.0, 0.0)};
-    this.inputColor = { value: new THREE.Vector3(0.0, 1.0, 0.0)};
+    this.bgColor = { value: new THREE.Vector3(0.0, 0.0, 0.0)};
+    this.inputBgColor = { value: new THREE.Vector3(0.0, 1.0, 0.0)};
 
     this.switches = {
         count: 0,
@@ -94,7 +100,8 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             radius: this.outerRadius,
             feather: feather,
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize
+            textureSize: this.renderer.textureSize,
+            bgColor: this.bgColor
         },
         vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
         fragmentShader: ShaderManager.get("src/shaders/componentnode.frag"),
@@ -102,8 +109,23 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     });
     this.outputNodeMaterial.transparent = true;
 
+    this.inputNodeMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            radius: this.outerRadius,
+            feather: feather,
+            texture: this.renderer.texture,
+            textureSize: this.renderer.textureSize,
+            bgColor: this.inputBgColor
+        },
+        vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/componentnode.frag"),
+        side: THREE.DoubleSide
+    });
+    this.inputNodeMaterial.transparent = true;
+
     scene.add(new THREE.Mesh(this.switchGeometry, this.componentSwitchMaterial));
     scene.add(new THREE.Mesh(this.outputNodeGeometry, this.outputNodeMaterial));
+    scene.add(new THREE.Mesh(this.inputNodeGeometry, this.inputNodeMaterial));
 };
 
 ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p)
@@ -205,4 +227,8 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     var outputNodeGeometry = this.outputNodeGeometry;
     outputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.outputNodes.p, 3));
     outputNodeGeometry.setDrawRange(0, 6 * this.outputNodes.count);
+
+    var inputNodeGeometry = this.inputNodeGeometry;
+    inputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.inputNodes.p, 3));
+    inputNodeGeometry.setDrawRange(0, 6 * this.inputNodes.count);
 };

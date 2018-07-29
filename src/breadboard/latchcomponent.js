@@ -100,6 +100,7 @@ LatchComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
 LatchComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.switches.count += 1;
+    componentRenderer.inputNodes.count += 2;
 };
 
 LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
@@ -123,6 +124,9 @@ LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);
 
     componentRenderer.switches.index += 1;
+
+    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP0, this.signalId0);
+    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP1, this.signalId1);
 };
 
 LatchComponent.prototype.render = function render(renderer)

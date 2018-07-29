@@ -90,6 +90,7 @@ RelayComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
 RelayComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.switches.count += 1;
+    componentRenderer.inputNodes.count += 1;
 };
 
 RelayComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
@@ -112,6 +113,8 @@ RelayComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, textureIndexSignal);
 
     componentRenderer.switches.index += 1;
+
+    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, signalP, this.signalId);
 };
 
 RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
