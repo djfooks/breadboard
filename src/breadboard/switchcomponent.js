@@ -25,64 +25,52 @@ SwitchComponent.prototype.prepareGeometry = function prepareGeometry(componentRe
 
 SwitchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
 {
-    var connection0 = breadboard.getConnection(this.id0);
-    var textureIndex0 = 0;
     var p0 = this.p0;
-    if (connection0.wires.length > 0)
-    {
-        var wire0 = connection0.wires[0];
-        textureIndex0 = wire0.texture0 + Math.abs(wire0.x0 - p0[0]) + Math.abs(wire0.y0 - p0[1]);
-    }
-
-    var connection1 = breadboard.getConnection(this.id1);
-    var textureIndex1 = 0;
+    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.id0, p0);
     var p1 = this.p1;
-    if (connection1.wires.length > 0)
-    {
-        var wire1 = connection1.wires[0];
-        textureIndex1 = wire1.texture0 + Math.abs(wire1.x0 - p1[0]) + Math.abs(wire1.y0 - p1[1]);
-    }
+    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.id1, p1);
 
-    var circle0 = componentRenderer.switches.circle0;
-    var circle1 = componentRenderer.switches.circle1;
-    var connected =componentRenderer.switches.connected;
-    var circleIndex = componentRenderer.switches.index * 12;
-    var connectedIndex = componentRenderer.switches.index * 4;
+    var baseData = componentRenderer.switches.base;
+    var p0Data = componentRenderer.switches.p0;
+    var p1Data = componentRenderer.switches.p1;
+    var signal =componentRenderer.switches.signal;
+    var index = componentRenderer.switches.index * 12;
+    var signalIndex = componentRenderer.switches.index * 4;
 
-    circle0[circleIndex + 0]  = p0[0];
-    circle0[circleIndex + 1]  = p0[1];
-    circle0[circleIndex + 2]  = textureIndex0;
-    circle0[circleIndex + 3]  = p0[0];
-    circle0[circleIndex + 4]  = p0[1];
-    circle0[circleIndex + 5]  = textureIndex0;
-    circle0[circleIndex + 6]  = p0[0];
-    circle0[circleIndex + 7]  = p0[1];
-    circle0[circleIndex + 8]  = textureIndex0;
-    circle0[circleIndex + 9]  = p0[0];
-    circle0[circleIndex + 10] = p0[1];
-    circle0[circleIndex + 11] = textureIndex0;
+    baseData[index + 0]  = p0Data[index + 0]  = p0[0];
+    baseData[index + 1]  = p0Data[index + 1]  = p0[1];
+    baseData[index + 2]  = p0Data[index + 2]  = textureIndex0;
+    baseData[index + 3]  = p0Data[index + 3]  = p0[0];
+    baseData[index + 4]  = p0Data[index + 4]  = p0[1];
+    baseData[index + 5]  = p0Data[index + 5]  = textureIndex0;
+    baseData[index + 6]  = p0Data[index + 6]  = p0[0];
+    baseData[index + 7]  = p0Data[index + 7]  = p0[1];
+    baseData[index + 8]  = p0Data[index + 8]  = textureIndex0;
+    baseData[index + 9]  = p0Data[index + 9]  = p0[0];
+    baseData[index + 10] = p0Data[index + 10] = p0[1];
+    baseData[index + 11] = p0Data[index + 11] = textureIndex0;
 
-    circle1[circleIndex + 0]  = p1[0];
-    circle1[circleIndex + 1]  = p1[1];
-    circle1[circleIndex + 2]  = textureIndex1;
-    circle1[circleIndex + 3]  = p1[0];
-    circle1[circleIndex + 4]  = p1[1];
-    circle1[circleIndex + 5]  = textureIndex1;
-    circle1[circleIndex + 6]  = p1[0];
-    circle1[circleIndex + 7]  = p1[1];
-    circle1[circleIndex + 8]  = textureIndex1;
-    circle1[circleIndex + 9]  = p1[0];
-    circle1[circleIndex + 10] = p1[1];
-    circle1[circleIndex + 11] = textureIndex1;
+    p1Data[index + 0]  = p1[0];
+    p1Data[index + 1]  = p1[1];
+    p1Data[index + 2]  = textureIndex1;
+    p1Data[index + 3]  = p1[0];
+    p1Data[index + 4]  = p1[1];
+    p1Data[index + 5]  = textureIndex1;
+    p1Data[index + 6]  = p1[0];
+    p1Data[index + 7]  = p1[1];
+    p1Data[index + 8]  = textureIndex1;
+    p1Data[index + 9]  = p1[0];
+    p1Data[index + 10] = p1[1];
+    p1Data[index + 11] = textureIndex1;
 
     this.connectedTextureIndex = breadboard.renderer.textureSize.value;
     breadboard.renderer.textureSize.value += 1;
 
-    var connectedTextureIndex = this.connectedTextureIndex;
-    connected[connectedIndex + 0] = connectedTextureIndex;
-    connected[connectedIndex + 1] = connectedTextureIndex;
-    connected[connectedIndex + 2] = connectedTextureIndex;
-    connected[connectedIndex + 3] = connectedTextureIndex;
+    var signalTextureIndex = this.connectedTextureIndex;
+    signal[signalIndex + 0] = signalTextureIndex;
+    signal[signalIndex + 1] = signalTextureIndex;
+    signal[signalIndex + 2] = signalTextureIndex;
+    signal[signalIndex + 3] = signalTextureIndex;
 
     componentRenderer.switches.index += 1;
 };
