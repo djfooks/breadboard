@@ -78,14 +78,38 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 
 ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(breadboard, id, p)
 {
-    var connectionBase = breadboard.getConnection(id);
-    var textureIndexBase = 0;
-    if (connectionBase.wires.length > 0)
+    var connection = breadboard.getConnection(id);
+    var textureIndex = 0;
+    if (connection.wires.length > 0)
     {
-        var wireBase = connectionBase.wires[0];
-        textureIndexBase = wireBase.texture0 + Math.max(Math.abs(wireBase.x0 - p[0]), Math.abs(wireBase.y0 - p[1]));
+        var wire = connection.wires[0];
+        textureIndex = wire.texture0 + Math.max(Math.abs(wire.x0 - p[0]), Math.abs(wire.y0 - p[1]));
     }
-    return textureIndexBase;
+    return textureIndex;
+};
+
+ComponentRenderer.prototype.addPositionAndTextureIndex = function addPositionAndTextureIndex(data, index, p, textureIndex)
+{
+    data[index + 0]  = p[0];
+    data[index + 1]  = p[1];
+    data[index + 2]  = textureIndex;
+    data[index + 3]  = p[0];
+    data[index + 4]  = p[1];
+    data[index + 5]  = textureIndex;
+    data[index + 6]  = p[0];
+    data[index + 7]  = p[1];
+    data[index + 8]  = textureIndex;
+    data[index + 9]  = p[0];
+    data[index + 10] = p[1];
+    data[index + 11] = textureIndex;
+};
+
+ComponentRenderer.prototype.addTextureIndex = function addTextureIndex(data, index, textureIndex)
+{
+    data[index + 0] = textureIndex;
+    data[index + 1] = textureIndex;
+    data[index + 2] = textureIndex;
+    data[index + 3] = textureIndex;
 };
 
 ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)

@@ -20,7 +20,7 @@ function LatchComponent(breadboard)
     this.signalP1 = [-1, -1];
 
     this.signalValue = false;
-    this.countSignalValue = 0;
+    this.signalValueIndex = -1;
 
     this.pulsePaths = [];
 
@@ -95,6 +95,39 @@ LatchComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
     isValid = isValid && breadboard.validPosition(p3) && (!p3Component || p3Component === this);
     isValid = isValid && breadboard.validPosition(p4) && (!p4Component || p4Component === this);
     return isValid;
+};
+
+LatchComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
+{
+    componentRenderer.switches.count += 1;
+};
+
+LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+{
+    var baseP = this.baseP;
+    var p0 = this.outP0;
+    var p1 = this.outP1;
+    var textureIndexBase = componentRenderer.getWireTextureIndex(breadboard, this.baseId, baseP);
+    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.outId0, p0);
+    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.outId1, p1);
+
+    var index = componentRenderer.switches.index * 12;
+    componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, baseP, textureIndexBase);
+    componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, p0, textureIndex0);
+    componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, p1, textureIndex1);
+
+    this.signalValueIndex = breadboard.renderer.textureSize.value;
+    breadboard.renderer.textureSize.value += 1;
+
+    var signalIndex = componentRenderer.switches.index * 4;
+    componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);
+
+    componentRenderer.switches.index += 1;
+};
+
+LatchComponent.prototype.render = function render(renderer)
+{
+    renderer.textureData[this.signalValueIndex] = this.signalValue ? 255 : 0;
 };
 
 LatchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
