@@ -49,6 +49,7 @@ function ComponentRenderer(renderer)
     this.inputNodeGeometry = createQuadGeometry();
 
     this.batterySymbolGeometry = createQuadGeometry();
+    this.diodeSymbolGeometry = createQuadGeometry();
 
     this.innerRadius = { value: 0.26 };
     this.outerRadius = { value: 0.31 };
@@ -78,6 +79,13 @@ function ComponentRenderer(renderer)
     };
 
     this.batterySymbols = {
+        count: 0,
+        index: 0,
+        p0: null,
+        p1: null
+    };
+
+    this.diodeSymbols = {
         count: 0,
         index: 0,
         p0: null,
@@ -143,6 +151,19 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.batterySymbolMaterial.transparent = true;
 
     scene.add(new THREE.Mesh(this.batterySymbolGeometry, this.batterySymbolMaterial));
+
+    this.diodeSymbolMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            feather: feather,
+            border: { value: Component.border }
+        },
+        vertexShader: ShaderManager.get("src/shaders/diodesymbol.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/diodesymbol.frag"),
+        side: THREE.DoubleSide
+    });
+    this.diodeSymbolMaterial.transparent = true;
+
+    scene.add(new THREE.Mesh(this.diodeSymbolGeometry, this.diodeSymbolMaterial));
 };
 
 ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p)
@@ -225,6 +246,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     this.batterySymbols.count = 0;
     this.batterySymbols.index = 0;
 
+    this.diodeSymbols.count = 0;
+    this.diodeSymbols.index = 0;
+
     var numComponents = components.length;
 
     var i;
@@ -244,6 +268,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
 
     this.batterySymbols.p0 = new Int16Array(this.batterySymbols.count * 8);
     this.batterySymbols.p1 = new Int16Array(this.batterySymbols.count * 8);
+
+    this.diodeSymbols.p0 = new Int16Array(this.diodeSymbols.count * 8);
+    this.diodeSymbols.p1 = new Int16Array(this.diodeSymbols.count * 8);
 
     var index = 0;
     for (i = 0; i < numComponents; i += 1)
@@ -271,4 +298,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     batterySymbolGeometry.addAttribute('p0', new THREE.BufferAttribute(this.batterySymbols.p0, 2));
     batterySymbolGeometry.addAttribute('p1', new THREE.BufferAttribute(this.batterySymbols.p1, 2));
     batterySymbolGeometry.setDrawRange(0, 6 * this.batterySymbols.count);
+
+    var diodeSymbolGeometry = this.diodeSymbolGeometry;
+    diodeSymbolGeometry.addAttribute('p0', new THREE.BufferAttribute(this.diodeSymbols.p0, 2));
+    diodeSymbolGeometry.addAttribute('p1', new THREE.BufferAttribute(this.diodeSymbols.p1, 2));
+    diodeSymbolGeometry.setDrawRange(0, 6 * this.diodeSymbols.count);
 };

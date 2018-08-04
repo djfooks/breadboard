@@ -66,12 +66,18 @@ DiodeComponent.prototype.isValidPosition = function isValidPosition(breadboard, 
 DiodeComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.outputNodes.count += 2;
+    componentRenderer.diodeSymbols.count += 1;
 };
 
 DiodeComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
 {
     componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p0, this.id0);
     componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p1, this.id1);
+
+    var index = componentRenderer.diodeSymbols.index * 8;
+    componentRenderer.addPosition(componentRenderer.diodeSymbols.p0, index, this.p0);
+    componentRenderer.addPosition(componentRenderer.diodeSymbols.p1, index, this.p1);
+    componentRenderer.diodeSymbols.index += 1;
 };
 
 DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
