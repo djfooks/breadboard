@@ -14,13 +14,14 @@ void main()
 {
     float size = 0.5;
 
-    vec2 n = (p0 - p1) * size;
+    vec2 v = p1 - p0;
+    vec2 n = v * size;
     vec2 m = vec2(n.y, -n.x);
 
-    vec2 p = mix(-n, n, position.x);
-    p += mix(-m, m, position.y);
+    vec2 p = mix(-n, n, position.y);
+    p += mix(-m, m, position.x);
 
-    vP = position;
-    vec4 mvPosition = vec4(p + p0, 0.0, 1.0);
+    vP = vec2(position.x - size, position.y - size);
+    vec4 mvPosition = vec4(p + p0 + v * 0.1, 0.0, 1.0);
     gl_Position = projectionMatrix * mvPosition;
 }

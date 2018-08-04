@@ -12,12 +12,11 @@ const float bump = 0.4;
 
 float lineDistance(vec2 a, vec2 b)
 {
-    vec2 p = vP - vec2(0.5, 0.5);
     vec2 v = a - b;
     float lSq = dot(v, v);
-    float t = max(0.0, min(1.0, dot(p - b, v) / lSq));
+    float t = max(0.0, min(1.0, dot(vP - b, v) / lSq));
     vec2 projection = b + t * v;
-    return distance(p, projection);
+    return distance(vP, projection);
 }
 
 float line(vec2 a, vec2 b)
@@ -31,6 +30,9 @@ void main(void)
     //gl_FragColor = vec4(vP.xy, 0.0, 1.0);
 
     float alpha = 0.0;
+    // alpha = max(alpha, line(vec2(0.0, 0.0), vec2(0.0, 0.5)));
+    // alpha = max(alpha, line(vec2(0.0, 0.5), vec2(0.2, 0.3)));
+    // alpha = max(alpha, line(vec2(0.0, 0.5), vec2(-0.2, 0.3)));
     alpha = max(alpha, line(vec2( offsetX,        offsetY), vec2( offsetX * 0.5,  offsetY)));
     alpha = max(alpha, line(vec2( offsetX,        offsetY), vec2( offsetX,       -offsetY)));
     alpha = max(alpha, line(vec2( offsetX,       -offsetY), vec2(-offsetX,       -offsetY)));
