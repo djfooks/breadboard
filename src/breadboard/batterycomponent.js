@@ -70,6 +70,7 @@ BatteryComponent.prototype.isValidPosition = function isValidPosition(breadboard
 BatteryComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.outputNodes.count += 1;
+    componentRenderer.batterySymbols.count += 1;
 };
 
 BatteryComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
@@ -77,6 +78,11 @@ BatteryComponent.prototype.addGeometry = function addGeometry(componentRenderer,
     var index = componentRenderer.outputNodes.index * 12;
     componentRenderer.addPositionAndTextureIndex(componentRenderer.outputNodes.p, index, this.p1, 1);
     componentRenderer.outputNodes.index += 1;
+
+    index = componentRenderer.batterySymbols.index * 8;
+    componentRenderer.addPosition(componentRenderer.batterySymbols.p0, index, this.p0);
+    componentRenderer.addPosition(componentRenderer.batterySymbols.p1, index, this.p1);
+    componentRenderer.batterySymbols.index += 1;
 };
 
 BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)

@@ -34,23 +34,21 @@ function ComponentRenderer(renderer)
 
     var indices = new THREE.BufferAttribute(indicesArray, 1);
 
-    var switchGeometry = this.switchGeometry = new THREE.BufferGeometry();
-    switchGeometry.setIndex(indices);
-    switchGeometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-    switchGeometry.boundingSphere = new THREE.Sphere();
-    switchGeometry.boundingSphere.radius = 99999;
+    function createQuadGeometry()
+    {
+        var result = new THREE.BufferGeometry();
+        result.setIndex(indices);
+        result.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
+        result.boundingSphere = new THREE.Sphere();
+        result.boundingSphere.radius = 99999;
+        return result;
+    }
 
-    var outputNodeGeometry = this.outputNodeGeometry = new THREE.BufferGeometry();
-    outputNodeGeometry.setIndex(indices);
-    outputNodeGeometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-    outputNodeGeometry.boundingSphere = new THREE.Sphere();
-    outputNodeGeometry.boundingSphere.radius = 99999;
+    this.switchGeometry = createQuadGeometry();
+    this.outputNodeGeometry = createQuadGeometry();
+    this.inputNodeGeometry = createQuadGeometry();
 
-    var inputNodeGeometry = this.inputNodeGeometry = new THREE.BufferGeometry();
-    inputNodeGeometry.setIndex(indices);
-    inputNodeGeometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-    inputNodeGeometry.boundingSphere = new THREE.Sphere();
-    inputNodeGeometry.boundingSphere.radius = 99999;
+    this.batterySymbolGeometry = createQuadGeometry();
 
     this.innerRadius = { value: 0.26 };
     this.outerRadius = { value: 0.31 };
@@ -77,6 +75,13 @@ function ComponentRenderer(renderer)
         count: 0,
         index: 0,
         p: null
+    };
+
+    this.batterySymbols = {
+        count: 0,
+        index: 0,
+        p0: null,
+        p1: null
     };
 }
 
@@ -126,6 +131,18 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.switchGeometry, this.componentSwitchMaterial));
     scene.add(new THREE.Mesh(this.outputNodeGeometry, this.outputNodeMaterial));
     scene.add(new THREE.Mesh(this.inputNodeGeometry, this.inputNodeMaterial));
+
+    this.batterySymbolMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            feather: feather
+        },
+        vertexShader: ShaderManager.get("src/shaders/batterysymbol.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/batterysymbol.frag"),
+        side: THREE.DoubleSide
+    });
+    this.batterySymbolMaterial.transparent = true;
+
+    scene.add(new THREE.Mesh(this.batterySymbolGeometry, this.batterySymbolMaterial));
 };
 
 ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p)
@@ -156,6 +173,18 @@ ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(b
         textureIndex = wire.texture0 + Math.max(Math.abs(wire.x0 - p[0]), Math.abs(wire.y0 - p[1]));
     }
     return textureIndex;
+};
+
+ComponentRenderer.prototype.addPosition = function addPosition(data, index, p)
+{
+    data[index + 0] = p[0];
+    data[index + 1] = p[1];
+    data[index + 2] = p[0];
+    data[index + 3] = p[1];
+    data[index + 4] = p[0];
+    data[index + 5] = p[1];
+    data[index + 6] = p[0];
+    data[index + 7] = p[1];
 };
 
 ComponentRenderer.prototype.addPositionAndTextureIndex = function addPositionAndTextureIndex(data, index, p, textureIndex)
@@ -193,6 +222,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     this.inputNodes.count = 0;
     this.inputNodes.index = 0;
 
+    this.batterySymbols.count = 0;
+    this.batterySymbols.index = 0;
+
     var numComponents = components.length;
 
     var i;
@@ -209,6 +241,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
 
     this.outputNodes.p = new Int16Array(this.outputNodes.count * 12);
     this.inputNodes.p = new Int16Array(this.inputNodes.count * 12);
+
+    this.batterySymbols.p0 = new Int16Array(this.batterySymbols.count * 8);
+    this.batterySymbols.p1 = new Int16Array(this.batterySymbols.count * 8);
 
     var index = 0;
     for (i = 0; i < numComponents; i += 1)
@@ -231,4 +266,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     var inputNodeGeometry = this.inputNodeGeometry;
     inputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.inputNodes.p, 3));
     inputNodeGeometry.setDrawRange(0, 6 * this.inputNodes.count);
+
+    var batterySymbolGeometry = this.batterySymbolGeometry;
+    batterySymbolGeometry.addAttribute('p0', new THREE.BufferAttribute(this.batterySymbols.p0, 2));
+    batterySymbolGeometry.addAttribute('p1', new THREE.BufferAttribute(this.batterySymbols.p1, 2));
+    batterySymbolGeometry.setDrawRange(0, 6 * this.batterySymbols.count);
 };
