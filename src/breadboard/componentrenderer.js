@@ -22,14 +22,14 @@ function ComponentRenderer(renderer)
         indicesArray[index + 5] = vertexIndex + 0;
 
         vertex = i * 8;
+        verticesArray[vertex + 6] = 0;
+        verticesArray[vertex + 7] = 1;
         verticesArray[vertex + 0] = 0;
         verticesArray[vertex + 1] = 0;
         verticesArray[vertex + 2] = 1;
         verticesArray[vertex + 3] = 0;
         verticesArray[vertex + 4] = 1;
         verticesArray[vertex + 5] = 1;
-        verticesArray[vertex + 6] = 0;
-        verticesArray[vertex + 7] = 1;
     }
 
     var indices = new THREE.BufferAttribute(indicesArray, 1);
