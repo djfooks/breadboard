@@ -47,6 +47,7 @@ function ComponentRenderer(renderer)
     this.switchGeometry = createQuadGeometry();
     this.outputNodeGeometry = createQuadGeometry();
     this.inputNodeGeometry = createQuadGeometry();
+    this.busNodeGeometry = createQuadGeometry();
 
     this.batterySymbolGeometry = createQuadGeometry();
     this.diodeSymbolGeometry = createQuadGeometry();
@@ -73,6 +74,12 @@ function ComponentRenderer(renderer)
     };
 
     this.inputNodes = {
+        count: 0,
+        index: 0,
+        p: null
+    };
+
+    this.busNodes = {
         count: 0,
         index: 0,
         p: null
@@ -136,9 +143,20 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     });
     this.inputNodeMaterial.transparent = true;
 
+    this.busNodeMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            feather: feather
+        },
+        vertexShader: ShaderManager.get("src/shaders/busnode.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/busnode.frag"),
+        side: THREE.DoubleSide
+    });
+    this.busNodeMaterial.transparent = true;
+
     scene.add(new THREE.Mesh(this.switchGeometry, this.componentSwitchMaterial));
     scene.add(new THREE.Mesh(this.outputNodeGeometry, this.outputNodeMaterial));
     scene.add(new THREE.Mesh(this.inputNodeGeometry, this.inputNodeMaterial));
+    scene.add(new THREE.Mesh(this.busNodeGeometry, this.busNodeMaterial));
 
     this.batterySymbolMaterial = new THREE.RawShaderMaterial({
         uniforms: {
@@ -243,6 +261,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     this.inputNodes.count = 0;
     this.inputNodes.index = 0;
 
+    this.busNodes.count = 0;
+    this.busNodes.index = 0;
+
     this.batterySymbols.count = 0;
     this.batterySymbols.index = 0;
 
@@ -265,6 +286,7 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
 
     this.outputNodes.p = new Int16Array(this.outputNodes.count * 12);
     this.inputNodes.p = new Int16Array(this.inputNodes.count * 12);
+    this.busNodes.p = new Int16Array(this.inputNodes.count * 8);
 
     this.batterySymbols.p0 = new Int16Array(this.batterySymbols.count * 8);
     this.batterySymbols.p1 = new Int16Array(this.batterySymbols.count * 8);
@@ -293,6 +315,10 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     var inputNodeGeometry = this.inputNodeGeometry;
     inputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.inputNodes.p, 3));
     inputNodeGeometry.setDrawRange(0, 6 * this.inputNodes.count);
+
+    var busNodeGeometry = this.busNodeGeometry;
+    busNodeGeometry.addAttribute('p0', new THREE.BufferAttribute(this.busNodes.p, 2));
+    busNodeGeometry.setDrawRange(0, 6 * this.busNodes.count);
 
     var batterySymbolGeometry = this.batterySymbolGeometry;
     batterySymbolGeometry.addAttribute('p0', new THREE.BufferAttribute(this.batterySymbols.p0, 2));
