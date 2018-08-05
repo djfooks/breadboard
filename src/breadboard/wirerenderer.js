@@ -3,75 +3,8 @@ function WireRenderer(renderer)
 {
     this.renderer = renderer;
 
-    var maxNumWires = 10000;
-    var indicesArray = new Uint16Array(maxNumWires * 6);
-    var verticesArray = new Uint8Array(maxNumWires * 8);
-    var i;
-    var index;
-    var vertexIndex;
-    var vertex;
-    for (i = 0; i < maxNumWires; i += 1)
-    {
-        index = i * 6;
-        vertexIndex = i * 4;
-        indicesArray[index + 0] = vertexIndex + 0;
-        indicesArray[index + 1] = vertexIndex + 1;
-        indicesArray[index + 2] = vertexIndex + 2;
-        indicesArray[index + 3] = vertexIndex + 2;
-        indicesArray[index + 4] = vertexIndex + 3;
-        indicesArray[index + 5] = vertexIndex + 0;
-
-        vertex = i * 8;
-        verticesArray[vertex + 0] = 0;
-        verticesArray[vertex + 1] = 0;
-        verticesArray[vertex + 2] = 1;
-        verticesArray[vertex + 3] = 0;
-        verticesArray[vertex + 4] = 1;
-        verticesArray[vertex + 5] = 1;
-        verticesArray[vertex + 6] = 0;
-        verticesArray[vertex + 7] = 1;
-    }
-
-    var indices = new THREE.BufferAttribute(indicesArray, 1);
-
-    var wireGeometry = this.wireGeometry = new THREE.BufferGeometry();
-    wireGeometry.setIndex(indices);
-    wireGeometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-    wireGeometry.boundingSphere = new THREE.Sphere();
-    wireGeometry.boundingSphere.radius = 99999;
-
-    var maxNumWiresCircles = maxNumWires * 2;
-    var circleIndicesArray = new Uint16Array(maxNumWiresCircles * 6);
-    var circleVerticesArray = new Uint8Array(maxNumWiresCircles * 8);
-    for (i = 0; i < maxNumWiresCircles; i += 1)
-    {
-        index = i * 6;
-        vertexIndex = i * 4;
-        circleIndicesArray[index + 0] = vertexIndex + 0;
-        circleIndicesArray[index + 1] = vertexIndex + 1;
-        circleIndicesArray[index + 2] = vertexIndex + 2;
-        circleIndicesArray[index + 3] = vertexIndex + 2;
-        circleIndicesArray[index + 4] = vertexIndex + 3;
-        circleIndicesArray[index + 5] = vertexIndex + 0;
-
-        vertex = i * 8;
-        circleVerticesArray[vertex + 0] = 0;
-        circleVerticesArray[vertex + 1] = 0;
-        circleVerticesArray[vertex + 2] = 1;
-        circleVerticesArray[vertex + 3] = 0;
-        circleVerticesArray[vertex + 4] = 1;
-        circleVerticesArray[vertex + 5] = 1;
-        circleVerticesArray[vertex + 6] = 0;
-        circleVerticesArray[vertex + 7] = 1;
-    }
-
-    var circleIndices = new THREE.BufferAttribute(circleIndicesArray, 1);
-
-    var circleGeometry = this.circleGeometry = new THREE.BufferGeometry();
-    circleGeometry.setIndex(circleIndices);
-    circleGeometry.addAttribute('position', new THREE.BufferAttribute(circleVerticesArray, 2));
-    circleGeometry.boundingSphere = new THREE.Sphere();
-    circleGeometry.boundingSphere.radius = 99999;
+    var wireGeometry = this.wireGeometry = renderer.createQuadGeometry();
+    var circleGeometry = this.circleGeometry = renderer.createQuadGeometry();
 }
 
 WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
