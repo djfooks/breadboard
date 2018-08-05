@@ -3,54 +3,13 @@ function ComponentRenderer(renderer)
 {
     this.renderer = renderer;
 
-    var maxNum = 10000;
-    var indicesArray = new Uint16Array(maxNum * 6);
-    var verticesArray = new Uint8Array(maxNum * 8);
-    var i;
-    var index;
-    var vertexIndex;
-    var vertex;
-    for (i = 0; i < maxNum; i += 1)
-    {
-        index = i * 6;
-        vertexIndex = i * 4;
-        indicesArray[index + 0] = vertexIndex + 0;
-        indicesArray[index + 1] = vertexIndex + 1;
-        indicesArray[index + 2] = vertexIndex + 2;
-        indicesArray[index + 3] = vertexIndex + 2;
-        indicesArray[index + 4] = vertexIndex + 3;
-        indicesArray[index + 5] = vertexIndex + 0;
+    this.switchGeometry = renderer.createQuadGeometry();
+    this.outputNodeGeometry = renderer.createQuadGeometry();
+    this.inputNodeGeometry = renderer.createQuadGeometry();
+    this.busNodeGeometry = renderer.createQuadGeometry();
 
-        vertex = i * 8;
-        verticesArray[vertex + 6] = 0;
-        verticesArray[vertex + 7] = 1;
-        verticesArray[vertex + 0] = 0;
-        verticesArray[vertex + 1] = 0;
-        verticesArray[vertex + 2] = 1;
-        verticesArray[vertex + 3] = 0;
-        verticesArray[vertex + 4] = 1;
-        verticesArray[vertex + 5] = 1;
-    }
-
-    var indices = new THREE.BufferAttribute(indicesArray, 1);
-
-    function createQuadGeometry()
-    {
-        var result = new THREE.BufferGeometry();
-        result.setIndex(indices);
-        result.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-        result.boundingSphere = new THREE.Sphere();
-        result.boundingSphere.radius = 99999;
-        return result;
-    }
-
-    this.switchGeometry = createQuadGeometry();
-    this.outputNodeGeometry = createQuadGeometry();
-    this.inputNodeGeometry = createQuadGeometry();
-    this.busNodeGeometry = createQuadGeometry();
-
-    this.batterySymbolGeometry = createQuadGeometry();
-    this.diodeSymbolGeometry = createQuadGeometry();
+    this.batterySymbolGeometry = renderer.createQuadGeometry();
+    this.diodeSymbolGeometry = renderer.createQuadGeometry();
 
     this.innerRadius = { value: 0.26 };
     this.outerRadius = { value: 0.31 };
