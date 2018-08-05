@@ -98,6 +98,7 @@ BusOutputComponent.prototype.isValidPosition = function isValidPosition(breadboa
 BusOutputComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.switches.count += 1;
+    componentRenderer.busNodes.count += 1;
 };
 
 BusOutputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
@@ -119,6 +120,10 @@ BusOutputComponent.prototype.addGeometry = function addGeometry(componentRendere
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);
 
     componentRenderer.switches.index += 1;
+
+    busIndex = componentRenderer.busNodes.index * 8;
+    componentRenderer.addPosition(componentRenderer.busNodes.p, busIndex, this.busP);
+    componentRenderer.busNodes.index += 1;
 };
 
 BusOutputComponent.prototype.render = function render(renderer)

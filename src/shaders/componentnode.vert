@@ -17,7 +17,7 @@ varying vec3 vCircle;
 
 void main()
 {
-    float r = radius + feather * 2.0;
+    float r = radius + feather;
     vec2 p1 = vec2(circle.x - r, circle.y - r);
     vec2 p2 = vec2(circle.x + r, circle.y + r);
 
