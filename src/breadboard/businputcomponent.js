@@ -85,6 +85,18 @@ BusInputComponent.prototype.isValidPosition = function isValidPosition(breadboar
     return isValid;
 };
 
+BusInputComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
+{
+    componentRenderer.busNodes.count += 1;
+};
+
+BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+{
+    var index = componentRenderer.busNodes.index * 8;
+    componentRenderer.addPosition(componentRenderer.busNodes.p, index, this.busP);
+    componentRenderer.busNodes.index += 1;
+};
+
 BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
 {
     var rotationMatrix = RotationMatrix[this.rotation];

@@ -89,6 +89,8 @@ var App = function ()
     ShaderManager.request("src/shaders/wirecirclesshader.frag");
     ShaderManager.request("src/shaders/componentnode.vert");
     ShaderManager.request("src/shaders/componentnode.frag");
+    ShaderManager.request("src/shaders/busnode.vert");
+    ShaderManager.request("src/shaders/busnode.frag");
     ShaderManager.request("src/shaders/componentswitch.vert");
     ShaderManager.request("src/shaders/componentswitch.frag");
     ShaderManager.request("src/shaders/batterysymbol.vert");
