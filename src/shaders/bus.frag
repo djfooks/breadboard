@@ -20,16 +20,16 @@ void main(void) {
     float maxX = max(vP1.x, vP2.x);
     float minY = min(vP1.y, vP2.y);
     float maxY = max(vP1.y, vP2.y);
-    const float innerWire = 0.03;
-    const float outerWire = 0.07;
+    const float centerWire = 0.03;
+    const float innerWire = 0.11;
+    const float outerWire = 0.17;
 
-    float v = (d - outerWire) / feather;
-    float alpha = 1.0 - v;
+    float alpha = 1.0 - (d - (outerWire - feather * 0.5)) / feather;
 
-    v = (d - innerWire) / feather;
+    float v = (d - (innerWire - feather * 0.5)) / feather;
+    v = max(v, 1.0 - (d - (centerWire - feather * 0.5)) / feather);
 
-    vec3 wireColor = vec3(0.0, 0.0, 1.0);
-
+    vec3 wireColor = vec3(0.0, 1.0, 1.0);
     wireColor = mix(wireColor, vec3(0.0, 0.0, 0.0), max(min(v, 1.0), 0.0));
 
     gl_FragColor = vec4(wireColor.rgb, alpha);
