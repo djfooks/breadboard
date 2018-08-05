@@ -74,19 +74,23 @@ var App = function ()
     document.body.onmousedown = function(e) { if (e.button === 1) return false; };
 
     this.loading = true;
-    TextureManager.request("jack-plug.png");
-    TextureManager.request("jack-plug-enabled.png");
-    TextureManager.request("cancel.png");
-    TextureManager.request("cancel-enabled.png");
-    TextureManager.request("move.png");
-    TextureManager.request("move-enabled.png");
-    TextureManager.request("truck.png");
-    TextureManager.request("truck-enabled.png");
+    // TextureManager.request("jack-plug.png");
+    // TextureManager.request("jack-plug-enabled.png");
+    // TextureManager.request("cancel.png");
+    // TextureManager.request("cancel-enabled.png");
+    // TextureManager.request("move.png");
+    // TextureManager.request("move-enabled.png");
+    // TextureManager.request("truck.png");
+    // TextureManager.request("truck-enabled.png");
 
     ShaderManager.request("src/shaders/wire.vert");
     ShaderManager.request("src/shaders/wire.frag");
     ShaderManager.request("src/shaders/wirecirclesshader.vert");
     ShaderManager.request("src/shaders/wirecirclesshader.frag");
+    ShaderManager.request("src/shaders/bus.vert");
+    ShaderManager.request("src/shaders/bus.frag");
+    ShaderManager.request("src/shaders/busdiamond.vert");
+    ShaderManager.request("src/shaders/busdiamond.frag");
     ShaderManager.request("src/shaders/componentnode.vert");
     ShaderManager.request("src/shaders/componentnode.frag");
     ShaderManager.request("src/shaders/busnode.vert");

@@ -3,8 +3,8 @@ function WireRenderer(renderer)
 {
     this.renderer = renderer;
 
-    var wireGeometry = this.wireGeometry = renderer.createQuadGeometry();
-    var circleGeometry = this.circleGeometry = renderer.createQuadGeometry();
+    this.wireGeometry = renderer.createQuadGeometry();
+    this.circleGeometry = renderer.createQuadGeometry();
 }
 
 WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)

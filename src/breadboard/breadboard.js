@@ -46,6 +46,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.renderer = new Renderer();
     this.gridRenderer = new GridRenderer();
     this.wireRenderer = new WireRenderer(this.renderer);
+    this.busRenderer = new BusRenderer(this.renderer);
     this.componentBoxRenderer = new ComponentBoxRenderer();
     this.componentRenderer = new ComponentRenderer(this.renderer);
 
@@ -121,6 +122,7 @@ Breadboard.prototype.postLoad = function postLoad()
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
+    this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
 };
 
 Breadboard.prototype.clear = function clearFn()
@@ -508,6 +510,7 @@ Breadboard.prototype.draw = function draw()
     {
         this.renderer.textureSize.value = 0;
         this.wireRenderer.updateGeometry(this.wires, this);
+        this.busRenderer.updateGeometry(this.buses, this);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
         this.componentRenderer.updateGeometry(this.componentsList, this);
 
