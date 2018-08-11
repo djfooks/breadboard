@@ -20,9 +20,9 @@ function Renderer()
         indicesArray[index + 0] = vertexIndex + 0;
         indicesArray[index + 1] = vertexIndex + 1;
         indicesArray[index + 2] = vertexIndex + 2;
-        indicesArray[index + 3] = vertexIndex + 2;
-        indicesArray[index + 4] = vertexIndex + 3;
-        indicesArray[index + 5] = vertexIndex + 0;
+        indicesArray[index + 3] = vertexIndex + 0;
+        indicesArray[index + 4] = vertexIndex + 2;
+        indicesArray[index + 5] = vertexIndex + 3;
 
         vertex = i * 8;
         verticesArray[vertex + 6] = 0;

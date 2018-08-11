@@ -1,4 +1,6 @@
 
+var testTexture;
+
 var App = function ()
 {
     window.onerror = this.onError.bind(this);
@@ -83,6 +85,19 @@ var App = function ()
     // TextureManager.request("truck.png");
     // TextureManager.request("truck-enabled.png");
 
+    function mipmaps(texture)
+    {
+        texture.needsUpdate = true;
+        texture.minFilter = THREE.LinearMipMapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = true;
+        texture.anisotropy = that.renderer.capabilities.getMaxAnisotropy();
+    };
+
+    var textureLoader = new THREE.TextureLoader();
+    var texture = textureLoader.load("atari.png", mipmaps);
+    testTexture = texture;
+
     ShaderManager.request("src/shaders/wire.vert");
     ShaderManager.request("src/shaders/wire.frag");
     ShaderManager.request("src/shaders/wirecirclesshader.vert");
@@ -107,12 +122,17 @@ var App = function ()
     ShaderManager.request("src/shaders/circle.frag");
     ShaderManager.request("src/shaders/rectangle.vert");
     ShaderManager.request("src/shaders/rectangle.frag");
+    ShaderManager.request("src/shaders/bmfont.vert");
+    ShaderManager.request("src/shaders/bmfont.frag");
+
+    JsonManager.request("atari.json")
 };
 
 App.prototype.update = function update()
 {
     if (TextureManager.loading() ||
-        ShaderManager.loading())
+        ShaderManager.loading() ||
+        JsonManager.loading())
     {
         return;
     }
