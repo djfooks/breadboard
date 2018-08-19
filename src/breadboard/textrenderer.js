@@ -17,18 +17,25 @@ TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
     var loadedFont = JsonManager.get("sourcecodepro-medium.json");
     var config = {
-        imagePath: 'sourcecodepro-medium.png',
-        text: "Hello world",
-        width: 1150,
+        text: "5",
+        width: 50,
         align: 'center',
         font: loadedFont,
-        lineHeight: loadedFont.common.lineHeight,
         letterSpacing: 1,
         scale: 1,
         rotate: false,
         color: "#F00"
     };
     this.textGeometry = createBMFontGeometry(config);
+
+    var scale = 0.02;
+    var positions = this.textGeometry.attributes.position.array;
+    var i;
+    for (i = 0; i < positions.length; i += 2)
+    {
+        positions[i + 0] = 100.5 + positions[i + 0] * scale;
+        positions[i + 1] = 94.3 + positions[i + 1] * scale;
+    }
 
     this.textMaterial = new THREE.RawShaderMaterial({
         uniforms: {
