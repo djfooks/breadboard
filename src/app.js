@@ -92,10 +92,10 @@ var App = function ()
         texture.magFilter = THREE.LinearFilter;
         texture.generateMipmaps = true;
         texture.anisotropy = that.renderer.capabilities.getMaxAnisotropy();
-    };
+    }
 
     var textureLoader = new THREE.TextureLoader();
-    var texture = textureLoader.load("atari.png", mipmaps);
+    var texture = textureLoader.load("sourcecodepro-medium.png", mipmaps);
     testTexture = texture;
 
     ShaderManager.request("src/shaders/wire.vert");
@@ -125,7 +125,7 @@ var App = function ()
     ShaderManager.request("src/shaders/bmfont.vert");
     ShaderManager.request("src/shaders/bmfont.frag");
 
-    JsonManager.request("atari.json")
+    JsonManager.request("sourcecodepro-medium.json");
 };
 
 App.prototype.update = function update()

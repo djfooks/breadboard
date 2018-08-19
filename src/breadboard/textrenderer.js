@@ -15,9 +15,9 @@ function TextRenderer(renderer)
 
 TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
-    var loadedFont = JsonManager.get("atari.json");
+    var loadedFont = JsonManager.get("sourcecodepro-medium.json");
     var config = {
-        imagePath: 'atari.png',
+        imagePath: 'sourcecodepro-medium.png',
         text: "Hello world",
         width: 1150,
         align: 'center',
