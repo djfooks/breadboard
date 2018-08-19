@@ -20,3 +20,11 @@ Change log:
 - Wires can now be overlapped.
 - Added focus to text entry on components.
 - Debugger is now readable in all rotations.
+
+
+
+Other useful stuff
+==================
+
+Finding free fonts: https://fontlibrary.org
+Creating a font: https://msdf-bmfont.donmccurdy.com/
