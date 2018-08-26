@@ -139,8 +139,7 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
         wire = circlesMap[id];
         var p = breadboard.getPositionFromIndex(id);
 
-        var dist = Math.abs(p[0] - wire.x0) + Math.abs(p[1] - wire.y1);
-        var texture = wire.texture0 + dist;
+        var texture = wire.texture0 + Math.max(Math.abs(wire.x0 - p[0]), Math.abs(wire.y0 - p[1]));
 
         circles[circlesIndex + 0]  = p[0];
         circles[circlesIndex + 1]  = p[1];
