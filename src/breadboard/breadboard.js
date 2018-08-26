@@ -2111,7 +2111,8 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
     var connection = this.findConnection(index);
     if (connection)
     {
-        if (connection.wires.length > 0)
+        var j;
+        for (j = 0; j < connection.wires.length; j += 1)
         {
             var textureData = this.renderer.textureData;
             var textureIndex = this.componentRenderer.getWireTextureIndex(this, index, debugP);

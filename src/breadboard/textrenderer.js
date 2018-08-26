@@ -4,6 +4,9 @@ function TextRenderer(renderer)
     this.renderer = renderer;
 
     this.textObjects = {
+        count: 0,
+        index: 0,
+        positions: null
     };
 
     // var textGeometry = this.textGeometry = new THREE.BufferGeometry();
@@ -11,13 +14,8 @@ function TextRenderer(renderer)
     // textGeometry.boundingSphere = new THREE.Sphere();
     // textGeometry.boundingSphere.radius = 99999;
 
-}
-
-TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
-{
     var loadedFont = JsonManager.get("sourcecodepro-medium.json");
-    var config = {
-        text: "5",
+    this.singleLetterConfig = {
         width: 50,
         align: 'center',
         font: loadedFont,
@@ -26,17 +24,36 @@ TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
         rotate: false,
         color: "#F00"
     };
-    this.textGeometry = createBMFontGeometry(config);
+
+    var textGeometry = this.textGeometry = new THREE.BufferGeometry();
+    textGeometry.setIndex(this.indices);
+    textGeometry.boundingSphere = new THREE.Sphere();
+    textGeometry.boundingSphere.radius = 99999;
+}
+
+TextRenderer.prototype.addText = function addText(data, p, text)
+{
+    this.singleLetterConfig.text = text;
+    var newGeometry = createBMFontGeometry(this.singleLetterConfig);
+
+    var index = this.textObjects.index;
+    var positions = this.positions;
 
     var scale = 0.02;
-    var positions = this.textGeometry.attributes.position.array;
+    var newPositions = newGeometry.attributes.position.array;
     var i;
-    for (i = 0; i < positions.length; i += 2)
+    for (i = 0; i < newPositions.length; i += 2)
     {
-        positions[i + 0] = 100.5 + positions[i + 0] * scale;
-        positions[i + 1] = 94.3 + positions[i + 1] * scale;
+        positions[index + i + 0] = p[0] + 0.5 + newPositions[i + 0] * scale;
+        positions[index + i + 1] = p[1] + 0.3 + newPositions[i + 1] * scale;
     }
 
+    index += newPositions.length;
+};
+
+
+TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
+{
     this.textMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
@@ -54,4 +71,5 @@ TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 
 TextRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboard)
 {
+
 };
