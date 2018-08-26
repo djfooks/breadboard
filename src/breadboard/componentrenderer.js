@@ -146,6 +146,7 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p)
 {
     var index = this.outputNodes.index * 12;
+    // TODO test if there is a wire index here we could reuse before increasing size of texture
     var textureIndex = breadboard.renderer.textureSize.value;
     breadboard.renderer.textureSize.value += 1;
     this.addPositionAndTextureIndex(this.outputNodes.p, index, p, textureIndex);
@@ -232,9 +233,10 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     var numComponents = components.length;
 
     var i;
+    var component;
     for (i = 0; i < numComponents; i += 1)
     {
-        var component = components[i];
+        component = components[i];
         component.prepareGeometry(this);
     }
 
@@ -256,8 +258,8 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     var index = 0;
     for (i = 0; i < numComponents; i += 1)
     {
-        var component = components[i];
-        var connections = component.addGeometry(this, breadboard);
+        component = components[i];
+        component.addGeometry(this, breadboard);
     }
 
     var switchGeometry = this.switchGeometry;

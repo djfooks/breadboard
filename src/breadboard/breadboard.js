@@ -2105,6 +2105,21 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 
     var gameSpaceMouse = this.gameSpaceMouse = this.gameStage.toView(p);
 
+    var debugP = this.getPosition(gameSpaceMouse);
+    var msg = debugP[0] + ", " + debugP[1] + "</br>";
+    var index = this.getIndex(debugP[0], debugP[1]);
+    var connection = this.findConnection(index);
+    if (connection)
+    {
+        if (connection.wires.length > 0)
+        {
+            var textureData = this.renderer.textureData;
+            var textureIndex = this.componentRenderer.getWireTextureIndex(this, index, debugP);
+            msg += "index " + textureIndex + " value " + textureData[textureIndex];
+        }
+    }
+    document.getElementById("debugText").innerHTML = msg;
+
     if (this.isScrolling)
     {
         var delta = [this.scrollGrab[0] - gameSpaceMouse[0], this.scrollGrab[1] - gameSpaceMouse[1]];
