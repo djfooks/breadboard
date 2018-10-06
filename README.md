@@ -28,3 +28,5 @@ Other useful stuff
 
 Finding free fonts: https://fontlibrary.org
 Creating a font: https://msdf-bmfont.donmccurdy.com/
+
+https://stackoverflow.com/questions/5527601/normalizing-mousewheel-speed-across-browsers
