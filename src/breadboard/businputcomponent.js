@@ -100,7 +100,7 @@ BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer
 
     componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP, this.signalId);
 
-    componentRenderer.addText(this.settingP, this.busKey);
+    componentRenderer.addText(this.settingP, this.busKey, (breadboard.focusComponent === this) ? 255 : 0);
 };
 
 BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
@@ -216,6 +216,7 @@ BusInputComponent.prototype.updateValue = function updateValue(breadboard)
 {
     breadboard.dirtySave = true;
     breadboard.dirty = true;
+    breadboard.geometryDirty = true;
 };
 
 BusInputComponent.prototype.getBusPosition = function getBusPosition()
