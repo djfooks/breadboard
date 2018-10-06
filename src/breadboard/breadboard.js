@@ -514,8 +514,8 @@ Breadboard.prototype.draw = function draw()
         this.wireRenderer.updateGeometry(this.wires, this);
         this.busRenderer.updateGeometry(this.buses, this);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
+
         this.componentRenderer.updateGeometry(this.componentsList, this);
-        this.textRenderer.updateGeometry();
 
         this.renderer.createValuesTexture();
         this.geometryDirty = false;
