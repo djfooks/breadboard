@@ -3,6 +3,8 @@ function ComponentRenderer(renderer)
 {
     this.renderer = renderer;
 
+    this.textRenderer = new TextRenderer(renderer);
+
     this.switchGeometry = renderer.createQuadGeometry();
     this.outputNodeGeometry = renderer.createQuadGeometry();
     this.inputNodeGeometry = renderer.createQuadGeometry();
@@ -61,6 +63,8 @@ function ComponentRenderer(renderer)
 
 ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
+    this.textRenderer.addMeshes(scene, feather);
+
     this.componentSwitchMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             radius: this.outerRadius,
@@ -210,8 +214,15 @@ ComponentRenderer.prototype.addTextureIndex = function addTextureIndex(data, ind
     data[index + 3] = textureIndex;
 };
 
+ComponentRenderer.prototype.addText = function addText(p, text)
+{
+    this.textRenderer.addText(p, text);
+};
+
 ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)
 {
+    this.textRenderer.clearGeometry();
+
     this.switches.count = 0;
     this.switches.index = 0;
 
@@ -240,6 +251,8 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
         component.prepareGeometry(this);
     }
 
+    this.textRenderer.allocateGeometry();
+
     this.switches.base = new Int16Array(this.switches.count * 12);
     this.switches.p0 = new Int16Array(this.switches.count * 12);
     this.switches.p1 = new Int16Array(this.switches.count * 12);
@@ -261,6 +274,8 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
         component = components[i];
         component.addGeometry(this, breadboard);
     }
+
+    this.textRenderer.updateGeometry();
 
     var switchGeometry = this.switchGeometry;
     switchGeometry.addAttribute('base', new THREE.BufferAttribute(this.switches.base, 3));

@@ -520,8 +520,8 @@ Breadboard.prototype.draw = function draw()
         this.wireRenderer.updateGeometry(this.wires, this);
         this.busRenderer.updateGeometry(this.buses, this);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
+
         this.componentRenderer.updateGeometry(this.componentsList, this);
-        this.textRenderer.updateGeometry();
 
         this.renderer.createValuesTexture();
         this.geometryDirty = false;
@@ -2117,7 +2117,8 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
     var connection = this.findConnection(index);
     if (connection)
     {
-        if (connection.wires.length > 0)
+        var j;
+        for (j = 0; j < connection.wires.length; j += 1)
         {
             var textureData = this.renderer.textureData;
             var textureIndex = this.componentRenderer.getWireTextureIndex(this, index, debugP);
