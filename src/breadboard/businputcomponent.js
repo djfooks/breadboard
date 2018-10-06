@@ -89,6 +89,7 @@ BusInputComponent.prototype.prepareGeometry = function prepareGeometry(component
 {
     componentRenderer.busNodes.count += 1;
     componentRenderer.inputNodes.count += 1;
+    componentRenderer.textRenderer.textObjects.count += 1;
 };
 
 BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
@@ -98,6 +99,8 @@ BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer
     componentRenderer.busNodes.index += 1;
 
     componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP, this.signalId);
+
+    componentRenderer.addText(this.settingP, this.busKey);
 };
 
 BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
