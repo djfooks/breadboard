@@ -2188,10 +2188,13 @@ Breadboard.prototype.takeFocus = function takeFocus(component, fn)
     }
     this.focusComponent = component;
     this.onKeyDownFn = fn;
+    this.geometryDirty = true;
 };
 
 Breadboard.prototype.removeFocus = function removeFocus(fn)
 {
     this.focusComponent = null;
     this.onKeyDownFn = null;
+
+    this.geometryDirty = true;
 };
