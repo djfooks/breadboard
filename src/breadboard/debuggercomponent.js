@@ -102,6 +102,19 @@ DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboar
 DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.outputNodes.count += 9;
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    {
+        componentRenderer.textRenderer.textObjects.count += (this.value + "").length;
+    }
+};
+
+DebuggerComponent.textConfig = {
+    width: 300,
+    align: 'right',
+    letterSpacing: 1,
+    scale: 1,
+    rotate: false,
+    color: "#F00"
 };
 
 DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
@@ -112,6 +125,13 @@ DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer
         this.pinTextureIndex[i] = componentRenderer.addOutputNode(breadboard, this.pinP[i]);
     }
     componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.powerP, this.powerId);
+
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    {
+        var rotationMatrix = RotationMatrix[this.rotation];
+        var textPos = AddTransformedVector(this.p0, rotationMatrix, [0.9, 0.0]);
+        componentRenderer.addText(textPos, this.value + "", (breadboard.focusComponent === this) ? 255 : 0, DebuggerComponent.textConfig);
+    }
 };
 
 DebuggerComponent.prototype.render = function render(renderer)
@@ -343,6 +363,10 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
 
     var write = (this.debugType === DebuggerComponent.debugType.WRITE);
     breadboard.dirtySave = true;
+    if (write)
+    {
+        breadboard.geometryDirty = true;
+    }
 
     var i;
     var j;
