@@ -102,7 +102,7 @@ DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboar
 DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.outputNodes.count += 9;
-    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    //if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
         componentRenderer.textRenderer.textObjects.count += (this.value + "").length;
     }
@@ -126,7 +126,7 @@ DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer
     }
     componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.powerP, this.powerId);
 
-    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    //if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
         var rotationMatrix = RotationMatrix[this.rotation];
         var textPos = AddTransformedVector(this.p0, rotationMatrix, [0.9, 0.0]);
@@ -285,6 +285,10 @@ DebuggerComponent.prototype.update = function update(breadboard)
                 this.value |= (1 << (7 - i));
             }
         }
+        if (this.previousValue != this.value)
+        {
+            breadboard.geometryDirty = true;
+        }
         this.previousValue = this.value;
     }
 };
@@ -363,7 +367,7 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
 
     var write = (this.debugType === DebuggerComponent.debugType.WRITE);
     breadboard.dirtySave = true;
-    if (write)
+    //if (write)
     {
         breadboard.geometryDirty = true;
     }
