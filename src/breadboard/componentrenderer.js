@@ -214,9 +214,9 @@ ComponentRenderer.prototype.addTextureIndex = function addTextureIndex(data, ind
     data[index + 3] = textureIndex;
 };
 
-ComponentRenderer.prototype.addText = function addText(p, text, red)
+ComponentRenderer.prototype.addText = function addText()
 {
-    this.textRenderer.addText(p, text, red);
+    this.textRenderer.addText.apply(this.textRenderer, arguments);
 };
 
 ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)

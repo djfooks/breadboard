@@ -11,11 +11,6 @@ function TextRenderer(renderer)
         colors: null
     };
 
-    // var textGeometry = this.textGeometry = new THREE.BufferGeometry();
-
-    // textGeometry.boundingSphere = new THREE.Sphere();
-    // textGeometry.boundingSphere.radius = 99999;
-
     this.singleLetterConfig = {
         width: 50,
         align: 'center',
@@ -25,16 +20,23 @@ function TextRenderer(renderer)
         color: "#F00"
     };
 
+    this.font = null;
+
     var textGeometry = this.textGeometry = new THREE.BufferGeometry();
     textGeometry.setIndex(renderer.indices);
     textGeometry.boundingSphere = new THREE.Sphere();
     textGeometry.boundingSphere.radius = 99999;
 }
 
-TextRenderer.prototype.addText = function addText(p, text, red)
+TextRenderer.prototype.addText = function addText(p, text, red, config)
 {
-    this.singleLetterConfig.text = text;
-    var newGeometry = createBMFontGeometry(this.singleLetterConfig);
+    if (!config)
+    {
+        config = this.singleLetterConfig;
+    }
+    config.text = text;
+    config.font = this.font;
+    var newGeometry = createBMFontGeometry(config);
 
     var index = this.textObjects.index;
     var positions = this.textObjects.positions;
@@ -78,8 +80,7 @@ TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.textGeometry, this.textMaterial));
 
     var loadedFont = JsonManager.get("sourcecodepro-medium.json");
-    this.singleLetterConfig.font = loadedFont;
-
+    this.font = loadedFont;
 };
 
 TextRenderer.prototype.clearGeometry = function clearGeometry()
