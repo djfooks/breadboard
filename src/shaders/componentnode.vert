@@ -23,7 +23,7 @@ void main()
 
     vec2 p = vec2(mix(p1.x, p2.x, position.x), mix(p1.y, p2.y, position.y));
 
-    float value = texture2D(texture, vec2(circle.z / textureSize, 0.0)).x;
+    float value = texture2D(texture, vec2((circle.z + 0.5) / textureSize, 0.5)).x;
     vP = p;
     vCircle = vec3(circle.xy, value);
     vec4 mvPosition = vec4(p, 0.0, 1.0);
