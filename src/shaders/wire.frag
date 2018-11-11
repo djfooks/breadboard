@@ -32,7 +32,7 @@ void main(void) {
 
     v = (d - innerWire) / feather;
 
-    float wireValue = texture2D(texture, vec2(vUV / textureSize, 0.0)).x;
+    float wireValue = texture2D(texture, vec2(vUV / textureSize, 0.5)).x;
 
     vec3 wireColor = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.53, 0.53), wireValue);
 

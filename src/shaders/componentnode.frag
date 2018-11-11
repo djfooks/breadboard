@@ -2,11 +2,8 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
-uniform float textureSize;
 uniform float radius;
 uniform vec3 bgColor;
-
-uniform sampler2D texture;
 
 uniform float fg;
 

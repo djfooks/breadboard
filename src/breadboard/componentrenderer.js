@@ -260,7 +260,7 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
 
     this.outputNodes.p = new Int16Array(this.outputNodes.count * 12);
     this.inputNodes.p = new Int16Array(this.inputNodes.count * 12);
-    this.busNodes.p = new Int16Array(this.inputNodes.count * 8);
+    this.busNodes.p = new Int16Array(this.busNodes.count * 8);
 
     this.batterySymbols.p0 = new Int16Array(this.batterySymbols.count * 8);
     this.batterySymbols.p1 = new Int16Array(this.batterySymbols.count * 8);

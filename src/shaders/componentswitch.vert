@@ -35,10 +35,10 @@ void main()
 
     vec2 p = vec2(mix(min.x, max.x, position.x), mix(min.y, max.y, position.y));
 
-    float valueBase = texture2D(texture, vec2(base.z / textureSize, 0.0)).x;
-    float valueP0 = texture2D(texture, vec2(p0.z / textureSize, 0.0)).x;
-    float valueP1 = texture2D(texture, vec2(p1.z / textureSize, 0.0)).x;
-    vConnected = texture2D(texture, vec2(signal / textureSize, 0.0)).x;
+    float valueBase = texture2D(texture, vec2((base.z + 0.5) / textureSize, 0.5)).x;
+    float valueP0 = texture2D(texture, vec2((p0.z + 0.5) / textureSize, 0.5)).x;
+    float valueP1 = texture2D(texture, vec2((p1.z + 0.5) / textureSize, 0.5)).x;
+    vConnected = texture2D(texture, vec2((signal + 0.5) / textureSize, 0.5)).x;
 
     valueBase = sign(valueBase + valueP1 * vConnected + valueP0 * (1.0 - vConnected));
     valueP0 = sign(valueP0 + valueBase * (1.0 - vConnected));
