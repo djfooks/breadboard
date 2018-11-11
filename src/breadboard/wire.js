@@ -335,22 +335,33 @@ function Bus(breadboard, p)
 
                 var otherBuses = connection.buses;
                 var j;
-                for (j = 0; j < otherBuses.length; j += 1)
+                if ((x == bus.x0 && y == bus.y0) ||
+                    (x == bus.x1 && y == bus.y1))
                 {
-                    var otherBus = otherBuses[j];
-                    if (otherBus === bus)
-                    {
-                        continue;
-                    }
-                    if (otherBus.x0 === x &&
-                        otherBus.y0 === y)
+                    if (otherBuses.length)
                     {
                         edges.push([x, y]);
                     }
-                    else if (otherBus.x1 === x &&
-                             otherBus.y1 === y)
+                }
+                else
+                {
+                    for (j = 0; j < otherBuses.length; j += 1)
                     {
-                        edges.push([x, y]);
+                        var otherBus = otherBuses[j];
+                        if (otherBus === bus)
+                        {
+                            continue;
+                        }
+                        if (otherBus.x0 === x &&
+                            otherBus.y0 === y)
+                        {
+                            edges.push([x, y]);
+                        }
+                        else if (otherBus.x1 === x &&
+                                 otherBus.y1 === y)
+                        {
+                            edges.push([x, y]);
+                        }
                     }
                 }
             });
