@@ -7,6 +7,7 @@ https://cdn.rawgit.com/djfooks/breadboard/master/index.html
 
 Change log:
 
+- Added Pause/Break key to pause simulation and press space (or right) key to step simulation once.
 - Added focus to text entry on components.
 - Debugger is now readable in all rotations.
 - Added Ctrl-c and Ctrl-v to copy paste selection.

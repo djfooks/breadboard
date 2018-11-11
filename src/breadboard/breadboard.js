@@ -141,7 +141,8 @@ Breadboard.prototype.clear = function clearFn()
     this.mouseDownComponent = null;
     this.gameSpaceMouseDownP = [-1, -1];
 
-    this.simulateSteps = 0;
+    this.runSimulation = true;
+    this.stepSimulation = false;
 
     this.connectionIdPulseMap = {};
 };
@@ -408,43 +409,48 @@ Breadboard.prototype.update = function update()
         }
     }
 
-    var that = this;
-    if (this.dirty)
+    if (this.runSimulation || this.stepSimulation)
     {
-        this.dirtySave = true;
+        this.stepSimulation = false;
 
-        this.connectionIdPulseMap = {};
-
-        // TODO reset entire connection map
-        this.pulseReset();
-
-        var componentsList = this.componentsList;
-        var i;
-        for (i = 0; i < componentsList.length; i += 1)
+        var that = this;
+        if (this.dirty)
         {
-            componentsList[i].pulsePaths = [];
-            componentsList[i].reset();
+            this.dirtySave = true;
+
+            this.connectionIdPulseMap = {};
+
+            // TODO reset entire connection map
+            this.pulseReset();
+
+            var componentsList = this.componentsList;
+            var i;
+            for (i = 0; i < componentsList.length; i += 1)
+            {
+                componentsList[i].pulsePaths = [];
+                componentsList[i].reset();
+            }
+            for (i = 0; i < this.batteries.length; i += 1)
+            {
+                this.batteries[i].createPulsePath();
+            }
+
+            Bus.buildPaths(this);
+
+            this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.rebuildPaths(that); });
+            this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.createPulse(1); });
         }
-        for (i = 0; i < this.batteries.length; i += 1)
+
+        this.gameStage.update();
+        this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.updatePulses(that); });
+        this.updateComponents();
+
+        if (this.dirty)
         {
-            this.batteries[i].createPulsePath();
+            this.dirty = false;
         }
-
-        Bus.buildPaths(this);
-
-        this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.rebuildPaths(that); });
-        this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.createPulse(1); });
     }
-
-    this.gameStage.update();
-    this.iterateBatteryPulsePaths(function (pulsePath) { pulsePath.updatePulses(that); });
-    this.updateComponents();
     this.draw();
-
-    if (this.dirty)
-    {
-        this.dirty = false;
-    }
 };
 
 Breadboard.prototype.updateComponents = function updateComponents()
@@ -2071,6 +2077,15 @@ Breadboard.prototype.onKeyUp = function onKeyUp(key, keyCode)
 
 Breadboard.prototype.onKeyDown = function onKeyDown(key, keyCode)
 {
+    if (keyCode === 19/*PAUSE BREAK*/)
+    {
+        this.runSimulation = !this.runSimulation;
+    }
+    if (keyCode === 39/*RIGHT*/ || keyCode === 32/*SPACE*/)
+    {
+        this.stepSimulation = true;
+    }
+
     if (this.onKeyDownFn)
     {
         this.onKeyDownFn(this, key, keyCode);
