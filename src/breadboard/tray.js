@@ -32,8 +32,8 @@ Tray.prototype.postLoad = function postLoad()
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.textRenderer.addMeshes(this.scene, this.gameStage.feather);
 
-    // this.wireRenderer.updateGeometry([], this);
-    // this.busRenderer.updateGeometry([], this);
+    this.wireRenderer.updateGeometry(this.wires, this.breadboard, true);
+    this.busRenderer.updateGeometry(this.buses, this.breadboard, true);
 
     this.componentBoxRenderer.updateGeometry(this.componentsList);
     this.componentRenderer.updateGeometry(this.componentsList, this, true);
@@ -41,6 +41,13 @@ Tray.prototype.postLoad = function postLoad()
 
 Tray.prototype.resetComponents = function resetComponents()
 {
+    this.wires = [
+        new Wire(0, 0, 2, 0, 0, 0, ComponentTypes.WIRE)
+    ];
+    this.buses = [
+        new Wire(0, 1, 2, 1, 0, 0, ComponentTypes.BUS)
+    ];
+
     this.battery = new BatteryComponent(this.breadboard);
     this.gameStage.addHitbox(this.battery.hitbox);
     this.battery.move(this.breadboard, [0, 9], 0);

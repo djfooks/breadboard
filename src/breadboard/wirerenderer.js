@@ -58,7 +58,7 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesFgMaterial));
 };
 
-WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboard)
+WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboard, isTray)
 {
     var numWires = wires.length;
 
@@ -71,8 +71,17 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
     function wireIterate(x, y, index)
     {
         var id = breadboard.getIndex(x, y);
-        var connection = breadboard.getConnection(id);
-        if (connection.hasDot)
+        var hasDot;
+        if (isTray)
+        {
+            hasDot = x % 2 == 0;
+        }
+        else
+        {
+            var connection = breadboard.getConnection(id);
+            hasDot = connection.hasDot;
+        }
+        if (hasDot)
         {
             if (!circlesMap.hasOwnProperty(id))
             {
@@ -102,6 +111,12 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
         var texture0 = wire.texture0 = wireValueIndex;
         wireValueIndex += wireLength;
         var texture1 = wire.texture1 = wireValueIndex;
+
+        if (isTray)
+        {
+            texture0 = 0;
+            texture1 = 0;
+        }
 
         p1s[index + 0]  = wire.x0;
         p1s[index + 1]  = wire.y0;
@@ -141,6 +156,11 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
 
         var texture = wire.texture0 + Math.max(Math.abs(wire.x0 - p[0]), Math.abs(wire.y0 - p[1]));
 
+        if (isTray)
+        {
+            texture = 0;
+        }
+
         circles[circlesIndex + 0]  = p[0];
         circles[circlesIndex + 1]  = p[1];
         circles[circlesIndex + 2]  = texture;
@@ -156,7 +176,10 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
         circlesIndex += 12;
     }
 
-    this.renderer.textureSize.value += wireValueIndex;
+    if (!isTray)
+    {
+        this.renderer.textureSize.value += wireValueIndex;
+    }
 
     var wireGeometry = this.wireGeometry;
     wireGeometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 3));

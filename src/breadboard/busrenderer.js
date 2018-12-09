@@ -33,7 +33,7 @@ BusRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.diamondGeometry, this.busDiamondMaterial));
 };
 
-BusRenderer.prototype.updateGeometry = function updateGeometry(buses, breadboard)
+BusRenderer.prototype.updateGeometry = function updateGeometry(buses, breadboard, isTray)
 {
     var numBuses = buses.length;
 
@@ -46,8 +46,17 @@ BusRenderer.prototype.updateGeometry = function updateGeometry(buses, breadboard
     function busIterate(x, y, index)
     {
         var id = breadboard.getIndex(x, y);
-        var connection = breadboard.getConnection(id);
-        if (connection.hasDot)
+        var hasDot;
+        if (isTray)
+        {
+            hasDot = x % 2 == 0;
+        }
+        else
+        {
+            var connection = breadboard.getConnection(id);
+            hasDot = connection.hasDot;
+        }
+        if (hasDot)
         {
             if (!diamondMap.hasOwnProperty(id))
             {
