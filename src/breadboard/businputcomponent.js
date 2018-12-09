@@ -92,13 +92,13 @@ BusInputComponent.prototype.prepareGeometry = function prepareGeometry(component
     componentRenderer.textRenderer.textObjects.count += 1;
 };
 
-BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var index = componentRenderer.busNodes.index * 8;
     componentRenderer.addPosition(componentRenderer.busNodes.p, index, this.busP);
     componentRenderer.busNodes.index += 1;
 
-    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP, this.signalId);
+    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP, this.signalId, isTray);
 
     componentRenderer.addText(this.settingP, this.busKey, (breadboard.focusComponent === this) ? 255 : 0);
 };

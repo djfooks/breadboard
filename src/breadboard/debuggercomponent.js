@@ -117,14 +117,14 @@ DebuggerComponent.textConfig = {
     color: "#F00"
 };
 
-DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var i;
     for (i = 0; i < 8; i += 1)
     {
-        this.pinTextureIndex[i] = componentRenderer.addOutputNode(breadboard, this.pinP[i]);
+        this.pinTextureIndex[i] = componentRenderer.addOutputNode(breadboard, this.pinP[i], isTray);
     }
-    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.powerP, this.powerId);
+    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.powerP, this.powerId, isTray);
 
     //if (this.debugType === DebuggerComponent.debugType.WRITE)
     {

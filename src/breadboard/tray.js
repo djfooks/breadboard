@@ -31,51 +31,11 @@ Tray.prototype.postLoad = function postLoad()
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.textRenderer.addMeshes(this.scene, this.gameStage.feather);
 
+    // this.wireRenderer.updateGeometry([], this);
+    // this.busRenderer.updateGeometry([], this);
 
-    var x = 10.0;
-    var y = 10.0;
-    var r = 1.0;
-
-    var uvs = new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0
-    ]);
-
-    this.circles = new Float32Array([
-        x, y, r,
-        x, y, r,
-        x, y, r,
-
-        x, y, r,
-        x, y, r,
-        x, y, r
-    ]);
-
-    var circleGeometry = this.circleGeometry = new THREE.BufferGeometry();
-    circleGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    circleGeometry.addAttribute('circle', new THREE.BufferAttribute(this.circles, 3));
-    circleGeometry.setDrawRange(0, 6);
-
-    circleGeometry.boundingSphere = new THREE.Sphere();
-    circleGeometry.boundingSphere.radius = 99999;
-
-    this.circleMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            feather: this.gameStage.feather
-        },
-        vertexShader: ShaderManager.get("src/shaders/circle.vert"),
-        fragmentShader: ShaderManager.get("src/shaders/circle.frag"),
-        side: THREE.DoubleSide
-    });
-    this.circleMaterial.transparent = true;
-
-    var mesh = new THREE.Mesh(circleGeometry, this.circleMaterial);
-    this.scene.add(mesh);
+    this.componentBoxRenderer.updateGeometry(this.componentsList);
+    this.componentRenderer.updateGeometry(this.componentsList, this, true);
 }
 
 Tray.prototype.resetComponents = function resetComponents()
@@ -111,6 +71,17 @@ Tray.prototype.resetComponents = function resetComponents()
     this.latch = new LatchComponent(this.breadboard);
     this.gameStage.addHitbox(this.latch.hitbox);
     this.latch.move(this.breadboard, [2, 18], 0);
+
+    this.componentsList = [
+        this.battery,
+        this.switch,
+        this.relay,
+        this.diode,
+        this.debugger,
+        this.busInput,
+        this.busOutput,
+        this.latch,
+    ];
 };
 
 Tray.prototype.isFromTray = function isFromTray(component)

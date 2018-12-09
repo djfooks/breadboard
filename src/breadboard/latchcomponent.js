@@ -103,30 +103,29 @@ LatchComponent.prototype.prepareGeometry = function prepareGeometry(componentRen
     componentRenderer.inputNodes.count += 2;
 };
 
-LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var baseP = this.baseP;
     var p0 = this.outP0;
     var p1 = this.outP1;
-    var textureIndexBase = componentRenderer.getWireTextureIndex(breadboard, this.baseId, baseP);
-    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.outId0, p0);
-    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.outId1, p1);
+    var textureIndexBase = componentRenderer.getWireTextureIndex(breadboard, this.baseId, baseP, isTray);
+    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.outId0, p0, isTray);
+    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.outId1, p1, isTray);
 
     var index = componentRenderer.switches.index * 12;
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, baseP, textureIndexBase);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, p0, textureIndex0);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, p1, textureIndex1);
 
-    this.signalValueIndex = breadboard.gameRenderer.textureSize.value;
-    breadboard.gameRenderer.textureSize.value += 1;
+    this.signalValueIndex = componentRenderer.getNextTextureIndex(breadboard, isTray);
 
     var signalIndex = componentRenderer.switches.index * 4;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);
 
     componentRenderer.switches.index += 1;
 
-    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP0, this.signalId0);
-    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP1, this.signalId1);
+    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP0, this.signalId0, isTray);
+    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP1, this.signalId1, isTray);
 };
 
 LatchComponent.prototype.render = function render(renderer)

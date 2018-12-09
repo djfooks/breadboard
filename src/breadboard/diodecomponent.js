@@ -69,10 +69,10 @@ DiodeComponent.prototype.prepareGeometry = function prepareGeometry(componentRen
     componentRenderer.diodeSymbols.count += 1;
 };
 
-DiodeComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+DiodeComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
-    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p0, this.id0);
-    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p1, this.id1);
+    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p0, this.id0, isTray);
+    componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.p1, this.id1, isTray);
 
     var index = componentRenderer.diodeSymbols.index * 8;
     componentRenderer.addPosition(componentRenderer.diodeSymbols.p0, index, this.p0);
