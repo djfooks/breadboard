@@ -1,5 +1,5 @@
 
-function Renderer()
+function GameRenderer()
 {
     this.textureSize = {value : 0};
     this.texture = {value : null};
@@ -39,7 +39,7 @@ function Renderer()
     this.indices = new THREE.BufferAttribute(indicesArray, 1);
 }
 
-Renderer.prototype.createQuadGeometry = function createQuadGeometry()
+GameRenderer.prototype.createQuadGeometry = function createQuadGeometry()
 {
     var result = new THREE.BufferGeometry();
     result.setIndex(this.indices);
@@ -49,7 +49,7 @@ Renderer.prototype.createQuadGeometry = function createQuadGeometry()
     return result;
 };
 
-Renderer.prototype.createValuesTexture = function createValuesTexture()
+GameRenderer.prototype.createValuesTexture = function createValuesTexture()
 {
     var textureSize = this.textureSize.value;
     var textureData = this.textureData = new Uint8Array(textureSize);

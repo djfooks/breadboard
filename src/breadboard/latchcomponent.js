@@ -117,8 +117,8 @@ LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, p0, textureIndex0);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, p1, textureIndex1);
 
-    this.signalValueIndex = breadboard.renderer.textureSize.value;
-    breadboard.renderer.textureSize.value += 1;
+    this.signalValueIndex = breadboard.gameRenderer.textureSize.value;
+    breadboard.gameRenderer.textureSize.value += 1;
 
     var signalIndex = componentRenderer.switches.index * 4;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);

@@ -260,6 +260,7 @@ App.prototype.postLoad = function postLoad()
 App.prototype.initWebGL = function initWebGL()
 {
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
+    this.renderer.autoClear = false;
     this.scene = new THREE.Scene();
 };
 
