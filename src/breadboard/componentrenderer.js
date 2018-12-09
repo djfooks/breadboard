@@ -151,8 +151,8 @@ ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p
 {
     var index = this.outputNodes.index * 12;
     // TODO test if there is a wire index here we could reuse before increasing size of texture
-    var textureIndex = breadboard.renderer.textureSize.value;
-    breadboard.renderer.textureSize.value += 1;
+    var textureIndex = breadboard.gameRenderer.textureSize.value;
+    breadboard.gameRenderer.textureSize.value += 1;
     this.addPositionAndTextureIndex(this.outputNodes.p, index, p, textureIndex);
     this.outputNodes.index += 1;
     return textureIndex;

@@ -114,8 +114,8 @@ BusOutputComponent.prototype.addGeometry = function addGeometry(componentRendere
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, inP, textureIndexIn);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, outP, textureIndexOut);
 
-    this.signalValueIndex = breadboard.renderer.textureSize.value;
-    breadboard.renderer.textureSize.value += 1;
+    this.signalValueIndex = breadboard.gameRenderer.textureSize.value;
+    breadboard.gameRenderer.textureSize.value += 1;
 
     var signalIndex = componentRenderer.switches.index * 4;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);

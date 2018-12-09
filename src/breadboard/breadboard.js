@@ -43,13 +43,13 @@ function Breadboard(stage, top, left, cols, rows)
     this.rows = rows;
 
     this.scene = stage.scene;
-    this.renderer = new Renderer();
+    this.gameRenderer = new GameRenderer();
     this.gridRenderer = new GridRenderer();
-    this.wireRenderer = new WireRenderer(this.renderer);
-    this.busRenderer = new BusRenderer(this.renderer);
+    this.wireRenderer = new WireRenderer(this.gameRenderer);
+    this.busRenderer = new BusRenderer(this.gameRenderer);
     this.componentBoxRenderer = new ComponentBoxRenderer();
-    this.componentRenderer = new ComponentRenderer(this.renderer);
-    this.textRenderer = new TextRenderer(this.renderer);
+    this.componentRenderer = new ComponentRenderer(this.gameRenderer);
+    this.textRenderer = new TextRenderer(this.gameRenderer);
 
     this.clear();
 
@@ -125,6 +125,8 @@ Breadboard.prototype.postLoad = function postLoad()
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.textRenderer.addMeshes(this.scene, this.gameStage.feather);
+
+    this.tray.postLoad();
 };
 
 Breadboard.prototype.clear = function clearFn()
@@ -516,20 +518,20 @@ Breadboard.prototype.draw = function draw()
     this.gridRenderer.updateGeometry(camera);
     if (this.geometryDirty)
     {
-        this.renderer.textureSize.value = 0;
+        this.gameRenderer.textureSize.value = 0;
         this.wireRenderer.updateGeometry(this.wires, this);
         this.busRenderer.updateGeometry(this.buses, this);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
 
         this.componentRenderer.updateGeometry(this.componentsList, this);
 
-        this.renderer.createValuesTexture();
+        this.gameRenderer.createValuesTexture();
         this.geometryDirty = false;
     }
 
     var that = this;
     var wire;
-    var textureData = this.renderer.textureData;
+    var textureData = this.gameRenderer.textureData;
     var connections = this._connections;
     function wireIterate(x, y, index)
     {
@@ -552,13 +554,17 @@ Breadboard.prototype.draw = function draw()
     }
     for (i = 0; i < this.componentsList.length; i += 1)
     {
-        this.componentsList[i].render(this.renderer);
+        this.componentsList[i].render(this.gameRenderer);
     }
-    this.renderer.dataTexture.needsUpdate = true;
+    this.gameRenderer.dataTexture.needsUpdate = true;
 
-    stage.renderer.setScissor(10, 10, canvas.width - 100, canvas.height - 20);
+    stage.renderer.clear();
+    stage.renderer.setScissor(10, 10, canvas.width - 250, canvas.height - 20);
     stage.renderer.setScissorTest(true);
     stage.renderer.render(stage.scene, this.gameStage.camera);
+
+    this.tray.draw();
+
     // this.gameStage.drawBorder(ctx);
 
     // this.tray.draw(ctx);
@@ -2111,21 +2117,21 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 
     var gameSpaceMouse = this.gameSpaceMouse = this.gameStage.toView(p);
 
-    var debugP = this.getPosition(gameSpaceMouse);
-    var msg = debugP[0] + ", " + debugP[1] + "</br>";
-    var index = this.getIndex(debugP[0], debugP[1]);
-    var connection = this.findConnection(index);
-    if (connection)
-    {
-        var j;
-        for (j = 0; j < connection.wires.length; j += 1)
-        {
-            var textureData = this.renderer.textureData;
-            var textureIndex = this.componentRenderer.getWireTextureIndex(this, index, debugP);
-            msg += "index " + textureIndex + " value " + textureData[textureIndex];
-        }
-    }
-    document.getElementById("debugText").innerHTML = msg;
+    // var debugP = this.getPosition(gameSpaceMouse);
+    // var msg = debugP[0] + ", " + debugP[1] + "</br>";
+    // var index = this.getIndex(debugP[0], debugP[1]);
+    // var connection = this.findConnection(index);
+    // if (connection)
+    // {
+    //     var j;
+    //     for (j = 0; j < connection.wires.length; j += 1)
+    //     {
+    //         var textureData = this.renderer.textureData;
+    //         var textureIndex = this.componentRenderer.getWireTextureIndex(this, index, debugP);
+    //         msg += "index " + textureIndex + " value " + textureData[textureIndex];
+    //     }
+    // }
+    // document.getElementById("debugText").innerHTML = msg;
 
     if (this.isScrolling)
     {
