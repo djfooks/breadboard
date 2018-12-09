@@ -523,7 +523,7 @@ Breadboard.prototype.draw = function draw()
         this.busRenderer.updateGeometry(this.buses, this);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
 
-        this.componentRenderer.updateGeometry(this.componentsList, this);
+        this.componentRenderer.updateGeometry(this.componentsList, this, false);
 
         this.gameRenderer.createValuesTexture();
         this.geometryDirty = false;
@@ -2127,7 +2127,7 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
     //     for (j = 0; j < connection.wires.length; j += 1)
     //     {
     //         var textureData = this.renderer.textureData;
-    //         var textureIndex = this.componentRenderer.getWireTextureIndex(this, index, debugP);
+    //         var textureIndex = this.componentRenderer.getWireTextureIndex(this, index, debugP, false);
     //         msg += "index " + textureIndex + " value " + textureData[textureIndex];
     //     }
     // }

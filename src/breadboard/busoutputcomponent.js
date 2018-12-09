@@ -102,20 +102,19 @@ BusOutputComponent.prototype.prepareGeometry = function prepareGeometry(componen
     componentRenderer.textRenderer.textObjects.count += 1;
 };
 
-BusOutputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+BusOutputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var index = componentRenderer.switches.index * 12;
 
     var inP = this.inP;
     var outP = this.outP;
-    var textureIndexIn = componentRenderer.getWireTextureIndex(breadboard, this.inId, inP);
-    var textureIndexOut = componentRenderer.getWireTextureIndex(breadboard, this.outId, outP);
+    var textureIndexIn = componentRenderer.getWireTextureIndex(breadboard, this.inId, inP, isTray);
+    var textureIndexOut = componentRenderer.getWireTextureIndex(breadboard, this.outId, outP, isTray);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, inP, textureIndexIn);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, inP, textureIndexIn);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, outP, textureIndexOut);
 
-    this.signalValueIndex = breadboard.gameRenderer.textureSize.value;
-    breadboard.gameRenderer.textureSize.value += 1;
+    this.signalValueIndex = componentRenderer.getNextTextureIndex(breadboard, isTray);
 
     var signalIndex = componentRenderer.switches.index * 4;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);

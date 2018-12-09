@@ -23,20 +23,19 @@ SwitchComponent.prototype.prepareGeometry = function prepareGeometry(componentRe
     componentRenderer.switches.count += 1;
 };
 
-SwitchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+SwitchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var index = componentRenderer.switches.index * 12;
 
     var p0 = this.p0;
     var p1 = this.p1;
-    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.id0, p0);
-    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.id1, p1);
+    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.id0, p0, isTray);
+    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.id1, p1, isTray);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, p0, textureIndex0);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, p0, textureIndex0);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, p1, textureIndex1);
 
-    this.connectedTextureIndex = breadboard.gameRenderer.textureSize.value;
-    breadboard.gameRenderer.textureSize.value += 1;
+    this.connectedTextureIndex = componentRenderer.getNextTextureIndex(breadboard, isTray);
 
     var signalIndex = componentRenderer.switches.index * 4;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.connectedTextureIndex);

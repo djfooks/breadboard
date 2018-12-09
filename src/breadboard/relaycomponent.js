@@ -93,16 +93,16 @@ RelayComponent.prototype.prepareGeometry = function prepareGeometry(componentRen
     componentRenderer.inputNodes.count += 1;
 };
 
-RelayComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
+RelayComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var baseP = this.baseP;
     var p0 = this.outP0;
     var p1 = this.outP1;
     var signalP = this.signalP;
-    var textureIndexBase = componentRenderer.getWireTextureIndex(breadboard, this.baseId, baseP);
-    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.outId0, p0);
-    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.outId1, p1);
-    var textureIndexSignal = componentRenderer.getWireTextureIndex(breadboard, this.signalId, signalP);
+    var textureIndexBase = componentRenderer.getWireTextureIndex(breadboard, this.baseId, baseP, isTray);
+    var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.outId0, p0, isTray);
+    var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.outId1, p1, isTray);
+    var textureIndexSignal = componentRenderer.getWireTextureIndex(breadboard, this.signalId, signalP, isTray);
 
     var index = componentRenderer.switches.index * 12;
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, baseP, textureIndexBase);
@@ -114,7 +114,7 @@ RelayComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
 
     componentRenderer.switches.index += 1;
 
-    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, signalP, this.signalId);
+    componentRenderer.addNode(breadboard, componentRenderer.inputNodes, signalP, this.signalId, isTray);
 };
 
 RelayComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)

@@ -147,27 +147,31 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.diodeSymbolGeometry, this.diodeSymbolMaterial));
 };
 
-ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p)
+ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p, isTray)
 {
     var index = this.outputNodes.index * 12;
     // TODO test if there is a wire index here we could reuse before increasing size of texture
-    var textureIndex = breadboard.gameRenderer.textureSize.value;
-    breadboard.gameRenderer.textureSize.value += 1;
+    var textureIndex = this.getNextTextureIndex(breadboard, isTray);
     this.addPositionAndTextureIndex(this.outputNodes.p, index, p, textureIndex);
     this.outputNodes.index += 1;
     return textureIndex;
 };
 
-ComponentRenderer.prototype.addNode = function addNode(breadboard, nodeType, p, id)
+ComponentRenderer.prototype.addNode = function addNode(breadboard, nodeType, p, id, isTray)
 {
     var index = nodeType.index * 12;
-    var textureIndex = this.getWireTextureIndex(breadboard, id, p);
+    var textureIndex = this.getWireTextureIndex(breadboard, id, p, isTray);
     this.addPositionAndTextureIndex(nodeType.p, index, p, textureIndex);
     nodeType.index += 1;
 };
 
-ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(breadboard, id, p)
+ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(breadboard, id, p, isTray)
 {
+    if (isTray)
+    {
+        return 0;
+    }
+
     var connection = breadboard.getConnection(id);
     var textureIndex = 0;
     if (connection.wires.length > 0)
@@ -177,6 +181,21 @@ ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(b
     }
     return textureIndex;
 };
+
+ComponentRenderer.prototype.getNextTextureIndex = function getNextTextureIndex(breadboard, isTray)
+{
+    if (isTray)
+    {
+        return 0;
+    }
+    else
+    {
+        var textureSize = breadboard.gameRenderer.textureSize;
+        var result = textureSize.value;
+        textureSize.value += 1;
+        return result;
+    }
+}
 
 ComponentRenderer.prototype.addPosition = function addPosition(data, index, p)
 {
@@ -219,7 +238,7 @@ ComponentRenderer.prototype.addText = function addText()
     this.textRenderer.addText.apply(this.textRenderer, arguments);
 };
 
-ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard)
+ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard, isTray)
 {
     this.textRenderer.clearGeometry();
 
@@ -272,7 +291,7 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     for (i = 0; i < numComponents; i += 1)
     {
         component = components[i];
-        component.addGeometry(this, breadboard);
+        component.addGeometry(this, breadboard, isTray);
     }
 
     this.textRenderer.updateGeometry();
