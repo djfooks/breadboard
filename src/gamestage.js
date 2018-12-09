@@ -23,7 +23,7 @@ function GameStage(canvas, minX, minY, maxX, maxY)
     var view = this.view = [1.23, 2.34];
     this.zoomVelocity = 0;
     this.zoomLevel = -82;
-    this.setZoom(Math.pow(1.05, this.zoomLevel));
+    this.updateZoom();
 
     var size = this.size;
     this.feather = { value: 0.0 };
@@ -61,8 +61,9 @@ GameStage.prototype.updateCamera = function updateCamera()
     this.feather.value = Math.max((camera.right - camera.left) / canvas.width, (camera.bottom - camera.top) / canvas.height) * 2.0;
 };
 
-GameStage.prototype.setZoom = function setZoom(zoom)
+GameStage.prototype.updateZoom = function updateZoom()
 {
+    var zoom = Math.pow(1.05, this.zoomLevel);
     this.zoom = zoom;
     this.size = 1 / zoom;
 };
@@ -84,7 +85,7 @@ GameStage.prototype.update = function update(deltaTime)
         this.zoomLevel = 100;
         this.zoomVelocity = 0;
     }
-    this.setZoom(Math.pow(1.05, this.zoomLevel));
+    this.updateZoom();
 
     var gameMouse = this.toView(this.mousePos);
 

@@ -9,8 +9,9 @@ function Tray(breadboard)
 
     this.gameStage = new GameStage(this.canvas, 0, 0, 99999, 99999);
 
-    // this.gameStage.view = [-670, 0];
-    // this.gameStage.setZoom(25);
+    this.gameStage.view = [-10, 12];
+    this.gameStage.zoomLevel = -53;
+    this.gameStage.updateZoom();
 
     this.gameStage.update();
 
@@ -103,6 +104,8 @@ Tray.prototype.draw = function draw(ctx)
     this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
     this.renderer.setScissorTest(true);
     this.renderer.render(this.scene, this.gameStage.camera);
+
+    this.gameStage.update();
 
     // var drawOptions = new DrawOptions(null);
 
