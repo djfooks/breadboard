@@ -3,10 +3,11 @@ Build a breadboard computer in a game format
 
 Try it here:
 
-https://cdn.rawgit.com/djfooks/breadboard/master/index.html
+https://djfooks.github.io/breadboard/
 
 Change log:
 
+- Fix for buses sometimes not connecting in the middle of wires.
 - Added Pause/Break key to pause simulation and press space (or right) key to step simulation once.
 - Added focus to text entry on components.
 - Debugger is now readable in all rotations.
