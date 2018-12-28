@@ -1299,7 +1299,8 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
     this.gameSpaceMouseDownP[1] += center[1] - roundedCenter[1];
 
     selectedObjects.connectionMapDirty = true;
-    selectedObjects.setOffset([0, 0]);
+    selectedObjects.setOffset([0, 0], [0, 0]);
+    selectedObjects.render = true;
     for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
         selectedObj = selectedObjects.objects[i];
@@ -1531,6 +1532,7 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
 
     this.mouseDownComponent = component;
     this.gameSpaceMouseDownP = gameStage.toView(p);
+    this.selectedObjects.setGameStage(fromTray);
 
     if (!this.draggingFromTray &&
         (!component.isWire() && this.componentsList.indexOf(component) === -1))
@@ -1591,10 +1593,13 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
 
     if (this.shouldSwitch ||
         this.state !== Breadboard.state.DRAG ||
-        this.selectedObjects.objects.length === 0)
+        selectedObjects.objects.length === 0)
     {
         return false;
     }
+
+    selectedObjects.render = false;
+    selectedObjects.componentsDirty = true;
 
     var selectedComponents = selectedObjects.components;
     var selectedWires = selectedObjects.wires;
@@ -1618,7 +1623,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
         {
             Component.removeHitbox(this, selectedComponents[i].object);
         }
-        this.selectedObjects.clear();
+        selectedObjects.clear();
     }
 
     this.state = Breadboard.state.MOVE;
@@ -1739,6 +1744,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                    draggingPoint[1] - gameSpaceMouseDownP[1]];
     var positionOffset = this.getPosition(localOffset);
     selectedObjects.setOffset(positionOffset, localOffset);
+    selectedObjects.render = true;
     var componentMovePoint;
     for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
@@ -1798,7 +1804,8 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
     gameSpaceMouseDownP[0] = draggingPoint[0] - (ox - Math.round(ox));
     gameSpaceMouseDownP[1] = draggingPoint[1] - (oy - Math.round(oy));
 
-    selectedObjects.setOffset([0, 0]);
+    selectedObjects.setOffset([0, 0], [0, 0]);
+    selectedObjects.render = true;
     for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
         selectedObj = selectedObjects.objects[i];
