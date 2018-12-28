@@ -156,7 +156,6 @@ Breadboard.prototype.clear = function clearFn()
     this.selectedObjects.clear();
     this.copiedObjects = [];
     this.draggingFromTray = false;
-    this.draggingFromTrayComponent = null;
     this.wireStart = [-1, -1];
     this.selectStart = [-1, -1];
     this.gameSpaceMouse = [-1, -1];
@@ -1248,7 +1247,6 @@ Breadboard.prototype.pasteSelectedObjects = function pasteSelectedObjects()
     this.shouldSwitch = false;
 
     this.draggingFromTray = false;
-    this.draggingFromTrayComponent = null;
 
     var selectedObjects = this.selectedObjects;
     selectedObjects.clear();
@@ -1527,7 +1525,6 @@ Breadboard.prototype.onComponentMouseDown = function onComponentMouseDown(compon
     this.shouldSwitch = true;
 
     var fromTray = this.draggingFromTray = this.tray.isFromTray(component);
-    this.draggingFromTrayComponent = component;
     var gameStage = fromTray ? this.tray.gameStage : this.gameStage;
 
     this.mouseDownComponent = component;
@@ -1589,6 +1586,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
     }
 
     this.mouseDownComponent = null;
+    var endMouseP = [this.gameSpaceMouseDownP[0], this.gameSpaceMouseDownP[1]];
     this.gameSpaceMouseDownP = [-1, -1];
 
     if (this.shouldSwitch ||
@@ -1603,6 +1601,20 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
 
     var selectedComponents = selectedObjects.components;
     var selectedWires = selectedObjects.wires;
+
+    var localOffset = [this.draggingPoint[0] - endMouseP[0],
+                       this.draggingPoint[1] - endMouseP[1]];
+    var positionOffset = this.getPosition(localOffset);
+    var componentMovePoint;
+    for (i = 0; i < selectedObjects.objects.length; i += 1)
+    {
+        var selectedObj = selectedObjects.objects[i].object;
+        var prevPosition = selectedObj.getPosition();
+        componentMovePoint = [positionOffset[0] + prevPosition[0],
+                              positionOffset[1] + prevPosition[1]];
+        selectedObj.move(this, componentMovePoint, selectedObj.rotation);
+    }
+
     var valid = this.mouseOverGameStage && SelectedObject.areAllValid(this, selectedComponents);
     var i;
     if (valid)
@@ -1720,39 +1732,19 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
         return;
     }
 
-    var localOffset;
     if (fromTray && this.mouseOverGameStage)
     {
-        var selectedObject = selectedObjects.objects[0];
-
-        localOffset = [gameSpaceMouseDownP[0] - selectedObject.grabbedPosition[0],
-                       gameSpaceMouseDownP[1] - selectedObject.grabbedPosition[1]];
-
-        draggingPoint = this.draggingPoint = this.gameStage.toView(p);
-        selectedObject.grabbedPosition = this.getPosition(draggingPoint);
-
-        gameSpaceMouseDownP[0] = selectedObject.grabbedPosition[0] + localOffset[0];
-        gameSpaceMouseDownP[1] = selectedObject.grabbedPosition[1] + localOffset[1];
-
         gameStage = this.gameStage;
-
+        draggingPoint = this.draggingPoint = gameStage.toView(p);
         fromTray = this.draggingFromTray = false;
-        this.draggingFromTrayComponent = null;
     }
 
-    localOffset = [draggingPoint[0] - gameSpaceMouseDownP[0],
-                   draggingPoint[1] - gameSpaceMouseDownP[1]];
+    var localOffset = [draggingPoint[0] - gameSpaceMouseDownP[0],
+                       draggingPoint[1] - gameSpaceMouseDownP[1]];
     var positionOffset = this.getPosition(localOffset);
     selectedObjects.setOffset(positionOffset, localOffset);
+    selectedObjects.setGameStage(fromTray);
     selectedObjects.render = true;
-    var componentMovePoint;
-    for (i = 0; i < selectedObjects.objects.length; i += 1)
-    {
-        selectedObj = selectedObjects.objects[i];
-        componentMovePoint = [positionOffset[0] + selectedObj.grabbedPosition[0],
-                              positionOffset[1] + selectedObj.grabbedPosition[1]];
-        selectedObj.object.move(this, componentMovePoint, selectedObj.object.rotation);
-    }
 };
 
 Breadboard.prototype.rotateComponents = function rotateComponents()
