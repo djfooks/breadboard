@@ -32,8 +32,12 @@ Tray.prototype.postLoad = function postLoad()
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.textRenderer.addMeshes(this.scene, this.gameStage.feather);
 
-    this.wireRenderer.updateGeometry(this.wires, this.breadboard, true);
-    this.busRenderer.updateGeometry(this.buses, this.breadboard, true);
+    function wireHasDotFn(id, x, y)
+    {
+        return (x % 2 == 0);
+    }
+    this.wireRenderer.updateGeometry(this.wires, this.breadboard, true, wireHasDotFn);
+    this.busRenderer.updateGeometry(this.buses, this.breadboard, true, wireHasDotFn);
 
     this.componentBoxRenderer.updateGeometry(this.componentsList);
     this.componentRenderer.updateGeometry(this.componentsList, this, true);

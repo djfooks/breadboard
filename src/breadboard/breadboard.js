@@ -518,12 +518,19 @@ Breadboard.prototype.draw = function draw()
     var canvas = stage.canvas;
     var camera = this.gameStage.camera;
 
+    var that = this;
+    function wireHasDotFn(id, x, y)
+    {
+        var connection = that.getConnection(id);
+        return connection.hasDot;
+    }
+
     this.gridRenderer.updateGeometry(camera);
     if (this.geometryDirty)
     {
         this.gameRenderer.textureSize.value = 0;
-        this.wireRenderer.updateGeometry(this.wires, this);
-        this.busRenderer.updateGeometry(this.buses, this);
+        this.wireRenderer.updateGeometry(this.wires, this, false, wireHasDotFn);
+        this.busRenderer.updateGeometry(this.buses, this, false, wireHasDotFn);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
 
         this.componentRenderer.updateGeometry(this.componentsList, this, false);

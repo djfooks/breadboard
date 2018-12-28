@@ -97,13 +97,22 @@ SelectedObjectSet.prototype.draw = function draw()
     {
         return;
     }
+    this.updateConnectionMap();
+
+    var that = this;
+    var breadboard = this.breadboard;
+    function wireHasDotFn(id, x, y)
+    {
+        var connection = breadboard.findConnection(id);
+        return (connection && connection.hasDot) || that.hasDot(x, y);
+    }
 
     if (this.componentsDirty)
     {
-        this.wireRenderer.updateGeometry(this.wireObjects, this);
-        this.busRenderer.updateGeometry(this.busObjects, this);
+        this.wireRenderer.updateGeometry(this.wireObjects, breadboard, true, wireHasDotFn);
+        this.busRenderer.updateGeometry(this.busObjects, breadboard, true, wireHasDotFn);
         this.componentBoxRenderer.updateGeometry(this.componentObjects);
-        this.componentRenderer.updateGeometry(this.componentObjects, this.breadboard, true);
+        this.componentRenderer.updateGeometry(this.componentObjects, breadboard, true);
 
         this.componentsDirty = false;
     }
@@ -136,12 +145,11 @@ SelectedObjectSet.prototype.setOffset = function setOffset(p, localOffset)
 
 SelectedObjectSet.prototype.hasDot = function hasDot(x, y)
 {
-    var id = this.breadboard.getIndex(x - this.connectionMapOffset[0],
-                                      y - this.connectionMapOffset[1]);
+    var id = this.breadboard.getIndex(x, y);
     var connection = this._connections[id];
     if (!connection)
     {
-        //throw new Error("How did this happen?");
+        throw new Error("How did this happen?");
         return false;
     }
     return connection.hasDot;

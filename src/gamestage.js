@@ -239,9 +239,6 @@ GameStage.prototype.fromView = function fromView(p)
     x = (x + 1) * 0.5 * this.canvas.clientWidth;
     y = -(y + 1) * 0.5 * this.canvas.clientHeight;
 
-    // untested
-    throw new error();
-
     return [x, y];
 };
 
