@@ -58,7 +58,7 @@ function SelectedObjectSet(breadboard)
 
 SelectedObjectSet.prototype.clear = function clear(object)
 {
-    this.offset = [ 3, 3 ];
+    this.offset = [ 0, 0 ];
 
     this.objects = [];
     this.components = [];
@@ -73,6 +73,8 @@ SelectedObjectSet.prototype.clear = function clear(object)
     this.connectionMapDirty = false;
 
     this.componentsDirty = true;
+
+    this.render = false;
 };
 
 SelectedObjectSet.prototype.setGameStage = function setGameStage(isTray)
@@ -91,6 +93,11 @@ SelectedObjectSet.prototype.postLoad = function postLoad()
 
 SelectedObjectSet.prototype.draw = function draw()
 {
+    if (!this.render)
+    {
+        return;
+    }
+
     if (this.componentsDirty)
     {
         this.wireRenderer.updateGeometry(this.wireObjects, this);
