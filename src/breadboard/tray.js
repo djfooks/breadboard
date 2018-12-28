@@ -106,7 +106,7 @@ Tray.prototype.isFromTray = function isFromTray(component)
     return fromTray;
 };
 
-Tray.prototype.draw = function draw(ctx)
+Tray.prototype.draw = function draw()
 {
     this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
     this.renderer.setScissorTest(true);
