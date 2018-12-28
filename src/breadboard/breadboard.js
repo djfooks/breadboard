@@ -1804,6 +1804,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
     }
     selectedObjects.connectionMapDirty = true;
+    selectedObjects.componentsDirty = true;
 };
 
 Breadboard.prototype.addComponent = function addComponent(component)
