@@ -179,9 +179,9 @@ Stage.prototype.keyUp = function keyUp(e)
     }
 };
 
-Stage.prototype.wheel = function wheel(e)
+Stage.prototype.wheel = function wheel(y)
 {
-    this.onWheel(e.deltaY);
+    this.onWheel(y);
 }
 
 Stage.prototype.enable = function enable()
@@ -193,9 +193,25 @@ Stage.prototype.enable = function enable()
     c.addEventListener("mousedown", this.mouseDown.bind(this));
     c.addEventListener("mouseup", this.mouseUp.bind(this));
     c.addEventListener("mousemove", this.mouseMove.bind(this));
-    c.addEventListener("wheel", this.wheel.bind(this));
     c.addEventListener("keydown", this.keyDown.bind(this));
     c.addEventListener("keyup", this.keyUp.bind(this));
+
+    var wheel = this.wheel.bind(this);
+    function MouseWheelHandler(e)
+    {
+        // cross-browser wheel delta
+        var e = window.event || e; // old IE support
+        var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+
+        console.log(delta);
+
+        wheel(delta);
+        return false;
+    }
+    // IE9, Chrome, Safari, Opera
+    c.addEventListener("mousewheel", MouseWheelHandler, false);
+    // Firefox
+    c.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
 };
 
 Stage.prototype.getCanvasPosition = function getCanvasPosition(e, p)
