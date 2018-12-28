@@ -101,10 +101,14 @@ SelectedObjectSet.prototype.draw = function draw()
 
     var that = this;
     var breadboard = this.breadboard;
+    // function wireHasDotFn(id, x, y)
+    // {
+    //     var connection = breadboard.findConnection(id);
+    //     return (connection && connection.hasDot) || that.hasDot(x, y);
+    // }
     function wireHasDotFn(id, x, y)
     {
-        var connection = breadboard.findConnection(id);
-        return (connection && connection.hasDot) || that.hasDot(x, y);
+        return that.hasDot(x, y);
     }
 
     if (this.componentsDirty)
