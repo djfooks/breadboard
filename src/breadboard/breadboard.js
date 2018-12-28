@@ -2162,7 +2162,7 @@ Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 
 Breadboard.prototype.onWheel = function onWheel(deltaY)
 {
-    this.gameStage.zoomDelta(-deltaY);
+    this.gameStage.zoomDelta(deltaY * 120);
 };
 
 Breadboard.prototype.onKeyUp = function onKeyUp(key, keyCode)
