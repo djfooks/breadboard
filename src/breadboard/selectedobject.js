@@ -107,10 +107,10 @@ SelectedObjectSet.prototype.draw = function draw()
 
     var camera = this.camera;
     var offset = this.offset;
-    camera.left   = gameStageCamera.left   + offset[0];
-    camera.right  = gameStageCamera.right  + offset[0];
-    camera.top    = gameStageCamera.top    + offset[1];
-    camera.bottom = gameStageCamera.bottom + offset[1];
+    camera.left   = gameStageCamera.left   - offset[0];
+    camera.right  = gameStageCamera.right  - offset[0];
+    camera.top    = gameStageCamera.top    - offset[1];
+    camera.bottom = gameStageCamera.bottom - offset[1];
     camera.updateProjectionMatrix();
 
     this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
@@ -118,10 +118,13 @@ SelectedObjectSet.prototype.draw = function draw()
     this.renderer.render(this.scene, this.camera);
 }
 
-SelectedObjectSet.prototype.setOffset = function setOffset(p)
+SelectedObjectSet.prototype.setOffset = function setOffset(p, localOffset)
 {
     this.connectionMapOffset[0] = p[0];
     this.connectionMapOffset[1] = p[1];
+
+    this.offset[0] = localOffset[0];
+    this.offset[1] = localOffset[1];
 };
 
 SelectedObjectSet.prototype.hasDot = function hasDot(x, y)
