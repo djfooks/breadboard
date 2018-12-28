@@ -58,7 +58,7 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesFgMaterial));
 };
 
-WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboard, isTray)
+WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboard, isTray, hasDotFn)
 {
     var numWires = wires.length;
 
@@ -71,16 +71,7 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
     function wireIterate(x, y, index)
     {
         var id = breadboard.getIndex(x, y);
-        var hasDot;
-        if (isTray)
-        {
-            hasDot = x % 2 == 0;
-        }
-        else
-        {
-            var connection = breadboard.getConnection(id);
-            hasDot = connection.hasDot;
-        }
+        var hasDot = hasDotFn(id, x, y);
         if (hasDot)
         {
             if (!circlesMap.hasOwnProperty(id))
