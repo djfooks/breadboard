@@ -1738,7 +1738,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
     localOffset = [draggingPoint[0] - gameSpaceMouseDownP[0],
                    draggingPoint[1] - gameSpaceMouseDownP[1]];
     var positionOffset = this.getPosition(localOffset);
-    selectedObjects.setOffset(positionOffset);
+    selectedObjects.setOffset(positionOffset, localOffset);
     var componentMovePoint;
     for (i = 0; i < selectedObjects.objects.length; i += 1)
     {
