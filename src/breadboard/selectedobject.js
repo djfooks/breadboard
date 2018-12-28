@@ -36,21 +36,87 @@ SelectedObject.areAllValid = function areAllValid(breadboard, selectedComponents
 function SelectedObjectSet(breadboard)
 {
     this.breadboard = breadboard;
+
+    this.canvas = document.getElementById("canvas");
+    this.renderer = breadboard.stage.renderer;
+    this.scene = new THREE.Scene();
+
+    this.wireRenderer = new WireRenderer(breadboard.gameRenderer);
+    this.busRenderer = new BusRenderer(breadboard.gameRenderer);
+    this.componentBoxRenderer = new ComponentBoxRenderer();
+    this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
+    this.textRenderer = new TextRenderer(breadboard.gameRenderer);
+
+    this.feather = { value : 0.0 };
+    this.camera = new THREE.OrthographicCamera(1, 1, 1, 1, 0, 100);
+    this.camera.position.z = 100;
+
+    this.setGameStage(true);
+
     this.clear();
 }
 
 SelectedObjectSet.prototype.clear = function clear(object)
 {
+    this.offset = [ 3, 3 ];
+
     this.objects = [];
     this.components = [];
     this.wires = [];
+
+    this.componentObjects = [];
     this.wireObjects = [];
     this.busObjects = [];
 
     this._connections = {};
     this.connectionMapOffset = [0, 0];
     this.connectionMapDirty = false;
+
+    this.componentsDirty = true;
 };
+
+SelectedObjectSet.prototype.setGameStage = function setGameStage(isTray)
+{
+    this.gameStage = isTray ? this.breadboard.tray.gameStage : this.breadboard.gameStage;
+}
+
+SelectedObjectSet.prototype.postLoad = function postLoad()
+{
+    this.componentBoxRenderer.addMeshes(this.scene, this.feather);
+    this.componentRenderer.addMeshes(this.scene, this.feather);
+    this.wireRenderer.addMeshes(this.scene, this.feather);
+    this.busRenderer.addMeshes(this.scene, this.feather);
+    this.textRenderer.addMeshes(this.scene, this.feather);
+}
+
+SelectedObjectSet.prototype.draw = function draw()
+{
+    if (this.componentsDirty)
+    {
+        this.wireRenderer.updateGeometry(this.wireObjects, this);
+        this.busRenderer.updateGeometry(this.busObjects, this);
+        this.componentBoxRenderer.updateGeometry(this.componentObjects);
+        this.componentRenderer.updateGeometry(this.componentObjects, this.breadboard, true);
+
+        this.componentsDirty = false;
+    }
+
+    this.feather.value = this.gameStage.feather.value;
+
+    var gameStageCamera = this.gameStage.camera;
+
+    var camera = this.camera;
+    var offset = this.offset;
+    camera.left   = gameStageCamera.left   + offset[0];
+    camera.right  = gameStageCamera.right  + offset[0];
+    camera.top    = gameStageCamera.top    + offset[1];
+    camera.bottom = gameStageCamera.bottom + offset[1];
+    camera.updateProjectionMatrix();
+
+    this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
+    this.renderer.setScissorTest(true);
+    this.renderer.render(this.scene, this.camera);
+}
 
 SelectedObjectSet.prototype.setOffset = function setOffset(p)
 {
@@ -156,6 +222,8 @@ SelectedObjectSet.prototype.addObject = function addObject(object)
     else
     {
         this.components.push(selectedObject);
+        this.componentObjects.push(object);
+        this.componentsDirty = true;
     }
     return selectedObject;
 };
@@ -197,10 +265,13 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
     }
     else
     {
+        this.componentsDirty = true;
         if (!removeFromList(this.components, object))
         {
             return false;
         }
+        index = this.componentObjects.indexOf(object);
+        this.componentObjects.splice(index, 1);
     }
     return removeFromList(this.objects, object);
 };

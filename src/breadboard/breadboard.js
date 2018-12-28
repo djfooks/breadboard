@@ -51,8 +51,6 @@ function Breadboard(stage, top, left, cols, rows)
     this.componentRenderer = new ComponentRenderer(this.gameRenderer);
     this.textRenderer = new TextRenderer(this.gameRenderer);
 
-    this.clear();
-
     this.debugDrawHitboxes = false;
     this.debugDrawConnections = false;
 
@@ -103,6 +101,10 @@ function Breadboard(stage, top, left, cols, rows)
     this.tray.gameStage.onMouseMove = this.onMouseMove.bind(this, false);
     this.stage.addHitbox(this.tray.gameStage.gameStageHitbox);
 
+    this.selectedObjects = new SelectedObjectSet(this);
+
+    this.clear();
+
     this.frame = 0;
 
     this.wireDrawParameters = new WireDrawParameters();
@@ -125,6 +127,8 @@ Breadboard.prototype.postLoad = function postLoad()
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.textRenderer.addMeshes(this.scene, this.gameStage.feather);
+
+    this.selectedObjects.postLoad();
 
     this.tray.postLoad();
 };
@@ -149,7 +153,7 @@ Breadboard.prototype.clear = function clearFn()
     this.state = Breadboard.state.ADD_WIRE;
     this.wireType = ComponentTypes.WIRE;
     this.draggingPoint = [0, 0];
-    this.selectedObjects = new SelectedObjectSet(this);
+    this.selectedObjects.clear();
     this.copiedObjects = [];
     this.draggingFromTray = false;
     this.draggingFromTrayComponent = null;
@@ -564,6 +568,8 @@ Breadboard.prototype.draw = function draw()
     stage.renderer.render(stage.scene, this.gameStage.camera);
 
     this.tray.draw();
+
+    this.selectedObjects.draw();
 
     // this.gameStage.drawBorder(ctx);
 
