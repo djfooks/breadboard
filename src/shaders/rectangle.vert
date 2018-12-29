@@ -2,6 +2,7 @@ precision highp float;
 precision highp int;
 
 uniform mat4 projectionMatrix;
+uniform vec3 color;
 
 attribute vec2 position;
 attribute vec2 p1;
