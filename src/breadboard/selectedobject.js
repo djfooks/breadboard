@@ -43,7 +43,7 @@ function SelectedObjectSet(breadboard)
 
     this.wireRenderer = new WireRenderer(breadboard.gameRenderer);
     this.busRenderer = new BusRenderer(breadboard.gameRenderer);
-    this.componentBoxRenderer = new ComponentBoxRenderer();
+    this.componentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer);
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
     this.textRenderer = new TextRenderer(breadboard.gameRenderer);
 

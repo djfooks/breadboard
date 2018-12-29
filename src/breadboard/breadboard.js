@@ -47,7 +47,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.gridRenderer = new GridRenderer();
     this.wireRenderer = new WireRenderer(this.gameRenderer);
     this.busRenderer = new BusRenderer(this.gameRenderer);
-    this.componentBoxRenderer = new ComponentBoxRenderer();
+    this.componentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer);
     this.componentRenderer = new ComponentRenderer(this.gameRenderer);
     this.textRenderer = new TextRenderer(this.gameRenderer);
 

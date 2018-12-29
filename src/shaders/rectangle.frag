@@ -3,6 +3,7 @@ precision highp int;
 
 uniform float feather;
 uniform float border;
+uniform vec3 color;
 
 varying vec2 vP;
 varying vec2 vP1;
@@ -25,7 +26,7 @@ void main(void) {
 
     float radius = width + 0.005;
     float alpha = (width - (d - radius)) / (feather * 0.5);
-    float color = (width + (d - radius)) / (feather * 0.5);
-    color = 1.0 - color;
-    gl_FragColor = vec4(color, color, color, alpha);
+    float scale = (width + (d - radius)) / (feather * 0.5);
+    vec3 c = mix(vec3(1.0, 1.0, 1.0), color, scale);
+    gl_FragColor = vec4(c, alpha);
 }

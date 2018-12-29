@@ -1,50 +1,18 @@
 
-function ComponentBoxRenderer()
+function ComponentBoxRenderer(renderer)
 {
-    var maxNum = 10000;
-    var indicesArray = new Uint16Array(maxNum * 6);
-    var verticesArray = new Uint8Array(maxNum * 8);
-    var i;
-    var index;
-    var vertexIndex;
-    var vertex;
-    for (i = 0; i < maxNum; i += 1)
-    {
-        index = i * 6;
-        vertexIndex = i * 4;
-        indicesArray[index + 0] = vertexIndex + 0;
-        indicesArray[index + 1] = vertexIndex + 1;
-        indicesArray[index + 2] = vertexIndex + 2;
-        indicesArray[index + 3] = vertexIndex + 2;
-        indicesArray[index + 4] = vertexIndex + 3;
-        indicesArray[index + 5] = vertexIndex + 0;
-
-        vertex = i * 8;
-        verticesArray[vertex + 0] = 0;
-        verticesArray[vertex + 1] = 0;
-        verticesArray[vertex + 2] = 1;
-        verticesArray[vertex + 3] = 0;
-        verticesArray[vertex + 4] = 1;
-        verticesArray[vertex + 5] = 1;
-        verticesArray[vertex + 6] = 0;
-        verticesArray[vertex + 7] = 1;
-    }
-
-    var indices = new THREE.BufferAttribute(indicesArray, 1);
-
-    var geometry = this.geometry = new THREE.BufferGeometry();
-    geometry.setIndex(indices);
-    geometry.addAttribute('position', new THREE.BufferAttribute(verticesArray, 2));
-    geometry.boundingSphere = new THREE.Sphere();
-    geometry.boundingSphere.radius = 99999;
+    this.geometry = renderer.createQuadGeometry();
+    this.color = { value: new THREE.Vector3(0.0, 0.0, 0.0)};
+    this.mesh = null;
 }
 
-ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
+ComponentBoxRenderer.prototype.createMeshes = function createMeshes(scene, feather)
 {
     this.rectangleMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            border: { value: Component.border }
+            border: { value: Component.border },
+            color: this.color
         },
         vertexShader: ShaderManager.get("src/shaders/rectangle.vert"),
         fragmentShader: ShaderManager.get("src/shaders/rectangle.frag"),
@@ -53,7 +21,25 @@ ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.rectangleMaterial.transparent = true;
 
     var geometry = this.geometry;
-    scene.add(new THREE.Mesh(geometry, this.rectangleMaterial));
+    this.mesh = new THREE.Mesh(geometry, this.rectangleMaterial);
+};
+
+ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
+{
+    if (!this.mesh)
+    {
+        this.createMeshes(scene, feather);
+    }
+    scene.add(this.mesh);
+};
+
+ComponentBoxRenderer.prototype.removeMeshes = function removeMeshes(scene, feather)
+{
+    if (!this.mesh)
+    {
+        throw new Error();
+    }
+    scene.remove(this.mesh);
 };
 
 ComponentBoxRenderer.prototype.updateGeometry = function updateGeometry(components)
