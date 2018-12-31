@@ -75,8 +75,9 @@ SelectedObjectSet.prototype.clear = function clear(object)
     this._connections = {};
     this.connectionMapOffset = [0, 0];
     this.connectionMapDirty = false;
+    this.lastValid = true;
 
-    this.componentsDirty = true;
+    this.geometryDirty = true;
 
     this.render = false;
 };
@@ -95,20 +96,11 @@ SelectedObjectSet.prototype.postLoad = function postLoad()
     this.textRenderer.addMeshes(this.scene, this.feather);
 };
 
-SelectedObjectSet.colorPalette = {
-    base: {
-        box: [0.0, 0.0, 0.0]
-    },
-    bg: {
-        box: [0.7, 0.7, 0.7]
-    }
-};
-
 SelectedObjectSet.prototype.setColors = function setColors(colorPalette)
 {
-    this.componentBoxRenderer.color.value.x = colorPalette.box[0];
-    this.componentBoxRenderer.color.value.y = colorPalette.box[1];
-    this.componentBoxRenderer.color.value.z = colorPalette.box[2];
+    ColorPalette.setColor(colorPalette.box, this.componentBoxRenderer.color.value);
+    ColorPalette.setColor(colorPalette.inputNode, this.componentRenderer.inputBgColor.value);
+    ColorPalette.setColor(colorPalette.outputNode, this.componentRenderer.outputBgColor.value);
 };
 
 SelectedObjectSet.prototype.draw = function draw()
@@ -131,7 +123,12 @@ SelectedObjectSet.prototype.draw = function draw()
     //     return (connection && connection.hasDot) || that.hasDot(x, y);
     // }
 
-    if (this.componentsDirty)
+    var offset = this.offset;
+    var valid = SelectedObject.areAllValid(breadboard, this.components, offset);
+    this.geometryDirty = this.geometryDirty || (this.lastValid != valid);
+    this.lastValid = valid;
+
+    if (this.geometryDirty)
     {
         this.wireRenderer.updateGeometry(this.wireObjects, breadboard, true, wireHasDotFn);
         this.busRenderer.updateGeometry(this.busObjects, breadboard, true, wireHasDotFn);
@@ -141,28 +138,30 @@ SelectedObjectSet.prototype.draw = function draw()
         // this.bgWireRenderer.updateGeometry(this.wireObjects, breadboard, true, bgWireHasDotFn);
         // this.bgBusRenderer.updateGeometry(this.busObjects, breadboard, true, bgWireHasDotFn);
 
-        this.componentsDirty = false;
+        this.geometryDirty = false;
     }
 
     this.feather.value = this.gameStage.feather.value;
 
     var gameStageCamera = this.gameStage.camera;
-    var offset = this.offset;
 
-    // BACKGROUND
-    var bgCamera = this.bgCamera;
-    var bgOffset = [Math.round(offset[0]), Math.round(offset[1])];
-    bgCamera.left   = gameStageCamera.left   - bgOffset[0];
-    bgCamera.right  = gameStageCamera.right  - bgOffset[0];
-    bgCamera.top    = gameStageCamera.top    - bgOffset[1];
-    bgCamera.bottom = gameStageCamera.bottom - bgOffset[1];
-    bgCamera.updateProjectionMatrix();
+    if (valid)
+    {
+        // BACKGROUND
+        var bgCamera = this.bgCamera;
+        var bgOffset = [Math.round(offset[0]), Math.round(offset[1])];
+        bgCamera.left   = gameStageCamera.left   - bgOffset[0];
+        bgCamera.right  = gameStageCamera.right  - bgOffset[0];
+        bgCamera.top    = gameStageCamera.top    - bgOffset[1];
+        bgCamera.bottom = gameStageCamera.bottom - bgOffset[1];
+        bgCamera.updateProjectionMatrix();
 
-    this.setColors(SelectedObjectSet.colorPalette.bg);
+        this.setColors(ColorPalette.bg);
 
-    this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
-    this.renderer.setScissorTest(true);
-    this.renderer.render(this.scene, this.bgCamera);
+        this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
+        this.renderer.setScissorTest(true);
+        this.renderer.render(this.scene, this.bgCamera);
+    }
 
     // FOREGROUND
     var camera = this.camera;
@@ -172,7 +171,7 @@ SelectedObjectSet.prototype.draw = function draw()
     camera.bottom = gameStageCamera.bottom - offset[1];
     camera.updateProjectionMatrix();
 
-    this.setColors(SelectedObjectSet.colorPalette.base);
+    this.setColors(valid ? ColorPalette.base : ColorPalette.invalid);
 
     this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
     this.renderer.setScissorTest(true);
@@ -286,7 +285,7 @@ SelectedObjectSet.prototype.addObject = function addObject(object)
     {
         this.components.push(selectedObject);
         this.componentObjects.push(object);
-        this.componentsDirty = true;
+        this.geometryDirty = true;
     }
     return selectedObject;
 };
@@ -328,7 +327,7 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
     }
     else
     {
-        this.componentsDirty = true;
+        this.geometryDirty = true;
         if (!removeFromList(this.components, object))
         {
             return false;
