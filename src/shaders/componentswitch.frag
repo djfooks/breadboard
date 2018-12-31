@@ -2,6 +2,7 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
+uniform vec3 bgColor;
 
 uniform sampler2D texture;
 
@@ -68,7 +69,7 @@ vec4 wire(vec3 base, vec3 pConnected)
     float wireValue = sign(base.z + pConnected.z);
 
     vec3 wireColor = getWireColor(wireValue);
-    wireColor = mix(wireColor, vec3(0.0, 0.0, 0.0), max(min(v, 1.0), 0.0));
+    wireColor = mix(wireColor, bgColor, max(min(v, 1.0), 0.0));
 
     return vec4(wireColor.rgb, alpha);
 }
@@ -94,7 +95,7 @@ void main(void) {
     float alphaBg = (1.0 - ((dBase - outerR) / feather)) * is3Pin;
     alphaBg = max(alphaBg, 1.0 - ((d0 - outerR) / feather));
     alphaBg = max(alphaBg, 1.0 - ((d1 - outerR) / feather));
-    vec4 color = vec4(0.0, 0.0, 0.0, alphaBg);
+    vec4 color = vec4(bgColor, alphaBg);
 
     // wire
     vec4 wireColor = wire(vBase, vConnected == 1.0 ? vP1 : vP0);

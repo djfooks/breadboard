@@ -5,6 +5,8 @@ function WireRenderer(renderer)
 
     this.wireGeometry = renderer.createQuadGeometry();
     this.circleGeometry = renderer.createQuadGeometry();
+
+    this.wireEdgeColor = ColorPalette.createRGBColor(ColorPalette.base.wire);
 }
 
 WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
@@ -19,7 +21,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             radius: { value: 0.19 },
             fg: { value: 0.0 },
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize
+            textureSize: this.renderer.textureSize,
+            wireEdgeColor: this.wireEdgeColor
         },
         vertexShader: wireCirclesVertexShader,
         fragmentShader: wireCirclesFragmentShader,
@@ -31,7 +34,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
         uniforms: {
             feather: feather,
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize
+            textureSize: this.renderer.textureSize,
+            wireEdgeColor: this.wireEdgeColor
         },
         vertexShader: wireVertexShader,
         fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
@@ -45,7 +49,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             radius: { value: 0.14 },
             fg: { value: 1.0 },
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize
+            textureSize: this.renderer.textureSize,
+            wireEdgeColor: this.wireEdgeColor
         },
         vertexShader: wireCirclesVertexShader,
         fragmentShader: wireCirclesFragmentShader,

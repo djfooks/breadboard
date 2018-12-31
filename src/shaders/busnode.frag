@@ -2,6 +2,7 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
+uniform vec3 bgColor;
 
 varying vec2 vP;
 
@@ -33,5 +34,5 @@ void main(void)
     alpha = max(alpha, line(vec2(0.0,    size),  vec2(size,  0.0)));
     alpha = max(alpha, line(vec2(size,   0.0),   vec2(0.0,   -size)));
     alpha = max(alpha, line(vec2(0.0,    -size), vec2(-size, 0.0)));
-    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
+    gl_FragColor = vec4(bgColor, alpha);
 }
