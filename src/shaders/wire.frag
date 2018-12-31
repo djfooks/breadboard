@@ -3,6 +3,7 @@ precision highp int;
 
 uniform float feather;
 uniform float textureSize;
+uniform vec3 wireEdgeColor;
 
 varying vec2 vP;
 varying vec2 vP1;
@@ -36,7 +37,7 @@ void main(void) {
 
     vec3 wireColor = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.53, 0.53), wireValue);
 
-    wireColor = mix(wireColor, vec3(0.0, 0.0, 0.0), max(min(v, 1.0), 0.0));
+    wireColor = mix(wireColor, wireEdgeColor, max(min(v, 1.0), 0.0));
 
     gl_FragColor = vec4(wireColor.rgb, alpha);
 }

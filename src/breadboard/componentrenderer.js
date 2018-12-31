@@ -70,7 +70,8 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             radius: this.outerRadius,
             feather: feather,
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize
+            textureSize: this.renderer.textureSize,
+            bgColor: this.outputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/componentswitch.vert"),
         fragmentShader: ShaderManager.get("src/shaders/componentswitch.frag"),
@@ -108,7 +109,8 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 
     this.busNodeMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: feather
+            feather: feather,
+            bgColor: this.outputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/busnode.vert"),
         fragmentShader: ShaderManager.get("src/shaders/busnode.frag"),
@@ -123,7 +125,8 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 
     this.batterySymbolMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: feather
+            feather: feather,
+            bgColor: this.outputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/batterysymbol.vert"),
         fragmentShader: ShaderManager.get("src/shaders/batterysymbol.frag"),
@@ -136,7 +139,8 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.diodeSymbolMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            border: { value: Component.border }
+            border: { value: Component.border },
+            bgColor: this.outputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/diodesymbol.vert"),
         fragmentShader: ShaderManager.get("src/shaders/diodesymbol.frag"),

@@ -21,6 +21,7 @@ function TextRenderer(renderer)
     };
 
     this.font = null;
+    this.overrideColor = ColorPalette.createRGBAColor(ColorPalette.base.textOverride);
 
     var textGeometry = this.textGeometry = new THREE.BufferGeometry();
     textGeometry.setIndex(renderer.indices);
@@ -68,7 +69,8 @@ TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.textMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            map: {value: testTexture}
+            map: {value: testTexture},
+            overrideColor: this.overrideColor
         },
         vertexShader: ShaderManager.get("src/shaders/bmfont.vert"),
         fragmentShader: ShaderManager.get("src/shaders/bmfont.frag"),

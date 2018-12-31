@@ -19,7 +19,6 @@ function Tray(breadboard)
     this.busRenderer = new BusRenderer(breadboard.gameRenderer);
     this.componentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer);
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
-    this.textRenderer = new TextRenderer(breadboard.gameRenderer);
 
     this.resetComponents();
 }
@@ -30,7 +29,6 @@ Tray.prototype.postLoad = function postLoad()
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
-    this.textRenderer.addMeshes(this.scene, this.gameStage.feather);
 
     function wireHasDotFn(id, x, y)
     {

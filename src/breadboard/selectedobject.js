@@ -75,7 +75,6 @@ SelectedObjectSet.prototype.clear = function clear(object)
     this._connections = {};
     this.connectionMapOffset = [0, 0];
     this.connectionMapDirty = false;
-    this.lastValid = true;
 
     this.geometryDirty = true;
 
@@ -98,9 +97,11 @@ SelectedObjectSet.prototype.postLoad = function postLoad()
 
 SelectedObjectSet.prototype.setColors = function setColors(colorPalette)
 {
-    ColorPalette.setColor(colorPalette.box, this.componentBoxRenderer.color.value);
-    ColorPalette.setColor(colorPalette.inputNode, this.componentRenderer.inputBgColor.value);
-    ColorPalette.setColor(colorPalette.outputNode, this.componentRenderer.outputBgColor.value);
+    ColorPalette.setColorRGB(colorPalette.box, this.componentBoxRenderer.color.value);
+    ColorPalette.setColorRGB(colorPalette.inputNode, this.componentRenderer.inputBgColor.value);
+    ColorPalette.setColorRGB(colorPalette.outputNode, this.componentRenderer.outputBgColor.value);
+    ColorPalette.setColorRGBA(colorPalette.textOverride, this.componentRenderer.textRenderer.overrideColor.value);
+    ColorPalette.setColorRGB(colorPalette.wire, this.wireRenderer.wireEdgeColor.value);
 };
 
 SelectedObjectSet.prototype.draw = function draw()
@@ -125,8 +126,6 @@ SelectedObjectSet.prototype.draw = function draw()
 
     var offset = this.offset;
     var valid = SelectedObject.areAllValid(breadboard, this.components, offset);
-    this.geometryDirty = this.geometryDirty || (this.lastValid != valid);
-    this.lastValid = valid;
 
     if (this.geometryDirty)
     {
