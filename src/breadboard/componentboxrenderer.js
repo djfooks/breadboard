@@ -3,10 +3,9 @@ function ComponentBoxRenderer(renderer)
 {
     this.geometry = renderer.createQuadGeometry();
     this.color = { value: new THREE.Vector3(0.0, 0.0, 0.0)};
-    this.mesh = null;
 }
 
-ComponentBoxRenderer.prototype.createMeshes = function createMeshes(scene, feather)
+ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
     this.rectangleMaterial = new THREE.RawShaderMaterial({
         uniforms: {
@@ -21,25 +20,7 @@ ComponentBoxRenderer.prototype.createMeshes = function createMeshes(scene, feath
     this.rectangleMaterial.transparent = true;
 
     var geometry = this.geometry;
-    this.mesh = new THREE.Mesh(geometry, this.rectangleMaterial);
-};
-
-ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
-{
-    if (!this.mesh)
-    {
-        this.createMeshes(scene, feather);
-    }
-    scene.add(this.mesh);
-};
-
-ComponentBoxRenderer.prototype.removeMeshes = function removeMeshes(scene, feather)
-{
-    if (!this.mesh)
-    {
-        throw new Error();
-    }
-    scene.remove(this.mesh);
+    scene.add(new THREE.Mesh(geometry, this.rectangleMaterial));
 };
 
 ComponentBoxRenderer.prototype.updateGeometry = function updateGeometry(components)

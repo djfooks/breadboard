@@ -40,6 +40,7 @@ function SelectedObjectSet(breadboard)
     this.canvas = document.getElementById("canvas");
     this.renderer = breadboard.stage.renderer;
     this.scene = new THREE.Scene();
+    this.bgScene = new THREE.Scene();
 
     this.wireRenderer = new WireRenderer(breadboard.gameRenderer);
     this.busRenderer = new BusRenderer(breadboard.gameRenderer);
@@ -47,9 +48,22 @@ function SelectedObjectSet(breadboard)
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
     this.textRenderer = new TextRenderer(breadboard.gameRenderer);
 
+    this.bgWireRenderer = new WireRenderer(breadboard.gameRenderer);
+    this.bgBusRenderer = new BusRenderer(breadboard.gameRenderer);
+    this.bgComponentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer);
+    this.bgComponentRenderer = new ComponentRenderer(breadboard.gameRenderer);
+    this.bgTextRenderer = new TextRenderer(breadboard.gameRenderer);
+
+    this.bgComponentBoxRenderer.color.value.x = 0.7;
+    this.bgComponentBoxRenderer.color.value.y = 0.7;
+    this.bgComponentBoxRenderer.color.value.z = 0.7;
+
     this.feather = { value : 0.0 };
+
     this.camera = new THREE.OrthographicCamera(1, 1, 1, 1, 0, 100);
     this.camera.position.z = 100;
+    this.bgCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 0, 100);
+    this.bgCamera.position.z = 100;
 
     this.setGameStage(true);
 
@@ -89,6 +103,12 @@ SelectedObjectSet.prototype.postLoad = function postLoad()
     this.wireRenderer.addMeshes(this.scene, this.feather);
     this.busRenderer.addMeshes(this.scene, this.feather);
     this.textRenderer.addMeshes(this.scene, this.feather);
+
+    this.bgComponentBoxRenderer.addMeshes(this.bgScene, this.feather);
+    // this.bgComponentRenderer.addMeshes(this.bgScene, this.feather);
+    // this.bgWireRenderer.addMeshes(this.bgScene, this.feather);
+    // this.bgBusRenderer.addMeshes(this.bgScene, this.feather);
+    // this.bgTextRenderer.addMeshes(this.bgScene, this.feather);
 }
 
 SelectedObjectSet.prototype.draw = function draw()
@@ -101,15 +121,15 @@ SelectedObjectSet.prototype.draw = function draw()
 
     var that = this;
     var breadboard = this.breadboard;
-    // function wireHasDotFn(id, x, y)
-    // {
-    //     var connection = breadboard.findConnection(id);
-    //     return (connection && connection.hasDot) || that.hasDot(x, y);
-    // }
     function wireHasDotFn(id, x, y)
     {
         return that.hasDot(x, y);
     }
+    // function bgWireHasDotFn(id, x, y)
+    // {
+    //     var connection = breadboard.findConnection(id);
+    //     return (connection && connection.hasDot) || that.hasDot(x, y);
+    // }
 
     if (this.componentsDirty)
     {
@@ -118,15 +138,32 @@ SelectedObjectSet.prototype.draw = function draw()
         this.componentBoxRenderer.updateGeometry(this.componentObjects);
         this.componentRenderer.updateGeometry(this.componentObjects, breadboard, true);
 
+        // this.bgWireRenderer.updateGeometry(this.wireObjects, breadboard, true, bgWireHasDotFn);
+        // this.bgBusRenderer.updateGeometry(this.busObjects, breadboard, true, bgWireHasDotFn);
+        this.bgComponentBoxRenderer.updateGeometry(this.componentObjects);
+        // this.bgComponentRenderer.updateGeometry(this.componentObjects, breadboard, true);
+
         this.componentsDirty = false;
     }
 
     this.feather.value = this.gameStage.feather.value;
 
     var gameStageCamera = this.gameStage.camera;
+    var offset = this.offset;
+
+    var bgCamera = this.bgCamera;
+    var bgOffset = [Math.floor(offset[0]), Math.floor(offset[1])];
+    bgCamera.left   = gameStageCamera.left   - bgOffset[0];
+    bgCamera.right  = gameStageCamera.right  - bgOffset[0];
+    bgCamera.top    = gameStageCamera.top    - bgOffset[1];
+    bgCamera.bottom = gameStageCamera.bottom - bgOffset[1];
+    bgCamera.updateProjectionMatrix();
+
+    this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
+    this.renderer.setScissorTest(true);
+    this.renderer.render(this.bgScene, this.bgCamera);
 
     var camera = this.camera;
-    var offset = this.offset;
     camera.left   = gameStageCamera.left   - offset[0];
     camera.right  = gameStageCamera.right  - offset[0];
     camera.top    = gameStageCamera.top    - offset[1];
