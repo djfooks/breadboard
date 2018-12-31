@@ -16,8 +16,8 @@ function ComponentRenderer(renderer)
     this.innerRadius = { value: 0.26 };
     this.outerRadius = { value: 0.31 };
     this.width = { value: 0.01 };
-    this.bgColor = { value: new THREE.Vector3(0.0, 0.0, 0.0)};
-    this.inputBgColor = { value: new THREE.Vector3(0.0, 1.0, 0.0)};
+    this.inputBgColor = ColorPalette.createRGBColor(ColorPalette.base.inputNode);
+    this.outputBgColor = ColorPalette.createRGBColor(ColorPalette.base.outputNode);
 
     this.switches = {
         count: 0,
@@ -84,7 +84,7 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             feather: feather,
             texture: this.renderer.texture,
             textureSize: this.renderer.textureSize,
-            bgColor: this.bgColor
+            bgColor: this.outputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
         fragmentShader: ShaderManager.get("src/shaders/componentnode.frag"),
