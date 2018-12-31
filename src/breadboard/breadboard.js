@@ -26,7 +26,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.onKeyDownFn = null;
 
     var canvas = this.stage.canvas;
-    this.gameStage = new GameStage(canvas, 1, 1, 601, 601);
+    this.gameStage = new GameStage(canvas, 10, 10, canvas.width - 240, canvas.height - 10);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
     this.gameStage.onMouseDown = this.onMouseDown.bind(this);
@@ -1749,6 +1749,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
     var positionOffset = this.getPosition(localOffset);
     selectedObjects.setOffset(positionOffset, localOffset);
     selectedObjects.setGameStage(fromTray);
+    selectedObjects.isTray = fromTray;
     selectedObjects.render = true;
 };
 
