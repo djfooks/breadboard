@@ -29,6 +29,11 @@ function Breadboard(stage, top, left, cols, rows)
     this.gameStage = new GameStage(canvas, 10, 10, canvas.width - 240, canvas.height - 10);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
+    this.canvasScene = new THREE.Scene();
+    this.canvasCamera = new THREE.OrthographicCamera(0, canvas.width, 0, canvas.height, 0, 100);
+    this.canvasCamera.position.z = 100;
+    this.canvasCamera.updateProjectionMatrix();
+
     this.gameStage.onMouseDown = this.onMouseDown.bind(this);
     this.gameStage.onMouseUp = this.onMouseUp.bind(this);
     this.gameStage.onMouseMove = this.onMouseMove.bind(this, true);
@@ -49,6 +54,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.busRenderer = new BusRenderer(this.gameRenderer);
     this.componentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer);
     this.componentRenderer = new ComponentRenderer(this.gameRenderer);
+    this.lineRenderer = new LineRenderer(this.gameRenderer);
 
     this.debugDrawHitboxes = false;
     this.debugDrawConnections = false;
@@ -129,6 +135,23 @@ Breadboard.prototype.postLoad = function postLoad()
     this.selectedObjects.postLoad();
 
     this.tray.postLoad();
+
+    var lineRenderer = this.lineRenderer;
+    var gameStage = this.gameStage;
+    lineRenderer.addMeshes(this.canvasScene);
+
+    var width = 1.0;
+    var minX = gameStage.minX;
+    var maxX = gameStage.maxX;
+    var minY = gameStage.minY;
+    var maxY = gameStage.maxY;
+
+    lineRenderer.addLine(minX + width, minY, minX + width, maxY);
+    lineRenderer.addLine(minX, maxY, maxX, maxY);
+    lineRenderer.addLine(maxX - width, maxY, maxX - width, minY);
+    lineRenderer.addLine(maxX, minY, minX, minY);
+
+    lineRenderer.updateGeometry();
 };
 
 Breadboard.prototype.clear = function clearFn()
@@ -567,13 +590,18 @@ Breadboard.prototype.draw = function draw()
     this.gameRenderer.dataTexture.needsUpdate = true;
 
     stage.renderer.clear();
-    stage.renderer.setScissor(10, 10, canvas.width - 250, canvas.height - 20);
-    stage.renderer.setScissorTest(true);
+
+    this.gameStage.setScissor(stage.renderer);
     stage.renderer.render(stage.scene, this.gameStage.camera);
+    this.selectedObjects.draw();
 
     this.tray.draw();
 
-    this.selectedObjects.draw();
+    stage.renderer.setScissor(0, 0, canvas.width, canvas.height);
+    stage.renderer.setScissorTest(false);
+    stage.renderer.render(this.canvasScene, this.canvasCamera);
+
+    this.selectedObjects.drawHover();
 
     // this.gameStage.drawBorder(ctx);
 
