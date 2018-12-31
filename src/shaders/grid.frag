@@ -40,4 +40,15 @@ void main(void)
     //float v = grid(s);
 
     gl_FragColor = vec4(v, v, v, 1.0);
+
+    vec2 corner = vec2(1000.0, 1000.0) - vP;
+    float edge = min(min(vP.x, vP.y), min(corner.x, corner.y));
+    if (edge < -1.5 - feather * 2.0)
+    {
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+    else if (edge < -0.5)
+    {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
 }
