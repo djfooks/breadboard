@@ -88,8 +88,10 @@ void main(void) {
     vec2 offset1 = vP - vP1.xy;
     float d1 = length(offset1);
 
+    float is3Pin = length(vBase - vP0);
+
     // bg
-    float alphaBg = 1.0 - ((dBase - outerR) / feather);
+    float alphaBg = (1.0 - ((dBase - outerR) / feather)) * is3Pin;
     alphaBg = max(alphaBg, 1.0 - ((d0 - outerR) / feather));
     alphaBg = max(alphaBg, 1.0 - ((d1 - outerR) / feather));
     vec4 color = vec4(0.0, 0.0, 0.0, alphaBg);
@@ -99,7 +101,7 @@ void main(void) {
     color = blend(color, wireColor.rgb, wireColor.a);
 
     // fg
-    float alphaFgBase = 1.0 - ((dBase - innerR) / feather);
+    float alphaFgBase = (1.0 - ((dBase - innerR) / feather)) * is3Pin;
     vec3 fgColorBase = getWireColor(vBase.z);
     color = blend(color, fgColorBase, alphaFgBase);
 
