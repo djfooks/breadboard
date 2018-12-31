@@ -298,3 +298,9 @@ GameStage.prototype.drawHitboxes = function drawHitboxes(ctx)
         ctx.stroke();
     }
 };
+
+GameStage.prototype.setScissor = function setScissor(renderer)
+{
+    renderer.setScissor(this.minX, this.minY, this.maxX - this.minX, this.maxY - this.minY);
+    renderer.setScissorTest(true);
+};

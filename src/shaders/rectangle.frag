@@ -8,7 +8,6 @@ uniform vec3 color;
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
-varying float vUV;
 
 uniform sampler2D texture;
 

@@ -40,7 +40,6 @@ function SelectedObjectSet(breadboard)
     this.canvas = document.getElementById("canvas");
     this.renderer = breadboard.stage.renderer;
     this.scene = new THREE.Scene();
-    this.bgScene = new THREE.Scene();
 
     this.wireRenderer = new WireRenderer(breadboard.gameRenderer);
     this.busRenderer = new BusRenderer(breadboard.gameRenderer);
@@ -125,8 +124,6 @@ SelectedObjectSet.prototype.draw = function draw()
     //     return (connection && connection.hasDot) || that.hasDot(x, y);
     // }
 
-    var offset = this.offset;
-
     if (this.geometryDirty)
     {
         this.wireRenderer.updateGeometry(this.wireObjects, breadboard, true, wireHasDotFn);
@@ -145,12 +142,12 @@ SelectedObjectSet.prototype.draw = function draw()
     var gameStageCamera = this.gameStage.camera;
 
     var valid = true;
+    var offset = this.offset;
     if (!this.isTray)
     {
         valid = breadboard.mouseOverGameStage && SelectedObject.areAllValid(breadboard, this.components, offset);
         if (valid)
         {
-            // BACKGROUND
             var bgCamera = this.bgCamera;
             var bgOffset = [Math.round(offset[0]), Math.round(offset[1])];
             bgCamera.left   = gameStageCamera.left   - bgOffset[0];
@@ -161,13 +158,11 @@ SelectedObjectSet.prototype.draw = function draw()
 
             this.setColors(ColorPalette.bg);
 
-            this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
-            this.renderer.setScissorTest(true);
+            this.gameStage.setScissor(this.renderer);
             this.renderer.render(this.scene, this.bgCamera);
         }
     }
 
-    // FOREGROUND
     var camera = this.camera;
     camera.left   = gameStageCamera.left   - offset[0];
     camera.right  = gameStageCamera.right  - offset[0];
@@ -176,9 +171,16 @@ SelectedObjectSet.prototype.draw = function draw()
     camera.updateProjectionMatrix();
 
     this.setColors((valid || this.isTray) ? ColorPalette.base : ColorPalette.invalid);
+};
 
-    this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
-    this.renderer.setScissorTest(true);
+SelectedObjectSet.prototype.drawHover = function drawHover()
+{
+    if (!this.render)
+    {
+        return;
+    }
+    this.renderer.setScissor(0, 0, this.canvas.width, this.canvas.height);
+    this.renderer.setScissorTest(false);
     this.renderer.render(this.scene, this.camera);
 };
 

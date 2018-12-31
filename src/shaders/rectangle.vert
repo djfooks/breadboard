@@ -11,7 +11,6 @@ attribute vec2 p2;
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
-varying float vUV;
 void main()
 {
     vP1 = p1.xy;
