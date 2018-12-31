@@ -48,16 +48,6 @@ function SelectedObjectSet(breadboard)
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
     this.textRenderer = new TextRenderer(breadboard.gameRenderer);
 
-    this.bgWireRenderer = new WireRenderer(breadboard.gameRenderer);
-    this.bgBusRenderer = new BusRenderer(breadboard.gameRenderer);
-    this.bgComponentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer);
-    this.bgComponentRenderer = new ComponentRenderer(breadboard.gameRenderer);
-    this.bgTextRenderer = new TextRenderer(breadboard.gameRenderer);
-
-    this.bgComponentBoxRenderer.color.value.x = 0.7;
-    this.bgComponentBoxRenderer.color.value.y = 0.7;
-    this.bgComponentBoxRenderer.color.value.z = 0.7;
-
     this.feather = { value : 0.0 };
 
     this.camera = new THREE.OrthographicCamera(1, 1, 1, 1, 0, 100);
@@ -94,7 +84,7 @@ SelectedObjectSet.prototype.clear = function clear(object)
 SelectedObjectSet.prototype.setGameStage = function setGameStage(isTray)
 {
     this.gameStage = isTray ? this.breadboard.tray.gameStage : this.breadboard.gameStage;
-}
+};
 
 SelectedObjectSet.prototype.postLoad = function postLoad()
 {
@@ -103,13 +93,23 @@ SelectedObjectSet.prototype.postLoad = function postLoad()
     this.wireRenderer.addMeshes(this.scene, this.feather);
     this.busRenderer.addMeshes(this.scene, this.feather);
     this.textRenderer.addMeshes(this.scene, this.feather);
+};
 
-    this.bgComponentBoxRenderer.addMeshes(this.bgScene, this.feather);
-    // this.bgComponentRenderer.addMeshes(this.bgScene, this.feather);
-    // this.bgWireRenderer.addMeshes(this.bgScene, this.feather);
-    // this.bgBusRenderer.addMeshes(this.bgScene, this.feather);
-    // this.bgTextRenderer.addMeshes(this.bgScene, this.feather);
-}
+SelectedObjectSet.colorPalette = {
+    base: {
+        box: [0.0, 0.0, 0.0]
+    },
+    bg: {
+        box: [0.7, 0.7, 0.7]
+    }
+};
+
+SelectedObjectSet.prototype.setColors = function setColors(colorPalette)
+{
+    this.componentBoxRenderer.color.value.x = colorPalette.box[0];
+    this.componentBoxRenderer.color.value.y = colorPalette.box[1];
+    this.componentBoxRenderer.color.value.z = colorPalette.box[2];
+};
 
 SelectedObjectSet.prototype.draw = function draw()
 {
@@ -140,8 +140,6 @@ SelectedObjectSet.prototype.draw = function draw()
 
         // this.bgWireRenderer.updateGeometry(this.wireObjects, breadboard, true, bgWireHasDotFn);
         // this.bgBusRenderer.updateGeometry(this.busObjects, breadboard, true, bgWireHasDotFn);
-        this.bgComponentBoxRenderer.updateGeometry(this.componentObjects);
-        // this.bgComponentRenderer.updateGeometry(this.componentObjects, breadboard, true);
 
         this.componentsDirty = false;
     }
@@ -151,18 +149,22 @@ SelectedObjectSet.prototype.draw = function draw()
     var gameStageCamera = this.gameStage.camera;
     var offset = this.offset;
 
+    // BACKGROUND
     var bgCamera = this.bgCamera;
-    var bgOffset = [Math.floor(offset[0]), Math.floor(offset[1])];
+    var bgOffset = [Math.round(offset[0]), Math.round(offset[1])];
     bgCamera.left   = gameStageCamera.left   - bgOffset[0];
     bgCamera.right  = gameStageCamera.right  - bgOffset[0];
     bgCamera.top    = gameStageCamera.top    - bgOffset[1];
     bgCamera.bottom = gameStageCamera.bottom - bgOffset[1];
     bgCamera.updateProjectionMatrix();
 
+    this.setColors(SelectedObjectSet.colorPalette.bg);
+
     this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
     this.renderer.setScissorTest(true);
-    this.renderer.render(this.bgScene, this.bgCamera);
+    this.renderer.render(this.scene, this.bgCamera);
 
+    // FOREGROUND
     var camera = this.camera;
     camera.left   = gameStageCamera.left   - offset[0];
     camera.right  = gameStageCamera.right  - offset[0];
@@ -170,10 +172,12 @@ SelectedObjectSet.prototype.draw = function draw()
     camera.bottom = gameStageCamera.bottom - offset[1];
     camera.updateProjectionMatrix();
 
+    this.setColors(SelectedObjectSet.colorPalette.base);
+
     this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
     this.renderer.setScissorTest(true);
     this.renderer.render(this.scene, this.camera);
-}
+};
 
 SelectedObjectSet.prototype.setOffset = function setOffset(p, localOffset)
 {
