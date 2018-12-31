@@ -76,6 +76,7 @@ SelectedObjectSet.prototype.clear = function clear(object)
     this.connectionMapOffset = [0, 0];
     this.connectionMapDirty = false;
 
+    this.isTray = false;
     this.geometryDirty = true;
 
     this.render = false;
@@ -125,7 +126,6 @@ SelectedObjectSet.prototype.draw = function draw()
     // }
 
     var offset = this.offset;
-    var valid = SelectedObject.areAllValid(breadboard, this.components, offset);
 
     if (this.geometryDirty)
     {
@@ -144,22 +144,27 @@ SelectedObjectSet.prototype.draw = function draw()
 
     var gameStageCamera = this.gameStage.camera;
 
-    if (valid)
+    var valid = true;
+    if (!this.isTray)
     {
-        // BACKGROUND
-        var bgCamera = this.bgCamera;
-        var bgOffset = [Math.round(offset[0]), Math.round(offset[1])];
-        bgCamera.left   = gameStageCamera.left   - bgOffset[0];
-        bgCamera.right  = gameStageCamera.right  - bgOffset[0];
-        bgCamera.top    = gameStageCamera.top    - bgOffset[1];
-        bgCamera.bottom = gameStageCamera.bottom - bgOffset[1];
-        bgCamera.updateProjectionMatrix();
+        valid = breadboard.mouseOverGameStage && SelectedObject.areAllValid(breadboard, this.components, offset);
+        if (valid)
+        {
+            // BACKGROUND
+            var bgCamera = this.bgCamera;
+            var bgOffset = [Math.round(offset[0]), Math.round(offset[1])];
+            bgCamera.left   = gameStageCamera.left   - bgOffset[0];
+            bgCamera.right  = gameStageCamera.right  - bgOffset[0];
+            bgCamera.top    = gameStageCamera.top    - bgOffset[1];
+            bgCamera.bottom = gameStageCamera.bottom - bgOffset[1];
+            bgCamera.updateProjectionMatrix();
 
-        this.setColors(ColorPalette.bg);
+            this.setColors(ColorPalette.bg);
 
-        this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
-        this.renderer.setScissorTest(true);
-        this.renderer.render(this.scene, this.bgCamera);
+            this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
+            this.renderer.setScissorTest(true);
+            this.renderer.render(this.scene, this.bgCamera);
+        }
     }
 
     // FOREGROUND
@@ -170,7 +175,7 @@ SelectedObjectSet.prototype.draw = function draw()
     camera.bottom = gameStageCamera.bottom - offset[1];
     camera.updateProjectionMatrix();
 
-    this.setColors(valid ? ColorPalette.base : ColorPalette.invalid);
+    this.setColors((valid || this.isTray) ? ColorPalette.base : ColorPalette.invalid);
 
     this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
     this.renderer.setScissorTest(true);
