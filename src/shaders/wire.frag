@@ -4,6 +4,7 @@ precision highp int;
 uniform float feather;
 uniform float textureSize;
 uniform vec3 wireEdgeColor;
+uniform float isSelection;
 
 varying vec2 vP;
 varying vec2 vP1;
@@ -11,6 +12,8 @@ varying vec2 vP2;
 varying float vUV;
 
 uniform sampler2D texture;
+
+#define SQRT2 1.4142135
 
 void main(void) {
     // gl_FragColor = vec4(0.9, 0.0, 0.0, 1.0);
@@ -25,8 +28,8 @@ void main(void) {
     float maxX = max(vP1.x, vP2.x);
     float minY = min(vP1.y, vP2.y);
     float maxY = max(vP1.y, vP2.y);
-    const float innerWire = 0.03;
-    const float outerWire = 0.07;
+    float innerWire = 0.03 + feather * SQRT2 * isSelection;
+    float outerWire = 0.07 + feather * SQRT2 * isSelection;
 
     float v = (d - outerWire) / feather;
     float alpha = 1.0 - v;

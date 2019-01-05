@@ -41,9 +41,9 @@ function SelectedObjectSet(breadboard)
     this.renderer = breadboard.stage.renderer;
     this.scene = new THREE.Scene();
 
-    this.wireRenderer = new WireRenderer(breadboard.gameRenderer);
-    this.busRenderer = new BusRenderer(breadboard.gameRenderer);
-    this.componentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer);
+    this.wireRenderer = new WireRenderer(breadboard.gameRenderer, false);
+    this.busRenderer = new BusRenderer(breadboard.gameRenderer, false);
+    this.componentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer, false);
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
     this.textRenderer = new TextRenderer(breadboard.gameRenderer);
 
@@ -292,7 +292,8 @@ SelectedObjectSet.prototype.addObject = function addObject(object)
         this.components.push(selectedObject);
         this.componentObjects.push(object);
     }
-    this.selectionGeometryDirty = true;
+
+    this.breadboard.selectionGeometryDirty = true;
     return selectedObject;
 };
 
@@ -344,7 +345,8 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
     {
         throw new Error("how is this object not in the objects list?!");
     }
-    this.selectionGeometryDirty = true;
+
+    this.breadboard.selectionGeometryDirty = true;
     return true;
 };
 

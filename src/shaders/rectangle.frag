@@ -12,9 +12,11 @@ varying vec2 vP2;
 
 uniform sampler2D texture;
 
+#define SQRT2 1.4142135
+
 void main(void) {
     //gl_FragColor = vec4(0.0, 0.9, 0.0, 1.0);
-    float width = 0.01 + feather * (0.5 + isSelection * 2.0);
+    float width = 0.01 + feather * (0.5 + isSelection * SQRT2 * 2.0);
     float borderFeather = (border - width) * 2.0;
 
     vec2 size = vP2 - vP1 + vec2(borderFeather, borderFeather);

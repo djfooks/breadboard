@@ -1,12 +1,15 @@
 
-function WireRenderer(renderer)
+function WireRenderer(renderer, isSelection)
 {
     this.renderer = renderer;
 
     this.wireGeometry = renderer.createQuadGeometry();
     this.circleGeometry = renderer.createQuadGeometry();
 
-    this.wireEdgeColor = ColorPalette.createRGBColor(ColorPalette.base.wire);
+    var color = isSelection ? ColorPalette.base.selection : ColorPalette.base.wire;
+    this.wireEdgeColor = ColorPalette.createRGBColor(color);
+
+    this.isSelection = { value: isSelection ? 1.0 : 0.0 };
 }
 
 WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
@@ -22,7 +25,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             fg: { value: 0.0 },
             texture: this.renderer.texture,
             textureSize: this.renderer.textureSize,
-            wireEdgeColor: this.wireEdgeColor
+            wireEdgeColor: this.wireEdgeColor,
+            isSelection: this.isSelection
         },
         vertexShader: wireCirclesVertexShader,
         fragmentShader: wireCirclesFragmentShader,
@@ -35,7 +39,8 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             feather: feather,
             texture: this.renderer.texture,
             textureSize: this.renderer.textureSize,
-            wireEdgeColor: this.wireEdgeColor
+            wireEdgeColor: this.wireEdgeColor,
+            isSelection: this.isSelection
         },
         vertexShader: wireVertexShader,
         fragmentShader: ShaderManager.get("src/shaders/wire.frag"),
