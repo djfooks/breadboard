@@ -1,8 +1,10 @@
 
-function ComponentBoxRenderer(renderer)
+function ComponentBoxRenderer(renderer, isSelection)
 {
     this.geometry = renderer.createQuadGeometry();
-    this.color = { value: new THREE.Vector3(0.0, 0.0, 0.0)};
+
+    this.color = ColorPalette.createRGBColor(isSelection ? ColorPalette.base.selection : ColorPalette.base.box);
+    this.isSelection = { value: isSelection ? 1.0 : 0.0 };
 }
 
 ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
@@ -11,7 +13,8 @@ ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
         uniforms: {
             feather: feather,
             border: { value: Component.border },
-            color: this.color
+            color: this.color,
+            isSelection: this.isSelection
         },
         vertexShader: ShaderManager.get("src/shaders/rectangle.vert"),
         fragmentShader: ShaderManager.get("src/shaders/rectangle.frag"),

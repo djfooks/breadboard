@@ -59,7 +59,7 @@ function SelectedObjectSet(breadboard)
     this.clear();
 }
 
-SelectedObjectSet.prototype.clear = function clear(object)
+SelectedObjectSet.prototype.clear = function clear()
 {
     this.offset = [ 0, 0 ];
 
@@ -76,7 +76,7 @@ SelectedObjectSet.prototype.clear = function clear(object)
     this.connectionMapDirty = false;
 
     this.isTray = false;
-    this.geometryDirty = true;
+    this.draggingGeometryDirty = true;
 
     this.render = false;
 };
@@ -124,7 +124,7 @@ SelectedObjectSet.prototype.draw = function draw()
     //     return (connection && connection.hasDot) || that.hasDot(x, y);
     // }
 
-    if (this.geometryDirty)
+    if (this.draggingGeometryDirty)
     {
         this.wireRenderer.updateGeometry(this.wireObjects, breadboard, true, wireHasDotFn);
         this.busRenderer.updateGeometry(this.busObjects, breadboard, true, wireHasDotFn);
@@ -134,7 +134,7 @@ SelectedObjectSet.prototype.draw = function draw()
         // this.bgWireRenderer.updateGeometry(this.wireObjects, breadboard, true, bgWireHasDotFn);
         // this.bgBusRenderer.updateGeometry(this.busObjects, breadboard, true, bgWireHasDotFn);
 
-        this.geometryDirty = false;
+        this.draggingGeometryDirty = false;
     }
 
     this.feather.value = this.gameStage.feather.value;
@@ -291,8 +291,8 @@ SelectedObjectSet.prototype.addObject = function addObject(object)
     {
         this.components.push(selectedObject);
         this.componentObjects.push(object);
-        this.geometryDirty = true;
     }
+    this.selectionGeometryDirty = true;
     return selectedObject;
 };
 
@@ -333,7 +333,6 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
     }
     else
     {
-        this.geometryDirty = true;
         if (!removeFromList(this.components, object))
         {
             return false;
@@ -341,7 +340,12 @@ SelectedObjectSet.prototype.removeObject = function removeObject(object)
         index = this.componentObjects.indexOf(object);
         this.componentObjects.splice(index, 1);
     }
-    return removeFromList(this.objects, object);
+    if (!removeFromList(this.objects, object))
+    {
+        throw new Error("how is this object not in the objects list?!");
+    }
+    this.selectionGeometryDirty = true;
+    return true;
 };
 
 SelectedObjectSet.prototype.indexOf = function indexOf(object, list)
