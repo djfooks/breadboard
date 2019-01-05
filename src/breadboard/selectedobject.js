@@ -102,6 +102,8 @@ SelectedObjectSet.prototype.setColors = function setColors(colorPalette)
     ColorPalette.setColorRGB(colorPalette.outputNode, this.componentRenderer.outputBgColor.value);
     ColorPalette.setColorRGBA(colorPalette.textOverride, this.componentRenderer.textRenderer.overrideColor.value);
     ColorPalette.setColorRGB(colorPalette.wire, this.wireRenderer.wireEdgeColor.value);
+    ColorPalette.setColorRGB(colorPalette.busBg, this.busRenderer.bgColor.value);
+    ColorPalette.setColorRGB(colorPalette.bus, this.busRenderer.color.value);
 };
 
 SelectedObjectSet.prototype.draw = function draw()

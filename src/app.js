@@ -108,6 +108,7 @@ var App = function ()
     ShaderManager.request("src/shaders/busdiamond.vert");
     ShaderManager.request("src/shaders/busnode.frag");
     ShaderManager.request("src/shaders/busnode.vert");
+    ShaderManager.request("src/shaders/busselection.frag");
     ShaderManager.request("src/shaders/circle.frag");
     ShaderManager.request("src/shaders/circle.vert");
     ShaderManager.request("src/shaders/componentnode.frag");

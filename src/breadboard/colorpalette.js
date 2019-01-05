@@ -3,11 +3,13 @@ var ColorPalette = {
     base: {
         selection: [1.0, 1.0, 0.0],
 
-        box: [0.0, 0.0, 0.0],
+        box: [0.2, 0.2, 0.2],
         inputNode: [0.0, 1.0, 0.0],
         outputNode: [0.0, 0.0, 0.0],
         textOverride: [0.0, 0.0, 0.0, 0.0],
         wire: [0.0, 0.0, 0.0],
+        bus: [0.0, 1.0, 1.0],
+        busBg: [0.0, 0.0, 0.0],
     },
     bg: {
         box: [0.7, 0.7, 0.7],
@@ -15,6 +17,8 @@ var ColorPalette = {
         outputNode: [0.7, 0.7, 0.7],
         textOverride: [0.7, 0.7, 0.7, 1.0],
         wire: [0.7, 0.7, 0.7],
+        bus: [0.9, 0.9, 0.9],
+        busBg: [0.8, 0.8, 0.8],
     },
     invalid: {
         box: [1.0, 0.0, 0.0],
@@ -22,6 +26,8 @@ var ColorPalette = {
         outputNode: [1.0, 0.0, 0.0],
         textOverride: [1.0, 0.0, 0.0, 1.0],
         wire: [1.0, 0.0, 0.0],
+        bus: [1.0, 0.7, 0.7],
+        busBg: [1.0, 0.0, 0.0],
     }
 };
 

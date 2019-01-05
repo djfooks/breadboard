@@ -17,7 +17,7 @@ ShaderManager.request = function request(url)
     loader.load(url, function (text)
     {
         ShaderManager.shadersLoading -= 1;
-        ShaderManager.shaders[url] = text;
+        ShaderManager.shaders[url] = text + "\n//" + url;
     }, null, this.onError.bind(this, url));
 };
 
