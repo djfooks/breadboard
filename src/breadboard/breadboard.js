@@ -16,6 +16,8 @@ function Breadboard(stage, top, left, cols, rows)
 
     this.debugDrawList = [];
 
+    this.wireHasDot = this.wireHasDotFn.bind(this);
+
     this.stage.onMouseDown = this.onMouseDown.bind(this);
     this.stage.onMouseUp = this.onMouseUp.bind(this);
     this.stage.onMouseMove = this.onMouseMove.bind(this, false);
@@ -52,11 +54,13 @@ function Breadboard(stage, top, left, cols, rows)
     this.gridRenderer = new GridRenderer();
     this.wireRenderer = new WireRenderer(this.gameRenderer);
     this.busRenderer = new BusRenderer(this.gameRenderer);
-    this.componentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer);
+    this.componentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, false);
     this.componentRenderer = new ComponentRenderer(this.gameRenderer);
     this.lineRenderer = new LineRenderer(this.gameRenderer);
 
     this.selectionComponentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, true);
+    this.selectionWireRenderer = new WireRenderer(this.gameRenderer, true);
+    this.selectionGeometryDirty = false;
 
     this.debugDrawHitboxes = false;
     this.debugDrawConnections = false;
@@ -110,6 +114,7 @@ function Breadboard(stage, top, left, cols, rows)
 
     this.selectedObjects = new SelectedObjectSet(this);
 
+    this.prevDrawState = Breadboard.state.START_STATE;
     this.clear();
 
     this.frame = 0;
@@ -130,6 +135,7 @@ Breadboard.prototype.postLoad = function postLoad()
 
     this.gridRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.selectionComponentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
+    this.selectionWireRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
@@ -173,7 +179,7 @@ Breadboard.prototype.clear = function clearFn()
     this.geometryDirty = true;
 
     this.shouldSwitch = false;
-    this.state = Breadboard.state.ADD_WIRE;
+    this.state = Breadboard.state.START_STATE;
     this.wireType = ComponentTypes.WIRE;
     this.draggingPoint = [0, 0];
     this.selectedObjects.clear();
@@ -199,6 +205,8 @@ Breadboard.state = {
     DRAG: 4,
     MOVE: 5,
 };
+
+Breadboard.state.START_STATE = Breadboard.state.ADD_WIRE;
 
 Breadboard.prototype.disableButtons = function disableButtons()
 {
@@ -535,25 +543,34 @@ Breadboard.prototype.pulseReset = function pulseReset()
     }
 };
 
+Breadboard.prototype.wireHasDotFn = function wireHasDotFn(id, x, y)
+{
+    var connection = this.getConnection(id);
+    return connection.hasDot;
+};
+
 Breadboard.prototype.draw = function draw()
 {
     var stage = this.stage;
     var canvas = stage.canvas;
     var camera = this.gameStage.camera;
 
-    var that = this;
-    function wireHasDotFn(id, x, y)
+    if (this.state != this.prevDrawState)
     {
-        var connection = that.getConnection(id);
-        return connection.hasDot;
+        if (this.state === Breadboard.state.DRAG || this.prevDrawState === Breadboard.state.DRAG)
+        {
+            this.selectedObjects.draggingGeometryDirty = true;
+            this.selectionGeometryDirty = true;
+        }
+        this.prevDrawState = this.state;
     }
 
     this.gridRenderer.updateGeometry(camera);
     if (this.geometryDirty)
     {
         this.gameRenderer.textureSize.value = 0;
-        this.wireRenderer.updateGeometry(this.wires, this, false, wireHasDotFn);
-        this.busRenderer.updateGeometry(this.buses, this, false, wireHasDotFn);
+        this.wireRenderer.updateGeometry(this.wires, this, false, this.wireHasDot);
+        this.busRenderer.updateGeometry(this.buses, this, false, this.wireHasDot);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
 
         this.componentRenderer.updateGeometry(this.componentsList, this, false);
@@ -679,84 +696,81 @@ Breadboard.prototype.draw = function draw()
 
 Breadboard.prototype.updateSelectionGeometry = function updateSelectionGeometry()
 {
+    var selectingObjects = (this.selectStart[0] != -1 || this.selectStart[1] != -1);
+    if (!this.selectionGeometryDirty && !selectingObjects)
+    {
+        return;
+    }
+    this.selectionGeometryDirty = false;
+
     if (this.state === Breadboard.state.DRAG)
     {
+        this.selectionComponentBoxRenderer.updateGeometry([]);
+        this.selectionWireRenderer.updateGeometry([], this, true, this.wireHasDot);
         return;
     }
 
     var selectedObjects = this.selectedObjects;
 
-    // var component;
-    // for (var i = 0; i < selectedObjects.length; i += 1)
-    // {
-    //     component = selectedObjects[i].object;
-    //     component.drawSelection(ctx, "#BDB76B");
-    // }
-
-    if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
-    {
-        if (selectedObjects.selectionGeometryDirty)
-        {
-            this.selectionComponentBoxRenderer.updateGeometry(this.selectedObjects.componentObjects);
-            selectedObjects.selectionGeometryDirty = false;
-        }
-        return;
-    }
-
     var border = Component.border;
 
     var selectionComponents = selectedObjects.componentObjects.slice();
-    var selectionWires = [];
-    var selectionBuses = [];
+    var selectionWires = selectedObjects.wireObjects.slice();
+    var selectionBuses = selectedObjects.busObjects.slice();
 
-    var x0 = this.selectStart[0];
-    var y0 = this.selectStart[1];
-    var x1 = this.gameSpaceMouse[0];
-    var y1 = this.gameSpaceMouse[1];
-
-    var cx0 = Math.ceil(Math.min(x0, x1) - border);
-    var cy0 = Math.ceil(Math.min(y0, y1) - border);
-    var cx1 = Math.floor(Math.max(x0, x1) + border);
-    var cy1 = Math.floor(Math.max(y0, y1) + border);
-
-    var componentsList = this.componentsList;
-    for (i = 0; i < componentsList.length; i += 1)
+    if (selectingObjects)
     {
-        component = componentsList[i];
-        var p0 = component.p0;
-        var p1 = component.p1;
-        var minx = Math.min(p0[0], p1[0]);
-        var miny = Math.min(p0[1], p1[1]);
-        var maxx = Math.max(p0[0], p1[0]);
-        var maxy = Math.max(p0[1], p1[1]);
-        if (maxx >= cx0 && cx1 >= minx &&
-            maxy >= cy0 && cy1 >= miny)
+        var i;
+        var x0 = this.selectStart[0];
+        var y0 = this.selectStart[1];
+        var x1 = this.gameSpaceMouse[0];
+        var y1 = this.gameSpaceMouse[1];
+
+        var cx0 = Math.ceil(Math.min(x0, x1) - border);
+        var cy0 = Math.ceil(Math.min(y0, y1) - border);
+        var cx1 = Math.floor(Math.max(x0, x1) + border);
+        var cy1 = Math.floor(Math.max(y0, y1) + border);
+
+        var componentsList = this.componentsList;
+        for (i = 0; i < componentsList.length; i += 1)
         {
-            selectionComponents.push(component);
+            component = componentsList[i];
+            var p0 = component.p0;
+            var p1 = component.p1;
+            var minx = Math.min(p0[0], p1[0]);
+            var miny = Math.min(p0[1], p1[1]);
+            var maxx = Math.max(p0[0], p1[0]);
+            var maxy = Math.max(p0[1], p1[1]);
+            if (maxx >= cx0 && cx1 >= minx &&
+                maxy >= cy0 && cy1 >= miny)
+            {
+                selectionComponents.push(component);
+            }
         }
-    }
 
-    var wires = this.wires;
-    for (i = 0; i < wires.length; i += 1)
-    {
-        var wire = wires[i];
-        if (wire.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+        var wires = this.wires;
+        for (i = 0; i < wires.length; i += 1)
         {
-            selectionWires.push(wire);
+            var wire = wires[i];
+            if (wire.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+            {
+                selectionWires.push(wire);
+            }
         }
-    }
 
-    var buses = this.buses;
-    for (i = 0; i < buses.length; i += 1)
-    {
-        var bus = buses[i];
-        if (bus.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+        var buses = this.buses;
+        for (i = 0; i < buses.length; i += 1)
         {
-            selectionBuses.push(wire);
+            var bus = buses[i];
+            if (bus.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+            {
+                selectionBuses.push(wire);
+            }
         }
     }
 
     this.selectionComponentBoxRenderer.updateGeometry(selectionComponents);
+    this.selectionWireRenderer.updateGeometry(selectionWires, this, true, this.wireHasDot);
 };
 
 Breadboard.prototype.drawSelection = function drawSelection()

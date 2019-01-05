@@ -15,9 +15,9 @@ function Tray(breadboard)
 
     this.gameStage.update();
 
-    this.wireRenderer = new WireRenderer(breadboard.gameRenderer);
-    this.busRenderer = new BusRenderer(breadboard.gameRenderer);
-    this.componentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer);
+    this.wireRenderer = new WireRenderer(breadboard.gameRenderer, false);
+    this.busRenderer = new BusRenderer(breadboard.gameRenderer, false);
+    this.componentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer, false);
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
 
     this.resetComponents();

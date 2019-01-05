@@ -5,6 +5,7 @@ uniform float feather;
 uniform float textureSize;
 uniform float radius;
 uniform vec3 wireEdgeColor;
+uniform float isSelection;
 
 uniform float fg;
 
@@ -13,6 +14,8 @@ varying vec3 vCircle;
 
 uniform sampler2D texture;
 
+#define SQRT2 1.4142135
+
 void main(void) {
     float uv = vCircle.z + 0.5; // don't sample on the edge of the texture!
 
@@ -20,7 +23,9 @@ void main(void) {
     vec2 offset1 = vP - vCircle.xy;
     float d = length(offset1);
 
-    float alpha = 1.0 - ((d - radius) / feather);
+    float r = radius + feather * SQRT2 * isSelection;
+
+    float alpha = 1.0 - ((d - r) / feather);
 
     float wireValue = texture2D(texture, vec2(uv / textureSize, 0.5)).x;
     vec3 color = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.53, 0.53), wireValue);
