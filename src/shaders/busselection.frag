@@ -2,12 +2,13 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
-uniform vec3 color;
 uniform vec3 bgColor;
 
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
+
+#define SQRT2 1.4142135
 
 void main(void) {
     // gl_FragColor = vec4(0.9, 0.0, 0.0, 1.0);
@@ -22,16 +23,8 @@ void main(void) {
     float maxX = max(vP1.x, vP2.x);
     float minY = min(vP1.y, vP2.y);
     float maxY = max(vP1.y, vP2.y);
-    const float centerWire = 0.03;
-    const float innerWire = 0.11;
-    const float outerWire = 0.17;
+    float outerWire = 0.17 + feather * SQRT2;
 
     float alpha = 1.0 - (d - (outerWire - feather * 0.5)) / feather;
-
-    float v = (d - (innerWire - feather * 0.5)) / feather;
-    v = max(v, 1.0 - (d - (centerWire - feather * 0.5)) / feather);
-
-    vec3 wireColor = mix(color, bgColor, max(min(v, 1.0), 0.0));
-
-    gl_FragColor = vec4(wireColor.rgb, alpha);
+    gl_FragColor = vec4(bgColor, alpha);
 }

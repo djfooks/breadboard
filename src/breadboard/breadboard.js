@@ -60,6 +60,7 @@ function Breadboard(stage, top, left, cols, rows)
 
     this.selectionComponentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, true);
     this.selectionWireRenderer = new WireRenderer(this.gameRenderer, true);
+    this.selectionBusRenderer = new BusRenderer(this.gameRenderer, true);
     this.selectionGeometryDirty = false;
 
     this.debugDrawHitboxes = false;
@@ -134,11 +135,15 @@ Breadboard.prototype.postLoad = function postLoad()
     }
 
     this.gridRenderer.addMeshes(this.scene, this.gameStage.feather);
+
     this.selectionComponentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
-    this.selectionWireRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
+
+    this.selectionWireRenderer.addMeshes(this.scene, this.gameStage.feather);
+    this.selectionBusRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
+
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
 
     this.selectedObjects.postLoad();
@@ -707,6 +712,7 @@ Breadboard.prototype.updateSelectionGeometry = function updateSelectionGeometry(
     {
         this.selectionComponentBoxRenderer.updateGeometry([]);
         this.selectionWireRenderer.updateGeometry([], this, true, this.wireHasDot);
+        this.selectionBusRenderer.updateGeometry([], this, true, this.wireHasDot);
         return;
     }
 
@@ -764,13 +770,14 @@ Breadboard.prototype.updateSelectionGeometry = function updateSelectionGeometry(
             var bus = buses[i];
             if (bus.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
             {
-                selectionBuses.push(wire);
+                selectionBuses.push(bus);
             }
         }
     }
 
     this.selectionComponentBoxRenderer.updateGeometry(selectionComponents);
     this.selectionWireRenderer.updateGeometry(selectionWires, this, true, this.wireHasDot);
+    this.selectionBusRenderer.updateGeometry(selectionBuses, this, true, this.wireHasDot);
 };
 
 Breadboard.prototype.drawSelection = function drawSelection()

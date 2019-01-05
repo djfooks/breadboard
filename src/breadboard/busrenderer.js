@@ -1,27 +1,37 @@
 
-function BusRenderer(renderer)
+function BusRenderer(renderer, isSelection)
 {
     this.renderer = renderer;
 
     this.busGeometry = renderer.createQuadGeometry();
     this.diamondGeometry = renderer.createQuadGeometry();
+
+    this.bgColor = ColorPalette.createRGBColor(isSelection ? ColorPalette.base.selection : ColorPalette.base.busBg);
+    this.color = ColorPalette.createRGBColor(ColorPalette.base.bus);
+
+    this.isSelection = { value: isSelection ? 1.0 : 0.0 };
 }
 
 BusRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
     this.busMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: feather
+            feather: feather,
+            color: this.color,
+            bgColor: this.bgColor
         },
         vertexShader: ShaderManager.get("src/shaders/bus.vert"),
-        fragmentShader: ShaderManager.get("src/shaders/bus.frag"),
+        fragmentShader: ShaderManager.get(this.isSelection.value ? "src/shaders/busselection.frag" : "src/shaders/bus.frag"),
         side: THREE.DoubleSide
     });
     this.busMaterial.transparent = true;
 
     this.busDiamondMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: feather
+            feather: feather,
+            color: this.color,
+            bgColor: this.bgColor,
+            isSelection: this.isSelection
         },
         vertexShader: ShaderManager.get("src/shaders/busdiamond.vert"),
         fragmentShader: ShaderManager.get("src/shaders/busdiamond.frag"),
