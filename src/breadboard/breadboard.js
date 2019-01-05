@@ -56,6 +56,8 @@ function Breadboard(stage, top, left, cols, rows)
     this.componentRenderer = new ComponentRenderer(this.gameRenderer);
     this.lineRenderer = new LineRenderer(this.gameRenderer);
 
+    this.selectionComponentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, true);
+
     this.debugDrawHitboxes = false;
     this.debugDrawConnections = false;
 
@@ -127,13 +129,13 @@ Breadboard.prototype.postLoad = function postLoad()
     }
 
     this.gridRenderer.addMeshes(this.scene, this.gameStage.feather);
+    this.selectionComponentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
 
     this.selectedObjects.postLoad();
-
     this.tray.postLoad();
 
     var lineRenderer = this.lineRenderer;
@@ -560,6 +562,8 @@ Breadboard.prototype.draw = function draw()
         this.geometryDirty = false;
     }
 
+    this.updateSelectionGeometry();
+
     var that = this;
     var wire;
     var textureData = this.gameRenderer.textureData;
@@ -671,6 +675,88 @@ Breadboard.prototype.draw = function draw()
     // {
     //     this.debugDrawList[i](ctx);
     // }
+};
+
+Breadboard.prototype.updateSelectionGeometry = function updateSelectionGeometry()
+{
+    if (this.state === Breadboard.state.DRAG)
+    {
+        return;
+    }
+
+    var selectedObjects = this.selectedObjects;
+
+    // var component;
+    // for (var i = 0; i < selectedObjects.length; i += 1)
+    // {
+    //     component = selectedObjects[i].object;
+    //     component.drawSelection(ctx, "#BDB76B");
+    // }
+
+    if (this.selectStart[0] === -1 && this.selectStart[1] === -1)
+    {
+        if (selectedObjects.selectionGeometryDirty)
+        {
+            this.selectionComponentBoxRenderer.updateGeometry(this.selectedObjects.componentObjects);
+            selectedObjects.selectionGeometryDirty = false;
+        }
+        return;
+    }
+
+    var border = Component.border;
+
+    var selectionComponents = selectedObjects.componentObjects.slice();
+    var selectionWires = [];
+    var selectionBuses = [];
+
+    var x0 = this.selectStart[0];
+    var y0 = this.selectStart[1];
+    var x1 = this.gameSpaceMouse[0];
+    var y1 = this.gameSpaceMouse[1];
+
+    var cx0 = Math.ceil(Math.min(x0, x1) - border);
+    var cy0 = Math.ceil(Math.min(y0, y1) - border);
+    var cx1 = Math.floor(Math.max(x0, x1) + border);
+    var cy1 = Math.floor(Math.max(y0, y1) + border);
+
+    var componentsList = this.componentsList;
+    for (i = 0; i < componentsList.length; i += 1)
+    {
+        component = componentsList[i];
+        var p0 = component.p0;
+        var p1 = component.p1;
+        var minx = Math.min(p0[0], p1[0]);
+        var miny = Math.min(p0[1], p1[1]);
+        var maxx = Math.max(p0[0], p1[0]);
+        var maxy = Math.max(p0[1], p1[1]);
+        if (maxx >= cx0 && cx1 >= minx &&
+            maxy >= cy0 && cy1 >= miny)
+        {
+            selectionComponents.push(component);
+        }
+    }
+
+    var wires = this.wires;
+    for (i = 0; i < wires.length; i += 1)
+    {
+        var wire = wires[i];
+        if (wire.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+        {
+            selectionWires.push(wire);
+        }
+    }
+
+    var buses = this.buses;
+    for (i = 0; i < buses.length; i += 1)
+    {
+        var bus = buses[i];
+        if (bus.boxOverlap(x0, y0, x1, y1, cx0, cy0, cx1, cy1))
+        {
+            selectionBuses.push(wire);
+        }
+    }
+
+    this.selectionComponentBoxRenderer.updateGeometry(selectionComponents);
 };
 
 Breadboard.prototype.drawSelection = function drawSelection()
@@ -1630,7 +1716,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
     }
 
     selectedObjects.render = false;
-    selectedObjects.geometryDirty = true;
+    selectedObjects.draggedGeometryDirty = true;
 
     var selectedComponents = selectedObjects.components;
     var selectedWires = selectedObjects.wires;
@@ -1838,7 +1924,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
     }
     selectedObjects.connectionMapDirty = true;
-    selectedObjects.geometryDirty = true;
+    selectedObjects.draggedGeometryDirty = true;
 };
 
 Breadboard.prototype.addComponent = function addComponent(component)
