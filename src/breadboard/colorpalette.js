@@ -2,8 +2,9 @@
 var ColorPalette = {
     base: {
         selection: [1.0, 1.0, 0.0],
+        selectionBox: [1.0, 1.0, 0.0],
 
-        box: [0.2, 0.2, 0.2],
+        box: [0.0, 0.0, 0.0],
         inputNode: [0.0, 1.0, 0.0],
         outputNode: [0.0, 0.0, 0.0],
         textOverride: [0.0, 0.0, 0.0, 0.0],

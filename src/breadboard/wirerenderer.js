@@ -48,24 +48,25 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     });
     this.wireMaterial.transparent = true;
 
-    this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            feather: feather,
-            radius: { value: 0.14 },
-            fg: { value: 1.0 },
-            texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize,
-            wireEdgeColor: this.wireEdgeColor
-        },
-        vertexShader: wireCirclesVertexShader,
-        fragmentShader: wireCirclesFragmentShader,
-        side: THREE.DoubleSide
-    });
-    this.wireCirclesFgMaterial.transparent = true;
-
     scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesBgMaterial));
     scene.add(new THREE.Mesh(this.wireGeometry,   this.wireMaterial));
-    scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesFgMaterial));
+    if (this.isSelection.value == 0.0)
+    {
+        this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
+            uniforms: {
+                feather: feather,
+                radius: { value: 0.14 },
+                fg: { value: 1.0 },
+                texture: this.renderer.texture,
+                textureSize: this.renderer.textureSize
+            },
+            vertexShader: wireCirclesVertexShader,
+            fragmentShader: wireCirclesFragmentShader,
+            side: THREE.DoubleSide
+        });
+        this.wireCirclesFgMaterial.transparent = true;
+        scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesFgMaterial));
+    }
 };
 
 WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboard, isTray, hasDotFn)
