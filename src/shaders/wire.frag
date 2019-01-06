@@ -28,7 +28,7 @@ void main(void) {
     float maxX = max(vP1.x, vP2.x);
     float minY = min(vP1.y, vP2.y);
     float maxY = max(vP1.y, vP2.y);
-    float innerWire = 0.03 + feather * SQRT2 * isSelection;
+    float innerWire = 0.03;
     float outerWire = 0.07 + feather * SQRT2 * isSelection;
 
     float v = (d - outerWire) / feather;
