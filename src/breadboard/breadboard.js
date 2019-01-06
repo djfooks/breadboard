@@ -61,7 +61,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.selectionComponentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, true);
     this.selectionWireRenderer = new WireRenderer(this.gameRenderer, true);
     this.selectionBusRenderer = new BusRenderer(this.gameRenderer, true);
-    this.selectionGeometryDirty = false;
+    this.selectionGeometryDirty = true;
 
     this.debugDrawHitboxes = false;
     this.debugDrawConnections = false;
