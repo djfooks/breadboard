@@ -1737,7 +1737,7 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
     }
 
     selectedObjects.render = false;
-    selectedObjects.draggedGeometryDirty = true;
+    selectedObjects.draggingGeometryDirty = true;
 
     var selectedComponents = selectedObjects.components;
     var selectedWires = selectedObjects.wires;
@@ -1945,7 +1945,7 @@ Breadboard.prototype.rotateComponents = function rotateComponents()
         selectedObj.object.move(this, selectedObj.grabbedPosition, selectedObj.object.rotation);
     }
     selectedObjects.connectionMapDirty = true;
-    selectedObjects.draggedGeometryDirty = true;
+    selectedObjects.draggingGeometryDirty = true;
 };
 
 Breadboard.prototype.addComponent = function addComponent(component)
