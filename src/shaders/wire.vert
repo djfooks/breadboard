@@ -19,7 +19,7 @@ void main()
     vec2 o = vP1 - vP2;
     float d = length(o);
     vec2 n = o / d;
-    vec2 m = vec2(n.y, -n.x) * 0.5;
+    vec2 m = vec2(n.y, -n.x);
 
     vec2 p = mix(vP1, vP2, position.x);
     p += mix(-m, m, position.y);
