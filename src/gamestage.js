@@ -96,8 +96,8 @@ GameStage.prototype.update = function update(deltaTime)
 
     // move the view slightly so that whatever is under the mouse moves to the center of the game space
     var centerVelocity = Math.abs(this.zoomVelocity);
-    this.view[0] += (gameMouse[0] - this.view[0]) * centerVelocity * 0.03;
-    this.view[1] += (gameMouse[1] - this.view[1]) * centerVelocity * 0.03;
+    this.view[0] += (gameMouse[0] - this.view[0]) * centerVelocity * (this.zoomVelocity < 0 ? 0.1 : 0.03);
+    this.view[1] += (gameMouse[1] - this.view[1]) * centerVelocity * (this.zoomVelocity < 0 ? 0.1 : 0.03);
 
     if (this.debugClipping)
     {
