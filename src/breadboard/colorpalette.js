@@ -1,8 +1,10 @@
 
 var ColorPalette = {
     base: {
+        gameBorder: [0.0, 0.0, 0.0, 1.0],
+
         selection: [1.0, 1.0, 0.0],
-        selectionBox: [1.0, 1.0, 0.0],
+        selectionBox: [0.7, 0.7, 0.0, 0.7],
 
         box: [0.0, 0.0, 0.0],
         inputNode: [0.0, 1.0, 0.0],
