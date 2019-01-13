@@ -6,13 +6,17 @@ function LineRenderer(renderer, isSelection)
 
     this.lines = [];
     this.isSelection = isSelection;
+
+    var color = isSelection ? ColorPalette.base.selectionBox : ColorPalette.base.gameBorder;
+    this.color = ColorPalette.createRGBAColor(color);
 }
 
 LineRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
     this.lineMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            feather: feather
+            feather: feather,
+            color: this.color
         },
         vertexShader: ShaderManager.get(this.isSelection ? "src/shaders/selectionline.vert" : "src/shaders/line.vert"),
         fragmentShader: ShaderManager.get(this.isSelection ? "src/shaders/selectionline.frag" : "src/shaders/line.frag"),
