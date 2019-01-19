@@ -66,7 +66,13 @@ function Breadboard(stage, top, left, cols, rows)
     this.selectionGeometryDirty = true;
 
     this.virtualWireRenderer = new WireRenderer(this.gameRenderer);
+    this.virtualWireGeometryDirty = true;
     ColorPalette.setColorRGB(ColorPalette.base.virtualWire, this.virtualWireRenderer.wireEdgeColor.value);
+
+    this.virtualBusRenderer = new BusRenderer(this.gameRenderer);
+    this.virtualBusGeometryDirty = true;
+    ColorPalette.setColorRGB(ColorPalette.base.virtualBus,   this.virtualBusRenderer.color.value);
+    ColorPalette.setColorRGB(ColorPalette.base.virtualBusBg, this.virtualBusRenderer.bgColor.value);
 
     this.debugDrawHitboxes = false;
     this.debugDrawConnections = false;
@@ -157,6 +163,7 @@ Breadboard.prototype.postLoad = function postLoad()
     this.selectionLines.addMeshes(scene, feather);
 
     this.virtualWireRenderer.createMeshes(scene, feather);
+    this.virtualBusRenderer.createMeshes(scene, feather);
 
     this.selectedObjects.postLoad();
     this.tray.postLoad();
@@ -225,9 +232,10 @@ Breadboard.state = {
 
 Breadboard.state.START_STATE = Breadboard.state.ADD_WIRE;
 
-Breadboard.prototype.setState = function setState(newState)
+Breadboard.prototype.setState = function setState(state, wireType)
 {
-    this.state = newState;
+    this.state = state;
+    this.wireType = wireType;
 };
 
 Breadboard.prototype.disableButtons = function disableButtons()
@@ -622,10 +630,16 @@ Breadboard.prototype.draw = function draw()
         this.geometryDirty = false;
     }
 
-    if (this.virtualWiresGeometryDirty)
+    if (this.virtualWireGeometryDirty)
     {
         this.virtualWireRenderer.updateGeometry(this.virtualWires, this, true, this.virtualWireHasDot);
-        this.virtualWiresGeometryDirty = false;
+        this.virtualWireGeometryDirty = false;
+    }
+
+    if (this.virtualBusGeometryDirty)
+    {
+        this.virtualBusRenderer.updateGeometry(this.virtualWires, this, true, this.virtualWireHasDot);
+        this.virtualBusGeometryDirty = false;
     }
 
     this.updateSelectionGeometry();
@@ -1575,7 +1589,6 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
     if (virtual)
     {
         this.virtualWires.push(wire);
-        this.virtualWiresGeometryDirty = true;
     }
     else
     {
@@ -1661,13 +1674,27 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
     if (!this.validPosition(p))
     {
         this.virtualWires = [];
-        this.virtualWiresGeometryDirty = true;
+        if (this.wireType == ComponentTypes.WIRE)
+        {
+            this.virtualWireGeometryDirty = true;
+        }
+        else
+        {
+           this.virtualBusGeometryDirty = true;
+        }
         return;
     }
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.virtualWires = [];
-        this.virtualWiresGeometryDirty = true;
+        if (this.wireType == ComponentTypes.WIRE)
+        {
+            this.virtualWireGeometryDirty = true;
+        }
+        else
+        {
+           this.virtualBusGeometryDirty = true;
+        }
 
         var wireStart = this.wireStart;
         if (p[0] === wireStart[0] &&

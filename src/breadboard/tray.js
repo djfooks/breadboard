@@ -14,11 +14,11 @@ function Tray(breadboard)
     this.gameStage.updateZoom();
 
     this.addWireHitbox = new Hitbox(-0.5, -0.5, 2.5, 0.5);
-    this.addWireHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_WIRE);
+    this.addWireHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_WIRE, ComponentTypes.WIRE);
     this.gameStage.addHitbox(this.addWireHitbox);
 
     this.addBusHitbox = new Hitbox(-0.5, 0.5, 2.5, 1.5);
-    this.addBusHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_BUS);
+    this.addBusHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_WIRE, ComponentTypes.BUS);
     this.gameStage.addHitbox(this.addBusHitbox);
 
     this.gameStage.update();
@@ -34,11 +34,12 @@ function Tray(breadboard)
     this.resetComponents();
 
     this.state = 0;
+    this.wireType = -1;
 }
 
-Tray.prototype.setBreadboardState = function setBreadboardState(newState)
+Tray.prototype.setBreadboardState = function setBreadboardState(newState, wireType)
 {
-    this.breadboard.setState(newState);
+    this.breadboard.setState(newState, wireType);
 };
 
 Tray.prototype.postLoad = function postLoad()
@@ -133,17 +134,19 @@ Tray.prototype.isFromTray = function isFromTray(component)
 
 Tray.prototype.draw = function draw()
 {
-    if (this.breadboard.state != this.state)
+    if (this.breadboard.state != this.state ||
+        this.breadboard.wireType != this.wireType)
     {
         this.selectionWireRenderer.removeMeshes(this.scene);
         this.selectionBusRenderer.removeMeshes(this.scene);
 
         var state = this.state = this.breadboard.state;
-        if (state == Breadboard.state.ADD_WIRE)
+        var wireType = this.wireType = this.breadboard.wireType;
+        if (state == Breadboard.state.ADD_WIRE && wireType == ComponentTypes.WIRE)
         {
             this.selectionWireRenderer.addMeshes(this.scene);
         }
-        else if (state == Breadboard.state.ADD_BUS)
+        else if (state == Breadboard.state.ADD_WIRE && wireType == ComponentTypes.BUS)
         {
             this.selectionBusRenderer.addMeshes(this.scene);
         }
