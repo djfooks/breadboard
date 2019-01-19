@@ -148,15 +148,15 @@ Breadboard.prototype.postLoad = function postLoad()
     this.componentBoxRenderer.addMeshes(scene, feather);
     this.componentRenderer.addMeshes(scene, feather);
 
-    this.selectionWireRenderer.addMeshes(scene, feather);
+    this.selectionWireRenderer.createMeshes(scene, feather);
     this.selectionBusRenderer.addMeshes(scene, feather);
-    this.wireRenderer.addMeshes(scene, feather);
+    this.wireRenderer.createMeshes(scene, feather);
 
     this.busRenderer.addMeshes(scene, feather);
 
     this.selectionLines.addMeshes(scene, feather);
 
-    this.virtualWireRenderer.addMeshes(scene, feather);
+    this.virtualWireRenderer.createMeshes(scene, feather);
 
     this.selectedObjects.postLoad();
     this.tray.postLoad();
@@ -224,6 +224,11 @@ Breadboard.state = {
 };
 
 Breadboard.state.START_STATE = Breadboard.state.ADD_WIRE;
+
+Breadboard.prototype.setState = function setState(newState)
+{
+    this.state = newState;
+};
 
 Breadboard.prototype.disableButtons = function disableButtons()
 {

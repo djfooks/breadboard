@@ -10,9 +10,13 @@ function WireRenderer(renderer, isSelection)
     this.wireEdgeColor = ColorPalette.createRGBColor(color);
 
     this.isSelection = { value: isSelection ? 1.0 : 0.0 };
+
+    this.circleBgMesh = null;
+    this.circleFgMesh = null;
+    this.wireMesh = null;
 }
 
-WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
+WireRenderer.prototype.createMeshes = function createMeshes(scene, feather)
 {
     var wireVertexShader = ShaderManager.get("src/shaders/wire.vert");
     var wireCirclesVertexShader = ShaderManager.get("src/shaders/wirecirclesshader.vert");
@@ -48,8 +52,11 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     });
     this.wireMaterial.transparent = true;
 
-    scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesBgMaterial));
-    scene.add(new THREE.Mesh(this.wireGeometry,   this.wireMaterial));
+    this.circleBgMesh = new THREE.Mesh(this.circleGeometry, this.wireCirclesBgMaterial);
+    this.wireMesh = new THREE.Mesh(this.wireGeometry,   this.wireMaterial);
+
+    scene.add(this.circleBgMesh);
+    scene.add(this.wireMesh);
     if (this.isSelection.value == 0.0)
     {
         this.wireCirclesFgMaterial = new THREE.RawShaderMaterial({
@@ -65,7 +72,29 @@ WireRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             side: THREE.DoubleSide
         });
         this.wireCirclesFgMaterial.transparent = true;
-        scene.add(new THREE.Mesh(this.circleGeometry, this.wireCirclesFgMaterial));
+
+        this.circleFgMesh = new THREE.Mesh(this.circleGeometry, this.wireCirclesFgMaterial);
+        scene.add(this.circleFgMesh);
+    }
+};
+
+WireRenderer.prototype.addMeshes = function addMeshes(scene)
+{
+    scene.add(this.circleBgMesh);
+    scene.add(this.wireMesh);
+    if (this.circleFgMesh)
+    {
+        scene.add(this.circleFgMesh);
+    }
+};
+
+WireRenderer.prototype.removeMeshes = function removeMeshes(scene)
+{
+    scene.remove(this.circleBgMesh);
+    scene.remove(this.wireMesh);
+    if (this.circleFgMesh)
+    {
+        scene.remove(this.circleFgMesh);
     }
 };
 

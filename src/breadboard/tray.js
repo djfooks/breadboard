@@ -13,6 +13,10 @@ function Tray(breadboard)
     this.gameStage.zoomLevel = -53;
     this.gameStage.updateZoom();
 
+    this.addWireHitbox = new Hitbox(0, 0, 2, 1);
+    this.addWireHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_WIRE);
+    this.gameStage.addHitbox(this.addWireHitbox);
+
     this.gameStage.update();
 
     this.wireRenderer = new WireRenderer(breadboard.gameRenderer, false);
@@ -20,14 +24,25 @@ function Tray(breadboard)
     this.componentBoxRenderer = new ComponentBoxRenderer(breadboard.gameRenderer, false);
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
 
+    this.selectionWireRenderer = new WireRenderer(breadboard.gameRenderer, true);
+
     this.resetComponents();
+
+    this.state = Breadboard.state.ADD_WIRE;
 }
+
+Tray.prototype.setBreadboardState = function setBreadboardState(newState)
+{
+    this.breadboard.setState(newState);
+};
 
 Tray.prototype.postLoad = function postLoad()
 {
+    this.selectionWireRenderer.createMeshes(this.scene, this.gameStage.feather);
+
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
-    this.wireRenderer.addMeshes(this.scene, this.gameStage.feather);
+    this.wireRenderer.createMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
 
     function wireHasDotFn(id, x, y)
@@ -36,6 +51,7 @@ Tray.prototype.postLoad = function postLoad()
     }
     this.wireRenderer.updateGeometry(this.wires, this.breadboard, true, wireHasDotFn);
     this.busRenderer.updateGeometry(this.buses, this.breadboard, true, wireHasDotFn);
+    this.selectionWireRenderer.updateGeometry(this.wires, this.breadboard, true, wireHasDotFn);
 
     this.componentBoxRenderer.updateGeometry(this.componentsList);
     this.componentRenderer.updateGeometry(this.componentsList, this, true);
@@ -110,8 +126,19 @@ Tray.prototype.isFromTray = function isFromTray(component)
 
 Tray.prototype.draw = function draw()
 {
-    this.renderer.setScissor(10, 10, this.canvas.width, this.canvas.height);
-    this.renderer.setScissorTest(true);
+    if (this.breadboard.state != this.state)
+    {
+        this.selectionWireRenderer.removeMeshes(this.scene);
+
+        var state = this.state = this.breadboard.state;
+        if (state == Breadboard.state.ADD_WIRE)
+        {
+            this.selectionWireRenderer.addMeshes(this.scene);
+        }
+    }
+
+    this.renderer.setScissor(0, 0, this.canvas.width, this.canvas.height);
+    this.renderer.setScissorTest(false);
     this.renderer.render(this.scene, this.gameStage.camera);
 
     this.gameStage.update();

@@ -90,7 +90,7 @@ SelectedObjectSet.prototype.postLoad = function postLoad()
 {
     this.componentBoxRenderer.addMeshes(this.scene, this.feather);
     this.componentRenderer.addMeshes(this.scene, this.feather);
-    this.wireRenderer.addMeshes(this.scene, this.feather);
+    this.wireRenderer.createMeshes(this.scene, this.feather);
     this.busRenderer.addMeshes(this.scene, this.feather);
     this.textRenderer.addMeshes(this.scene, this.feather);
 };
