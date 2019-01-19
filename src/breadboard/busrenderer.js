@@ -10,9 +10,12 @@ function BusRenderer(renderer, isSelection)
     this.color = ColorPalette.createRGBColor(ColorPalette.base.bus);
 
     this.isSelection = { value: isSelection ? 1.0 : 0.0 };
+
+    this.busMesh = null;
+    this.diamondMesh = null;
 }
 
-BusRenderer.prototype.addMeshes = function addMeshes(scene, feather)
+BusRenderer.prototype.createMeshes = function createMeshes(scene, feather)
 {
     this.busMaterial = new THREE.RawShaderMaterial({
         uniforms: {
@@ -39,8 +42,22 @@ BusRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     });
     this.busDiamondMaterial.transparent = true;
 
-    scene.add(new THREE.Mesh(this.busGeometry,   this.busMaterial));
-    scene.add(new THREE.Mesh(this.diamondGeometry, this.busDiamondMaterial));
+    this.busMesh = new THREE.Mesh(this.busGeometry, this.busMaterial);
+    this.diamondMesh = new THREE.Mesh(this.diamondGeometry, this.busDiamondMaterial);
+    scene.add(this.busMesh);
+    scene.add(this.diamondMesh);
+};
+
+BusRenderer.prototype.addMeshes = function addMeshes(scene)
+{
+    scene.add(this.busMesh);
+    scene.add(this.diamondMesh);
+};
+
+BusRenderer.prototype.removeMeshes = function removeMeshes(scene)
+{
+    scene.remove(this.busMesh);
+    scene.remove(this.diamondMesh);
 };
 
 BusRenderer.prototype.updateGeometry = function updateGeometry(buses, breadboard, isTray, hasDotFn)

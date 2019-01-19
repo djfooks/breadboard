@@ -13,9 +13,13 @@ function Tray(breadboard)
     this.gameStage.zoomLevel = -53;
     this.gameStage.updateZoom();
 
-    this.addWireHitbox = new Hitbox(0, 0, 2, 1);
+    this.addWireHitbox = new Hitbox(-0.5, -0.5, 2.5, 0.5);
     this.addWireHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_WIRE);
     this.gameStage.addHitbox(this.addWireHitbox);
+
+    this.addBusHitbox = new Hitbox(-0.5, 0.5, 2.5, 1.5);
+    this.addBusHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_BUS);
+    this.gameStage.addHitbox(this.addBusHitbox);
 
     this.gameStage.update();
 
@@ -25,10 +29,11 @@ function Tray(breadboard)
     this.componentRenderer = new ComponentRenderer(breadboard.gameRenderer);
 
     this.selectionWireRenderer = new WireRenderer(breadboard.gameRenderer, true);
+    this.selectionBusRenderer = new BusRenderer(breadboard.gameRenderer, true);
 
     this.resetComponents();
 
-    this.state = Breadboard.state.ADD_WIRE;
+    this.state = 0;
 }
 
 Tray.prototype.setBreadboardState = function setBreadboardState(newState)
@@ -39,11 +44,12 @@ Tray.prototype.setBreadboardState = function setBreadboardState(newState)
 Tray.prototype.postLoad = function postLoad()
 {
     this.selectionWireRenderer.createMeshes(this.scene, this.gameStage.feather);
+    this.selectionBusRenderer.createMeshes(this.scene, this.gameStage.feather);
 
     this.componentBoxRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.createMeshes(this.scene, this.gameStage.feather);
-    this.busRenderer.addMeshes(this.scene, this.gameStage.feather);
+    this.busRenderer.createMeshes(this.scene, this.gameStage.feather);
 
     function wireHasDotFn(id, x, y)
     {
@@ -52,6 +58,7 @@ Tray.prototype.postLoad = function postLoad()
     this.wireRenderer.updateGeometry(this.wires, this.breadboard, true, wireHasDotFn);
     this.busRenderer.updateGeometry(this.buses, this.breadboard, true, wireHasDotFn);
     this.selectionWireRenderer.updateGeometry(this.wires, this.breadboard, true, wireHasDotFn);
+    this.selectionBusRenderer.updateGeometry(this.buses, this.breadboard, true, wireHasDotFn);
 
     this.componentBoxRenderer.updateGeometry(this.componentsList);
     this.componentRenderer.updateGeometry(this.componentsList, this, true);
@@ -129,11 +136,16 @@ Tray.prototype.draw = function draw()
     if (this.breadboard.state != this.state)
     {
         this.selectionWireRenderer.removeMeshes(this.scene);
+        this.selectionBusRenderer.removeMeshes(this.scene);
 
         var state = this.state = this.breadboard.state;
         if (state == Breadboard.state.ADD_WIRE)
         {
             this.selectionWireRenderer.addMeshes(this.scene);
+        }
+        else if (state == Breadboard.state.ADD_BUS)
+        {
+            this.selectionBusRenderer.addMeshes(this.scene);
         }
     }
 

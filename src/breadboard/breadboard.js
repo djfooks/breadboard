@@ -149,10 +149,10 @@ Breadboard.prototype.postLoad = function postLoad()
     this.componentRenderer.addMeshes(scene, feather);
 
     this.selectionWireRenderer.createMeshes(scene, feather);
-    this.selectionBusRenderer.addMeshes(scene, feather);
+    this.selectionBusRenderer.createMeshes(scene, feather);
     this.wireRenderer.createMeshes(scene, feather);
 
-    this.busRenderer.addMeshes(scene, feather);
+    this.busRenderer.createMeshes(scene, feather);
 
     this.selectionLines.addMeshes(scene, feather);
 
