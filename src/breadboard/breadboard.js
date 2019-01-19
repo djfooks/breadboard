@@ -17,6 +17,7 @@ function Breadboard(stage, top, left, cols, rows)
     this.debugDrawList = [];
 
     this.wireHasDot = this.wireHasDotFn.bind(this);
+    this.virtualWireHasDot = this.virtualWireHasDotFn.bind(this);
 
     this.stage.onMouseDown = this.onMouseDown.bind(this);
     this.stage.onMouseUp = this.onMouseUp.bind(this);
@@ -63,6 +64,9 @@ function Breadboard(stage, top, left, cols, rows)
     this.selectionWireRenderer = new WireRenderer(this.gameRenderer, true);
     this.selectionBusRenderer = new BusRenderer(this.gameRenderer, true);
     this.selectionGeometryDirty = true;
+
+    this.virtualWireRenderer = new WireRenderer(this.gameRenderer);
+    ColorPalette.setColorRGB(ColorPalette.base.virtualWire, this.virtualWireRenderer.wireEdgeColor.value);
 
     this.debugDrawHitboxes = false;
     this.debugDrawConnections = false;
@@ -151,6 +155,8 @@ Breadboard.prototype.postLoad = function postLoad()
     this.busRenderer.addMeshes(scene, feather);
 
     this.selectionLines.addMeshes(scene, feather);
+
+    this.virtualWireRenderer.addMeshes(scene, feather);
 
     this.selectedObjects.postLoad();
     this.tray.postLoad();
@@ -560,6 +566,27 @@ Breadboard.prototype.wireHasDotFn = function wireHasDotFn(id, x, y)
     return connection.hasDot;
 };
 
+Breadboard.prototype.virtualWireHasDotFn = function virtualWireHasDotFn(id, x, y)
+{
+    var virtualWires = this.virtualWires;
+    var i;
+    for (i = 0; i < virtualWires.length; i += 1)
+    {
+        var wire = virtualWires[i];
+        if (wire.id0 == id || wire.id1 == id)
+        {
+            return true;
+        }
+    }
+
+    var connection = this.findConnection(id);
+    if (connection)
+    {
+        return connection.hasDot;
+    }
+    return false;
+};
+
 Breadboard.prototype.draw = function draw()
 {
     var stage = this.stage;
@@ -588,6 +615,12 @@ Breadboard.prototype.draw = function draw()
 
         this.gameRenderer.createValuesTexture();
         this.geometryDirty = false;
+    }
+
+    if (this.virtualWiresGeometryDirty)
+    {
+        this.virtualWireRenderer.updateGeometry(this.virtualWires, this, true, this.virtualWireHasDot);
+        this.virtualWiresGeometryDirty = false;
     }
 
     this.updateSelectionGeometry();
@@ -1378,6 +1411,7 @@ Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
         }
     }
     this.selectedObjects.clear();
+    this.selectionGeometryDirty = true;
 
     this.state = Breadboard.state.MOVE;
     this.disableButtons();
@@ -1536,6 +1570,7 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
     if (virtual)
     {
         this.virtualWires.push(wire);
+        this.virtualWiresGeometryDirty = true;
     }
     else
     {
@@ -1621,11 +1656,14 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
     if (!this.validPosition(p))
     {
         this.virtualWires = [];
+        this.virtualWiresGeometryDirty = true;
         return;
     }
     if (this.state === Breadboard.state.PLACING_WIRE)
     {
         this.virtualWires = [];
+        this.virtualWiresGeometryDirty = true;
+
         var wireStart = this.wireStart;
         if (p[0] === wireStart[0] &&
             p[1] === wireStart[1])

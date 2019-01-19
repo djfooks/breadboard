@@ -6,6 +6,8 @@ var ColorPalette = {
         selection: [1.0, 1.0, 0.0],
         selectionBox: [0.7, 0.7, 0.0, 0.7],
 
+        virtualWire: [0.4, 0.4, 0.4],
+
         box: [0.0, 0.0, 0.0],
         inputNode: [0.0, 1.0, 0.0],
         outputNode: [0.0, 0.0, 0.0],
