@@ -51,7 +51,6 @@ SwitchComponent.prototype.render = function render(renderer)
 SwitchComponent.prototype.move = function move(breadboard, p, rotation)
 {
     this.rotation = rotation;
-    this.p0 = [p[0], p[1]];
     var matrix = RotationMatrix[this.rotation];
 
     this.p0 = [p[0], p[1]];

@@ -40,14 +40,17 @@ void main()
     float valueP1 = texture2D(texture, vec2((p1.z + 0.5) / textureSize, 0.5)).x;
     vConnected = texture2D(texture, vec2((signal + 0.5) / textureSize, 0.5)).x;
 
-    valueBase = sign(valueBase + valueP1 * vConnected + valueP0 * (1.0 - vConnected));
-    valueP0 = sign(valueP0 + valueBase * (1.0 - vConnected));
-    valueP1 = sign(valueP1 + valueBase * vConnected);
-
     vP = p;
-    vBase = vec3(base.xy, valueBase);
-    vP0 = vec3(p0.xy, valueP0);
-    vP1 = vec3(p1.xy, valueP1);
+    vBase.xy = base.xy;
+    vP0.xy = p0.xy;
+    vP1.xy = p1.xy;
+
+    float is3Pin = length(vBase - vP0);
+    float isSimpleSwitch = 1.0 - is3Pin;
+
+    vBase.z = sign(valueBase + valueP1 * vConnected + valueP0 * (1.0 - vConnected));
+    vP0.z = sign(valueP0 + (isSimpleSwitch * vConnected * valueP1) + (valueBase * (is3Pin * (1.0 - vConnected))));
+    vP1.z = sign(valueP1 + (isSimpleSwitch * vConnected * valueP0) + (valueBase * (is3Pin * (      vConnected))));
 
     vec4 mvPosition = vec4(p, 0.0, 1.0);
     gl_Position = projectionMatrix * mvPosition;
