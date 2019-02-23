@@ -103,68 +103,6 @@ BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer
     componentRenderer.addText(this.settingP, this.busKey, (breadboard.focusComponent === this) ? 255 : 0);
 };
 
-BusInputComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
-{
-    var rotationMatrix = RotationMatrix[this.rotation];
-
-    var busP = this.busP;
-    var settingP = this.settingP;
-    var signalP = this.signalP;
-
-    if (!p)
-    {
-        p = this.p0;
-    }
-    else
-    {
-        busP = p;
-        settingP = AddTransformedVector(p, rotationMatrix, [0, 1]);
-        signalP = AddTransformedVector(p, rotationMatrix, [0, 2]);
-    }
-
-    var radius = Component.connectionBgRadius;
-    ctx.strokeStyle = bgColor;
-
-    var diamondSize = 0.33;
-
-    ctx.lineCap = "square";
-    ctx.fillStyle = "#FFFFFF";
-    ctx.lineWidth = 0.1;
-    ctx.beginPath();
-    ctx.moveTo(busP[0] + diamondSize, busP[1]);
-    ctx.lineTo(busP[0], busP[1] + diamondSize);
-    ctx.lineTo(busP[0] - diamondSize, busP[1]);
-    ctx.lineTo(busP[0], busP[1] - diamondSize);
-    ctx.lineTo(busP[0] + diamondSize, busP[1]);
-    ctx.stroke();
-    ctx.fill();
-    ctx.lineCap = "butt";
-
-    ctx.fillStyle = "#00FF00"; // green
-    ctx.beginPath();
-    ctx.arc(signalP[0], signalP[1], radius, 0, Math.PI * 2.0);
-    ctx.fill();
-
-    Component.containerPath(ctx, bgColor, busP, signalP);
-    ctx.stroke();
-
-    ctx.fillStyle = "#FFFFFF";
-    Component.containerPath(ctx, bgColor, settingP, settingP);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = hasFocus ? "#FF0000" : bgColor;
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.font = "bold 0.9px Courier New";
-    ctx.fillText(this.busKey, settingP[0], settingP[1]);
-
-    var color;
-    var valueSignal = drawOptions.getConnectionValue(this.signalId);
-
-    Component.drawFgNode(ctx, fgColor, valueSignal, signalP);
-};
-
 BusInputComponent.prototype.reset = function reset()
 {
     this.bus = null;

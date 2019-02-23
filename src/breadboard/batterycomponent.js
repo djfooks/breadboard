@@ -85,67 +85,6 @@ BatteryComponent.prototype.addGeometry = function addGeometry(componentRenderer,
     componentRenderer.batterySymbols.index += 1;
 };
 
-BatteryComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
-{
-    var p0 = this.p0;
-    var p1 = this.p1;
-
-    var rotationMatrix = RotationMatrix[this.rotation];
-    if (!p)
-    {
-        p = this.p0;
-    }
-    else
-    {
-        p0 = p;
-        p1 = AddTransformedVector(p, rotationMatrix, [0, 1]);
-    }
-
-    var radius = Component.connectionBgRadius;
-    ctx.fillStyle = bgColor;
-
-    ctx.beginPath();
-    ctx.arc(p1[0], p1[1], radius, 0, Math.PI * 2.0);
-    ctx.fill();
-
-    ctx.strokeStyle = bgColor;
-    ctx.fillStyle = Wire.getColor(1);
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.lineWidth = 0.05;
-    var offsetX = 0.25;
-    var offsetY = 0.3;
-    var bump = 0.4;
-
-    var d0 = AddTransformedVector(p, rotationMatrix, [ offsetX,        offsetY]);
-    var d1 = AddTransformedVector(p, rotationMatrix, [ offsetX,       -offsetY]);
-    var d2 = AddTransformedVector(p, rotationMatrix, [-offsetX,       -offsetY]);
-    var d3 = AddTransformedVector(p, rotationMatrix, [-offsetX,        offsetY]);
-    var d4 = AddTransformedVector(p, rotationMatrix, [-offsetX * 0.5,  offsetY]);
-    var d5 = AddTransformedVector(p, rotationMatrix, [-offsetX * 0.5,  bump]);
-    var d6 = AddTransformedVector(p, rotationMatrix, [ offsetX * 0.5,  bump]);
-    var d7 = AddTransformedVector(p, rotationMatrix, [ offsetX * 0.5,  offsetY]);
-    var d8 = AddTransformedVector(p, rotationMatrix, [ offsetX,        offsetY]);
-
-    ctx.moveTo(d0[0], d0[1]);
-    ctx.lineTo(d1[0], d1[1]);
-    ctx.lineTo(d2[0], d2[1]);
-    ctx.lineTo(d3[0], d3[1]);
-    ctx.lineTo(d4[0], d4[1]);
-    ctx.lineTo(d5[0], d5[1]);
-    ctx.lineTo(d6[0], d6[1]);
-    ctx.lineTo(d7[0], d7[1]);
-    ctx.lineTo(d8[0], d8[1]);
-    ctx.fill();
-    ctx.stroke();
-    ctx.lineCap = "butt";
-
-    Component.containerPath(ctx, bgColor, p0, p1);
-    ctx.stroke();
-
-    Component.drawFgNode(ctx, null, 1, p1);
-};
-
 BatteryComponent.prototype.getConnections = function getConnections()
 {
     return [this.id0, this.id1];

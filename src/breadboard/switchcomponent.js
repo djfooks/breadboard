@@ -105,64 +105,6 @@ SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard,
     return isValid;
 };
 
-SwitchComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
-{
-    var p0 = this.p0;
-    var p1 = this.p1;
-
-    if (!p)
-    {
-        p = this.p0;
-    }
-    else
-    {
-        var rotationMatrix = RotationMatrix[this.rotation];
-        p0 = p;
-        p1 = AddTransformedVector(p, rotationMatrix, [0, 1]);
-    }
-
-    var radius = Component.connectionBgRadius;
-    ctx.fillStyle = bgColor;
-
-    ctx.beginPath();
-    ctx.arc(p0[0], p0[1], radius, 0, Math.PI * 2.0);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(p1[0], p1[1], radius, 0, Math.PI * 2.0);
-    ctx.fill();
-
-    ctx.strokeStyle = bgColor;
-    if (this.connected)
-    {
-        ctx.beginPath();
-        ctx.lineWidth = 0.3;
-        ctx.moveTo(p0[0], p0[1]);
-        ctx.lineTo(p1[0], p1[1]);
-        ctx.stroke();
-    }
-
-    Component.containerPath(ctx, bgColor, p0, p1);
-    ctx.stroke();
-
-    var value0 = drawOptions.getConnectionValue(this.id0);
-    var value1 = drawOptions.getConnectionValue(this.id1);
-
-    Component.drawFgNode(ctx, fgColor, value0, p0);
-    Component.drawFgNode(ctx, fgColor, value1, p1);
-
-    ctx.beginPath();
-    if (this.connected)
-    {
-        var color = fgColor || Wire.getColor(Math.min(value0, value1));
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 0.2;
-        ctx.moveTo(p0[0], p0[1]);
-        ctx.lineTo(p1[0], p1[1]);
-        ctx.stroke();
-    }
-};
-
 SwitchComponent.prototype.toggle = function toggle()
 {
     this.connected = !this.connected;

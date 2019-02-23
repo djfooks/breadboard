@@ -7,6 +7,7 @@ https://djfooks.github.io/breadboard/
 
 Change log:
 
+- Switch all rendering from canvas2d to WebGL for much better performance.
 - Fix for buses sometimes not connecting in the middle of wires.
 - Added Pause/Break key to pause simulation and press space (or right) key to step simulation once.
 - Added focus to text entry on components.

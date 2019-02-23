@@ -86,16 +86,6 @@ Wire.prototype.isWire = function isWire()
     return true;
 };
 
-Wire.prototype.drawSelection = function drawSelection(ctx, color)
-{
-    ctx.lineWidth = this.getWidth() + 0.1;
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(this.x0, this.y0);
-    ctx.lineTo(this.x1, this.y1);
-    ctx.stroke();
-};
-
 Wire.prototype.getPosition = function getPosition()
 {
     return [this.x0, this.y0];

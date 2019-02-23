@@ -80,54 +80,6 @@ DiodeComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
     componentRenderer.diodeSymbols.index += 1;
 };
 
-DiodeComponent.prototype.draw = function draw(drawOptions, ctx, p, bgColor, fgColor, hasFocus)
-{
-    var p0 = this.p0;
-    var p1 = this.p1;
-
-    var rotationMatrix = RotationMatrix[this.rotation];
-    if (!p)
-    {
-        p = this.p0;
-    }
-    else
-    {
-        p0 = p;
-        p1 = AddTransformedVector(p, rotationMatrix, [0, 1]);
-    }
-
-    var radius = Component.connectionBgRadius;
-    ctx.fillStyle = bgColor;
-
-    ctx.beginPath();
-    ctx.arc(p0[0], p0[1], radius, 0, Math.PI * 2.0);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(p1[0], p1[1], radius, 0, Math.PI * 2.0);
-    ctx.fill();
-
-    ctx.lineWidth = 0.05;
-    ctx.strokeStyle = bgColor;
-    var arrowHead0 = AddTransformedVector(p0, rotationMatrix, [0, 0.65]);
-    var arrowLeft0 = AddTransformedVector(p0, rotationMatrix, [-Component.border, 0.15]);
-    var arrowRight0 = AddTransformedVector(p0, rotationMatrix, [Component.border, 0.15]);
-    ctx.beginPath();
-    ctx.moveTo(arrowLeft0[0], arrowLeft0[1]);
-    ctx.lineTo(arrowHead0[0], arrowHead0[1]);
-    ctx.lineTo(arrowRight0[0], arrowRight0[1]);
-    ctx.stroke();
-
-    Component.containerPath(ctx, bgColor, p0, p1);
-    ctx.stroke();
-
-    var value0 = drawOptions.getConnectionValue(this.id0);
-    var value1 = drawOptions.getConnectionValue(this.id1);
-
-    Component.drawFgNode(ctx, fgColor, value0, p0);
-    Component.drawFgNode(ctx, fgColor, value1, p1);
-};
-
 DiodeComponent.prototype.getConnections = function getConnections()
 {
     return [this.id0, this.id1];

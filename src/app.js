@@ -76,14 +76,6 @@ var App = function ()
     document.body.onmousedown = function(e) { if (e.button === 1) return false; };
 
     this.loading = true;
-    // TextureManager.request("jack-plug.png");
-    // TextureManager.request("jack-plug-enabled.png");
-    // TextureManager.request("cancel.png");
-    // TextureManager.request("cancel-enabled.png");
-    // TextureManager.request("move.png");
-    // TextureManager.request("move-enabled.png");
-    // TextureManager.request("truck.png");
-    // TextureManager.request("truck-enabled.png");
 
     function mipmaps(texture)
     {
@@ -166,97 +158,6 @@ App.prototype.update = function update()
 App.prototype.updateGame = function updateGame()
 {
 
-};
-
-App.prototype.updateCircles = function updateCircles(time)
-{
-    var p = this.breadboard.mouseP || [0,0];
-    var x = p[0];
-    var y = p[1];
-
-
-    x = (x / this.renderer.domElement.clientWidth) * 2 - 1;
-    y = -((y / this.renderer.domElement.clientHeight) * 2 - 1);
-
-    var v3 = new THREE.Vector3(x, y, 0.0);
-    v3 = v3.applyMatrix4(this.breadboard.gameStage.invProjectionMatrix);
-
-    x = v3.x;
-    y = v3.y;
-
-    var r = 0.5;
-
-    var circles = this.circles;
-    circles[0]  = x;
-    circles[1]  = y;
-    circles[2]  = r;
-    circles[3]  = x;
-    circles[4]  = y;
-    circles[5]  = r;
-    circles[6]  = x;
-    circles[7]  = y;
-    circles[8]  = r;
-    circles[9]  = x;
-    circles[10] = y;
-    circles[11] = r;
-    circles[12] = x;
-    circles[13] = y;
-    circles[14] = r;
-    circles[15] = x;
-    circles[16] = y;
-    circles[17] = r;
-
-    var circlesAttribute = this.circleGeometry.getAttribute('circle');
-    circlesAttribute.dynamic = true;
-    circlesAttribute.needsUpdate = true;
-};
-
-App.prototype.addCircles = function addCircles()
-{
-    var x = 10.0;
-    var y = 10.0;
-    var r = 1.0;
-
-    var uvs = new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0
-    ]);
-
-    this.circles = new Float32Array([
-        x, y, r,
-        x, y, r,
-        x, y, r,
-
-        x, y, r,
-        x, y, r,
-        x, y, r
-    ]);
-
-    var circleGeometry = this.circleGeometry = new THREE.BufferGeometry();
-    circleGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    circleGeometry.addAttribute('circle', new THREE.BufferAttribute(this.circles, 3));
-    circleGeometry.setDrawRange(0, 6);
-
-    circleGeometry.boundingSphere = new THREE.Sphere();
-    circleGeometry.boundingSphere.radius = 99999;
-
-    this.circleMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            feather: this.breadboard.gameStage.feather
-        },
-        vertexShader: ShaderManager.get("src/shaders/circle.vert"),
-        fragmentShader: ShaderManager.get("src/shaders/circle.frag"),
-        side: THREE.DoubleSide
-    });
-    this.circleMaterial.transparent = true;
-
-    var mesh = new THREE.Mesh(circleGeometry, this.circleMaterial);
-    this.scene.add(mesh);
 };
 
 App.prototype.postLoad = function postLoad()
