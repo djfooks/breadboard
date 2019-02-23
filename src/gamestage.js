@@ -42,6 +42,13 @@ function GameStage(canvas, minX, minY, maxX, maxY)
     this.debugClipping = false;
 }
 
+GameStage.prototype.setView = function setView(x, y, zoom)
+{
+    this.view = [x, y];
+    this.zoomLevel = zoom;
+    this.updateZoom();
+}
+
 GameStage.prototype.updateCamera = function updateCamera()
 {
     var canvas = this.canvas;
@@ -77,6 +84,10 @@ GameStage.prototype.scroll = function scroll(delta)
 GameStage.prototype.update = function update(deltaTime)
 {
     this.zoomVelocity *= 0.8;
+    if (Math.abs(this.zoomVelocity) < 0.001)
+    {
+        this.zoomVelocity = 0.0;
+    }
 
     var oldZoom = this.zoom;
     this.zoomLevel += this.zoomVelocity;

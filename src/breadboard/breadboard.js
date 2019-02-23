@@ -20,6 +20,9 @@ function Breadboard(stage, top, left, cols, rows)
     this.gameStage = new GameStage(canvas, 10, 10, canvas.width - 240, canvas.height - 10);
     this.stage.addHitbox(this.gameStage.gameStageHitbox);
 
+    this.prevView = [0, 0]
+    this.prevZoomLevel = 0;
+
     this.canvasScene = new THREE.Scene();
     this.canvasCamera = new THREE.OrthographicCamera(0, canvas.width, 0, canvas.height, 0, 100);
     this.canvasCamera.position.z = 100;
@@ -174,6 +177,9 @@ Breadboard.prototype.setState = function setState(state, wireType)
 Breadboard.prototype.toJson = function toJson()
 {
     var out = {
+        viewX: this.gameStage.view[0],
+        viewY: this.gameStage.view[1],
+        viewZoom: this.gameStage.zoomLevel,
         cols: this.cols,
         rows: this.rows,
         wires: [],
@@ -206,6 +212,11 @@ Breadboard.prototype.toJson = function toJson()
 Breadboard.createFromJson = function createFromJson(stage, top, left, json)
 {
     var breadboard = new Breadboard(stage, top, left, 1001, 1001);
+
+    if (json.viewZoom)
+    {
+        breadboard.gameStage.setView(json.viewX, json.viewY, json.viewZoom);
+    }
 
     var i;
     var w;
@@ -289,6 +300,19 @@ Breadboard.prototype.iterateBatteryPulsePaths = function iterateBatteryPulsePath
 Breadboard.prototype.update = function update()
 {
     this.frame += 1;
+
+    if (this.gameStage.view[0] != this.prevView[0] ||
+        this.gameStage.view[1] != this.prevView[1] ||
+        this.gameStage.zoomLevel != this.prevZoomLevel)
+    {
+        if (this.gameStage.zoomVelocity == 0)
+        {
+            this.prevView[0] = this.gameStage.view[0];
+            this.prevView[1] = this.gameStage.view[1];
+            this.prevZoomLevel = this.gameStage.zoomLevel;
+            this.dirtySave = true;
+        }
+    }
 
     if (!this.focusComponent)
     {
@@ -689,8 +713,6 @@ Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
     this.selectionGeometryDirty = true;
 
     this.state = Breadboard.state.MOVE;
-    this.disableButtons();
-    this.enableButton(this.moveButton);
 
     this.mouseDownComponent = null;
 };
@@ -1130,8 +1152,6 @@ Breadboard.prototype.onComponentMouseUp = function onComponentMouseUp(p, button)
     }
 
     this.state = Breadboard.state.MOVE;
-    this.disableButtons();
-    this.enableButton(this.moveButton);
     return true;
 };
 
@@ -1159,8 +1179,6 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
 
                 if (fromTray)
                 {
-                    this.disableButtons();
-                    this.enableButton(this.moveButton);
                     selectedObjects.clear();
                     selectedObj = selectedObjects.addObject(mouseDownComponent.clone(this));
                     selectedObj.grabbedPosition = mouseDownComponent.getPosition();
