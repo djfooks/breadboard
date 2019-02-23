@@ -6,6 +6,11 @@ function GameStage(canvas, minX, minY, maxX, maxY)
     this.maxX = maxX;
     this.maxY = maxY;
 
+    this.center = [
+        (this.minX + this.maxX) * 0.5,
+        (this.minY + this.maxY) * 0.5
+    ];
+
     this.gameMin = [0.0, 0.0];
     this.gameMax = [0.0, 0.0];
 
@@ -99,16 +104,20 @@ GameStage.prototype.update = function update(deltaTime)
     this.updateZoom();
 
     var gameMouse = this.toView(this.mousePos);
+    var panelCenter = this.toView(this.center);
+
+    var view = this.view;
 
     // keep whatever is under the mouse stationary during the zoom
     var lerp = oldZoom / this.zoom;
-    this.view[0] = this.view[0] * lerp + gameMouse[0] * (1 - lerp);
-    this.view[1] = this.view[1] * lerp + gameMouse[1] * (1 - lerp);
+    view[0] = view[0] * lerp + gameMouse[0] * (1 - lerp);
+    view[1] = view[1] * lerp + gameMouse[1] * (1 - lerp);
 
     // move the view slightly so that whatever is under the mouse moves to the center of the game space
     var centerVelocity = Math.abs(this.zoomVelocity);
-    this.view[0] += (gameMouse[0] - this.view[0]) * centerVelocity * (this.zoomVelocity < 0 ? 0.1 : 0.03);
-    this.view[1] += (gameMouse[1] - this.view[1]) * centerVelocity * (this.zoomVelocity < 0 ? 0.1 : 0.03);
+    var speed = centerVelocity * (this.zoomVelocity < 0 ? 0.1 : 0.03);
+    view[0] += (gameMouse[0] - panelCenter[0]) * speed;
+    view[1] += (gameMouse[1] - panelCenter[1]) * speed;
 
     if (this.debugClipping)
     {
