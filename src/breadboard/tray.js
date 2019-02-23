@@ -9,15 +9,25 @@ function Tray(breadboard)
 
     this.gameStage = new GameStage(this.canvas, 0, 0, 99999, 99999);
 
-    this.gameStage.view = [-10, 12];
+    this.gameStage.view = [-10, 11.85];
     this.gameStage.zoomLevel = -53;
     this.gameStage.updateZoom();
 
-    this.addWireHitbox = new Hitbox(-0.5, -0.5, 2.5, 0.5);
+    this.hoverButtonIndex = -1;
+    var buttonHalfHeight = this.buttonHalfHeight = 0.4 + Component.border;
+
+    this.selectHitbox = new Hitbox(-0.5, 0 - buttonHalfHeight, 2.5, 0 + buttonHalfHeight);
+    this.selectHitbox.onMouseMove = this.hoverButton.bind(this, 0);
+    this.selectHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.MOVE);
+    this.gameStage.addHitbox(this.selectHitbox);
+
+    this.addWireHitbox = new Hitbox(-0.5, 2 - buttonHalfHeight, 2.5, 2 + buttonHalfHeight);
+    this.addWireHitbox.onMouseMove = this.hoverButton.bind(this, 1);
     this.addWireHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_WIRE, ComponentTypes.WIRE);
     this.gameStage.addHitbox(this.addWireHitbox);
 
-    this.addBusHitbox = new Hitbox(-0.5, 0.5, 2.5, 1.5);
+    this.addBusHitbox = new Hitbox(-0.5, 4 - buttonHalfHeight, 2.5, 4 + buttonHalfHeight);
+    this.addBusHitbox.onMouseMove = this.hoverButton.bind(this, 2);
     this.addBusHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.ADD_WIRE, ComponentTypes.BUS);
     this.gameStage.addHitbox(this.addBusHitbox);
 
@@ -31,6 +41,15 @@ function Tray(breadboard)
     this.selectionWireRenderer = new WireRenderer(breadboard.gameRenderer, true);
     this.selectionBusRenderer = new BusRenderer(breadboard.gameRenderer, true);
 
+    this.buttonRenderers = [];
+    var i;
+    for (i = 0; i < 3; i += 1)
+    {
+        this.buttonRenderers[i] = new RectangleRenderer(breadboard.gameRenderer, false);
+    }
+
+    this.createCursor();
+
     this.resetComponents();
 
     this.state = 0;
@@ -42,8 +61,135 @@ Tray.prototype.setBreadboardState = function setBreadboardState(newState, wireTy
     this.breadboard.setState(newState, wireType);
 };
 
+Tray.prototype.getSelectedButton = function getSelectedButton()
+{
+    var state = this.breadboard.state;
+    if (state == Breadboard.state.ADD_WIRE || state == Breadboard.state.PLACING_WIRE)
+    {
+        return (this.breadboard.wireType == ComponentTypes.WIRE) ? 1 : 2;
+    }
+    else
+    {
+        return 0;
+    }
+};
+
+Tray.prototype.updateButtons = function updateButtons()
+{
+    var time = new Date().getTime() / 1000;
+
+    var hoverButton = this.hoverButtonIndex;
+    var selectedButton = this.getSelectedButton();
+    var buttonRenderers = this.buttonRenderers;
+    var buttonRenderersLength = buttonRenderers.length;
+    var i;
+    for (i = 0; i < buttonRenderersLength; i += 1)
+    {
+        var buttonRenderer = buttonRenderers[i];
+        var hovering = (i == hoverButton);
+
+        var color;
+        if (hovering)
+        {
+            var t = time - Math.trunc(time);
+            t = t * 2.0;
+            if (t > 1.0)
+            {
+                t = 2.0 - t;
+            }
+            var scale = 1.0 - (t * 0.2);
+            var sampleColor = ColorPalette.base.buttonHover;
+            var color = [
+                sampleColor[0] * scale,
+                sampleColor[1] * scale,
+                sampleColor[2] * scale
+            ];
+            scale = 1.0 + (t * 0.2);
+            buttonRenderer.border.value = Component.border * scale;
+        }
+        else
+        {
+            color = (i == selectedButton) ? ColorPalette.base.buttonSelected : ColorPalette.base.white;
+            buttonRenderer.border.value = Component.border;
+        }
+
+        ColorPalette.setColorRGB(color, buttonRenderer.fillColor.value);
+    }
+}
+
+Tray.prototype.hoverButton = function hoverButton(index)
+{
+    this.hoverButtonIndex = index;
+};
+
+Tray.prototype.createCursor = function createCursor()
+{
+    // var geometry = new THREE.Geometry();
+    // var material = new THREE.LineBasicMaterial( { color: ColorPalette.createTHREEColor(ColorPalette.base.cursor) } );
+    // var selectionGeometry = new THREE.Geometry();
+    // var selectionMaterial = new THREE.LineBasicMaterial( { linewidth: 1, color: ColorPalette.createTHREEColor(ColorPalette.base.selection) } );
+
+    // var offset = [1.25, 3];
+    // var selectionOffset = [1.27, 2.95];
+    // var scale = 0.6;
+    // var selectionScale = 0.73;
+
+    // function addVertex(x, y)
+    // {
+    //     geometry.vertices.push(new THREE.Vector3( offset[0] + x * scale, offset[1] - y * scale, 0.1) );
+    //     selectionGeometry.vertices.push(new THREE.Vector3( selectionOffset[0] + x * selectionScale, selectionOffset[1] - y * selectionScale, 0) );
+    // }
+
+    // addVertex(sx, sy);
+    // addVertex(-0.7,  -0.74);
+    // addVertex(-0.25, -0.34);
+    // addVertex(0.25, -1.22);
+    // addVertex(0.54, -1.01);
+    // addVertex(0.05, -0.15);
+    // addVertex(0.73, -0.15);
+    // addVertex(sx, sy);
+
+    // this.cursorMesh = new THREE.Line( geometry, material );
+    // this.selectionCursorMesh = new THREE.Line( selectionGeometry, selectionMaterial );
+
+    this.cursorRenderer = new LineRenderer(this.breadboard.gameRenderer, ColorPalette.base.cursor, "src/shaders/roundedline.vert", "src/shaders/roundedline.frag");
+
+    var scale = 0.55;
+    function transformX(x)
+    {
+        return x * scale + 1.05;
+    }
+    function transformY(y)
+    {
+        return y * scale + 0.0;
+    }
+
+    var sx = -0.7; var sy = -1.0;
+    this.cursorRenderer.moveTo(transformX(sx),   transformY(sy));
+    this.cursorRenderer.lineTo(transformX(-0.7), transformY(0.74));
+    this.cursorRenderer.lineTo(transformX(-0.25),transformY(0.34));
+    this.cursorRenderer.lineTo(transformX(0.25), transformY(1.22));
+    this.cursorRenderer.lineTo(transformX(0.54), transformY(1.01));
+    this.cursorRenderer.lineTo(transformX(0.05), transformY(0.15));
+    this.cursorRenderer.lineTo(transformX(0.73), transformY(0.15));
+    this.cursorRenderer.lineTo(transformX(sx),   transformY(sy));
+    this.cursorRenderer.updateGeometry();
+};
+
 Tray.prototype.postLoad = function postLoad()
 {
+    var buttonRenderersLength = this.buttonRenderers.length;
+    var i;
+    for (i = 0; i < buttonRenderersLength; i += 1)
+    {
+        this.buttonRenderers[i].addMeshes(this.scene, this.gameStage.feather);
+    }
+
+    var buttonHalfHeight = this.buttonHalfHeight - Component.border;
+    this.buttonRenderers[0].updateGeometry([{p0: [0, 0 - buttonHalfHeight], p1: [2, 0 + buttonHalfHeight]}]);
+    this.buttonRenderers[1].updateGeometry([{p0: [0, 2 - buttonHalfHeight], p1: [2, 2 + buttonHalfHeight]}]);
+    this.buttonRenderers[2].updateGeometry([{p0: [0, 4 - buttonHalfHeight], p1: [2, 4 + buttonHalfHeight]}]);
+
     this.selectionWireRenderer.createMeshes(this.scene, this.gameStage.feather);
     this.selectionBusRenderer.createMeshes(this.scene, this.gameStage.feather);
 
@@ -51,6 +197,8 @@ Tray.prototype.postLoad = function postLoad()
     this.componentRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.wireRenderer.createMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.createMeshes(this.scene, this.gameStage.feather);
+
+    this.cursorRenderer.addMeshes(this.scene, this.gameStage.feather);
 
     function wireHasDotFn(id, x, y)
     {
@@ -63,15 +211,29 @@ Tray.prototype.postLoad = function postLoad()
 
     this.componentBoxRenderer.updateGeometry(this.componentsList);
     this.componentRenderer.updateGeometry(this.componentsList, this, true);
+
+
+
+    // this.cursorMaterial = new THREE.RawShaderMaterial({
+    //     uniforms: {
+    //         feather: this.gameStage.feather
+    //     },
+    //     vertexShader: ShaderManager.get("src/shaders/cursor.vert"),
+    //     fragmentShader: ShaderManager.get("src/shaders/cursor.frag"),
+    //     side: THREE.DoubleSide
+    // });
+    // this.cursorMaterial.transparent = true;
+
+    // scene.add(new THREE.Mesh(this.cursorGeometry, this.cursorMaterial));
 }
 
 Tray.prototype.resetComponents = function resetComponents()
 {
     this.wires = [
-        new Wire(0, 0, 2, 0, 0, 0, ComponentTypes.WIRE)
+        new Wire(0, 2, 2, 2, 0, 0, ComponentTypes.WIRE)
     ];
     this.buses = [
-        new Wire(0, 1, 2, 1, 0, 0, ComponentTypes.BUS)
+        new Wire(0, 4, 2, 4, 0, 0, ComponentTypes.BUS)
     ];
 
     this.battery = new BatteryComponent(this.breadboard);
@@ -134,21 +296,30 @@ Tray.prototype.isFromTray = function isFromTray(component)
 
 Tray.prototype.draw = function draw()
 {
+    this.updateButtons();
+
     if (this.breadboard.state != this.state ||
         this.breadboard.wireType != this.wireType)
     {
         this.selectionWireRenderer.removeMeshes(this.scene);
         this.selectionBusRenderer.removeMeshes(this.scene);
+        // this.scene.remove(this.selectionCursorMesh);
 
         var state = this.state = this.breadboard.state;
         var wireType = this.wireType = this.breadboard.wireType;
-        if (state == Breadboard.state.ADD_WIRE && wireType == ComponentTypes.WIRE)
+        var wireState = state == Breadboard.state.ADD_WIRE ||
+                        state == Breadboard.state.PLACING_WIRE;
+        if (wireState && wireType == ComponentTypes.WIRE)
         {
             this.selectionWireRenderer.addMeshes(this.scene);
         }
-        else if (state == Breadboard.state.ADD_WIRE && wireType == ComponentTypes.BUS)
+        else if (wireState && wireType == ComponentTypes.BUS)
         {
             this.selectionBusRenderer.addMeshes(this.scene);
+        }
+        else if (state == Breadboard.state.MOVE)
+        {
+            // this.scene.add(this.selectionCursorMesh);
         }
     }
 

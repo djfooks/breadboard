@@ -1,14 +1,18 @@
 
-function LineRenderer(renderer, isSelection)
+function LineRenderer(renderer, color, vertexShader, fragmentShader)
 {
     this.renderer = renderer;
     this.lineGeometry = renderer.createQuadGeometry();
 
     this.lines = [];
-    this.isSelection = isSelection;
 
-    var color = isSelection ? ColorPalette.base.selectionBox : ColorPalette.base.gameBorder;
     this.color = ColorPalette.createRGBAColor(color);
+
+    this.vertexShader = vertexShader;
+    this.fragmentShader = fragmentShader;
+
+    this.cursorX = 0.0;
+    this.cursorY = 0.0;
 }
 
 LineRenderer.prototype.addMeshes = function addMeshes(scene, feather)
@@ -18,13 +22,14 @@ LineRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             feather: feather,
             color: this.color
         },
-        vertexShader: ShaderManager.get(this.isSelection ? "src/shaders/selectionline.vert" : "src/shaders/line.vert"),
-        fragmentShader: ShaderManager.get(this.isSelection ? "src/shaders/selectionline.frag" : "src/shaders/line.frag"),
+        vertexShader: ShaderManager.get(this.vertexShader),
+        fragmentShader: ShaderManager.get(this.fragmentShader),
         side: THREE.DoubleSide
     });
     this.lineMaterial.transparent = true;
 
-    scene.add(new THREE.Mesh(this.lineGeometry, this.lineMaterial));
+    this.lineMesh = new THREE.Mesh(this.lineGeometry, this.lineMaterial);
+    scene.add(this.lineMesh);
 };
 
 LineRenderer.prototype.clearLines = function clearLines()
@@ -37,12 +42,25 @@ LineRenderer.prototype.addLine = function addLine(p1x, p1y, p2x, p2y)
     this.lines = this.lines.concat([p1x, p1y, p2x, p2y]);
 };
 
+LineRenderer.prototype.moveTo = function moveTo(x, y)
+{
+    this.cursorX = x;
+    this.cursorY = y;
+};
+
+LineRenderer.prototype.lineTo = function lineTo(x, y)
+{
+    this.lines = this.lines.concat([this.cursorX, this.cursorY, x, y]);
+    this.cursorX = x;
+    this.cursorY = y;
+};
+
 LineRenderer.prototype.updateGeometry = function updateGeometry()
 {
     var lines = this.lines;
     var linesLength = lines.length;
 
-    var data = this.isSelection ? new Float32Array(linesLength * 4) : new Int16Array(linesLength * 4);
+    var data = new Float32Array(linesLength * 4);
 
     var i;
     var stride = 4;

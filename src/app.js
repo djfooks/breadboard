@@ -123,6 +123,8 @@ var App = function ()
     ShaderManager.request("src/shaders/line.vert");
     ShaderManager.request("src/shaders/rectangle.frag");
     ShaderManager.request("src/shaders/rectangle.vert");
+    ShaderManager.request("src/shaders/roundedline.frag");
+    ShaderManager.request("src/shaders/roundedline.vert");
     ShaderManager.request("src/shaders/selectionline.frag");
     ShaderManager.request("src/shaders/selectionline.vert");
     ShaderManager.request("src/shaders/wire.frag");
