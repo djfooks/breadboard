@@ -57,9 +57,9 @@ function Breadboard(stage, top, left, cols, rows)
     this.busRenderer = new BusRenderer(this.gameRenderer);
     this.componentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, false);
     this.componentRenderer = new ComponentRenderer(this.gameRenderer);
-    this.lineRenderer = new LineRenderer(this.gameRenderer);
+    this.lineRenderer = new LineRenderer(this.gameRenderer, ColorPalette.base.gameBorder, "src/shaders/line.vert", "src/shaders/line.frag");
 
-    this.selectionLines = new LineRenderer(this.gameRenderer, true);
+    this.selectionLines = new LineRenderer(this.gameRenderer, ColorPalette.base.selectionBox, "src/shaders/selectionline.vert", "src/shaders/selectionline.frag");
     this.selectionComponentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, true);
     this.selectionWireRenderer = new WireRenderer(this.gameRenderer, true);
     this.selectionBusRenderer = new BusRenderer(this.gameRenderer, true);
@@ -2354,6 +2354,8 @@ Breadboard.prototype.onMouseUp = function onMouseUp(p, button)
 
 Breadboard.prototype.onMouseMove = function onMouseMove(gameSpace, p)
 {
+    this.tray.hoverButton(-1);
+
     this.mouseP = p;
     this.mouseOverGameStage = gameSpace;
 

@@ -4,6 +4,7 @@ precision highp int;
 uniform float feather;
 uniform float border;
 uniform vec3 color;
+uniform vec3 fillColor;
 uniform float isSelection;
 
 varying vec2 vP;
@@ -31,6 +32,6 @@ void main(void) {
     float scale =       smoothstep(inner, inner + feather, dist);
     float alpha = 1.0 - smoothstep(outer, outer + feather, dist);
 
-    vec3 c = mix(vec3(1.0, 1.0, 1.0), color, scale);
+    vec3 c = mix(fillColor, color, scale);
     gl_FragColor = vec4(c, alpha);
 }

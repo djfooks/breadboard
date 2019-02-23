@@ -1,22 +1,21 @@
 
-function ComponentBoxRenderer(renderer, isSelection)
+function RectangleRenderer(renderer)
 {
     this.geometry = renderer.createQuadGeometry();
 
-    this.color = ColorPalette.createRGBColor(isSelection ? ColorPalette.base.selection : ColorPalette.base.box);
-    this.fillColor = ColorPalette.createRGBColor(ColorPalette.base.boxFill);
-    this.isSelection = { value: isSelection ? 1.0 : 0.0 };
+    this.color = ColorPalette.createRGBColor(ColorPalette.base.black);
+    this.fillColor = ColorPalette.createRGBColor(ColorPalette.base.white);
+    this.border = { value: Component.border };
 }
 
-ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
+RectangleRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
     this.rectangleMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            border: { value: Component.border },
+            border: this.border,
             color: this.color,
-            fillColor: this.fillColor,
-            isSelection: this.isSelection
+            fillColor: this.fillColor
         },
         vertexShader: ShaderManager.get("src/shaders/rectangle.vert"),
         fragmentShader: ShaderManager.get("src/shaders/rectangle.frag"),
@@ -28,24 +27,24 @@ ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     scene.add(new THREE.Mesh(geometry, this.rectangleMaterial));
 };
 
-ComponentBoxRenderer.prototype.updateGeometry = function updateGeometry(components)
+RectangleRenderer.prototype.updateGeometry = function updateGeometry(rectangles)
 {
-    var numComponents = components.length;
+    var numRectangles = rectangles.length;
 
-    var p1s = new Int16Array(numComponents * 8);
-    var p2s = new Int16Array(numComponents * 8);
+    var p1s = new Float32Array(numRectangles * 8);
+    var p2s = new Float32Array(numRectangles * 8);
 
     var i;
     var index;
-    for (i = 0; i < numComponents; i += 1)
+    for (i = 0; i < numRectangles; i += 1)
     {
         index = i * 8;
-        var component = components[i];
+        var rectangle = rectangles[i];
 
-        var minX = Math.min(component.p0[0], component.p1[0]);
-        var minY = Math.min(component.p0[1], component.p1[1]);
-        var maxX = Math.max(component.p0[0], component.p1[0]);
-        var maxY = Math.max(component.p0[1], component.p1[1]);
+        var minX = Math.min(rectangle.p0[0], rectangle.p1[0]);
+        var minY = Math.min(rectangle.p0[1], rectangle.p1[1]);
+        var maxX = Math.max(rectangle.p0[0], rectangle.p1[0]);
+        var maxY = Math.max(rectangle.p0[1], rectangle.p1[1]);
 
         p1s[index + 0] = minX;
         p1s[index + 1] = minY;
@@ -69,5 +68,5 @@ ComponentBoxRenderer.prototype.updateGeometry = function updateGeometry(componen
     var geometry = this.geometry;
     geometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 2));
     geometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 2));
-    geometry.setDrawRange(0, 6 * numComponents);
+    geometry.setDrawRange(0, 6 * numRectangles);
 };

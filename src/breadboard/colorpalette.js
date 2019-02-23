@@ -1,7 +1,14 @@
 
 var ColorPalette = {
     base: {
+        black: [0.0, 0.0, 0.0],
+        white: [1.0, 1.0, 1.0],
+
+        buttonHover: [0.35, 0.4, 0.95],
+        buttonSelected: [0.45, 0.7, 0.9],
+
         gameBorder: [0.0, 0.0, 0.0, 1.0],
+        cursor: [0.2, 0.2, 0.2],
 
         selection: [0.5, 0.78, 1.0],
         selectionBox: [0.0, 0.45, 0.7, 0.7],
@@ -11,6 +18,7 @@ var ColorPalette = {
         virtualBusBg: [0.4, 0.4, 0.4],
 
         box: [0.0, 0.0, 0.0],
+        boxFill: [1.0, 1.0, 1.0],
         inputNode: [0.0, 1.0, 0.0],
         outputNode: [0.0, 0.0, 0.0],
         textOverride: [0.0, 0.0, 0.0, 0.0],
@@ -51,6 +59,15 @@ ColorPalette.setColorRGBA = function setColorRGBA(palette, dst)
     dst.y = palette[1];
     dst.z = palette[2];
     dst.w = palette[3];
+};
+
+ColorPalette.createTHREEColor = function (palette)
+{
+    return new THREE.Color(
+        palette[0],
+        palette[1],
+        palette[2]
+    );
 };
 
 ColorPalette.createRGBColor = function (palette)
