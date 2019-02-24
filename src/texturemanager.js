@@ -1,27 +1,46 @@
 
 var TextureManager = {};
-TextureManager.imagesLoading = 0;
-TextureManager.images = {};
+TextureManager.texturesLoading = 0;
+TextureManager.textures = {};
+
+TextureManager.init = function init(renderer)
+{
+    TextureManager.textureLoader = new THREE.TextureLoader();
+    TextureManager.renderer = renderer;
+}
 
 TextureManager.get = function get(url)
 {
-    return TextureManager.images[url];
+    return TextureManager.textures[url];
 };
 
-TextureManager.request = function request(url)
+TextureManager.mipmaps = function mipmaps(texture)
 {
-    TextureManager.imagesLoading += 1;
-    var imageObj = new Image();
+    texture.needsUpdate = true;
+    texture.minFilter = THREE.LinearMipMapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = true;
+    texture.anisotropy = TextureManager.renderer.capabilities.getMaxAnisotropy();
+};
 
-    imageObj.onload = function()
+TextureManager.request = function request(url, params)
+{
+    TextureManager.texturesLoading += 1;
+
+    function onload(texture)
     {
-        TextureManager.imagesLoading -= 1;
-        TextureManager.images[url] = imageObj;
-    };
-    imageObj.src = url;
+        TextureManager.texturesLoading -= 1;
+        TextureManager.textures[url] = texture;
+        if (params.mipmaps)
+        {
+            TextureManager.mipmaps(texture);
+        }
+    }
+
+    TextureManager.textureLoader.load(url, onload);
 };
 
 TextureManager.loading = function loading()
 {
-    return TextureManager.imagesLoading > 0;
+    return TextureManager.texturesLoading > 0;
 };

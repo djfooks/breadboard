@@ -1,6 +1,3 @@
-
-var testTexture;
-
 var App = function ()
 {
     window.onerror = this.onError.bind(this);
@@ -79,18 +76,11 @@ var App = function ()
 
     this.loading = true;
 
-    function mipmaps(texture)
-    {
-        texture.needsUpdate = true;
-        texture.minFilter = THREE.LinearMipMapLinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = true;
-        texture.anisotropy = that.renderer.capabilities.getMaxAnisotropy();
-    }
+    TextureManager.init(this.renderer);
 
-    var textureLoader = new THREE.TextureLoader();
-    var texture = textureLoader.load("sourcecodepro-medium.png", mipmaps);
-    testTexture = texture;
+    TextureManager.request("sourcecodepro-medium.png", { mipmaps: true });
+    TextureManager.request("tinker.png", { mipmaps: true });
+    TextureManager.request("arrow-cursor.png", { mipmaps: true });
 
     ShaderManager.request("src/shaders/batterysymbol.frag");
     ShaderManager.request("src/shaders/batterysymbol.vert");
@@ -121,6 +111,8 @@ var App = function ()
     ShaderManager.request("src/shaders/roundedline.vert");
     ShaderManager.request("src/shaders/selectionline.frag");
     ShaderManager.request("src/shaders/selectionline.vert");
+    ShaderManager.request("src/shaders/sprite.frag");
+    ShaderManager.request("src/shaders/sprite.vert");
     ShaderManager.request("src/shaders/wire.frag");
     ShaderManager.request("src/shaders/wire.vert");
     ShaderManager.request("src/shaders/wirecirclesshader.frag");

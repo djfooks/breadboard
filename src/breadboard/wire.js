@@ -277,10 +277,9 @@ Wire.prototype.toggle = function toggle()
 {
 };
 
-Wire.prototype.toggleColor = function toggleColor(breadboard)
+Wire.prototype.configure = function configure(breadboard)
 {
     var newColorIndex = (this.colorIndex + 1) % ColorPalette.base.bus.length;
-    console.log("new " + newColorIndex);
     function setColor(breadboard, p, index)
     {
         var connection = breadboard.getConnection(index);
@@ -291,6 +290,7 @@ Wire.prototype.toggleColor = function toggleColor(breadboard)
         }
     }
     Bus.iterate(breadboard, [this.x0, this.y0], setColor);
+    breadboard.geometryDirty = true;
 };
 
 function BusKey()

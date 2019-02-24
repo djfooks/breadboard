@@ -69,7 +69,7 @@ TextRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.textMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             feather: feather,
-            map: {value: testTexture},
+            map: { value: TextureManager.get("sourcecodepro-medium.png") },
             overrideColor: this.overrideColor
         },
         vertexShader: ShaderManager.get("src/shaders/bmfont.vert"),

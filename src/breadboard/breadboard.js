@@ -1548,7 +1548,6 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         {
             return;
         }
-        component.toggleColor(this, component.getPosition());
     }
     if (!this.mouseOverGameStage)
     {
