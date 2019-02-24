@@ -2,12 +2,15 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
-uniform vec3 color;
 uniform vec3 bgColor;
+uniform float colorTextureSize;
 
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
+varying float vColorIndex;
+
+uniform sampler2D colorTexture;
 
 void main(void) {
     // gl_FragColor = vec4(0.9, 0.0, 0.0, 1.0);
@@ -26,12 +29,14 @@ void main(void) {
     const float innerWire = 0.11;
     const float outerWire = 0.17;
 
+    vec3 busColor = texture2D(colorTexture, vec2((vColorIndex + 0.5) / colorTextureSize, 0.5)).xyz;
+
     float alpha = 1.0 - (d - (outerWire - feather * 0.5)) / feather;
 
     float v = (d - (innerWire - feather * 0.5)) / feather;
     v = max(v, 1.0 - (d - (centerWire - feather * 0.5)) / feather);
 
-    vec3 wireColor = mix(color, bgColor, max(min(v, 1.0), 0.0));
+    vec3 wireColor = mix(busColor, bgColor, max(min(v, 1.0), 0.0));
 
     gl_FragColor = vec4(wireColor.rgb, alpha);
 }

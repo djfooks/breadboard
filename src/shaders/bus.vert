@@ -6,14 +6,17 @@ uniform mat4 projectionMatrix;
 attribute vec2 position;
 attribute vec2 p1;
 attribute vec2 p2;
+attribute float colorIndex;
 
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
+varying float vColorIndex;
 void main()
 {
     vP1 = p1;
     vP2 = p2;
+    vColorIndex = colorIndex;
 
     vec2 o = vP1 - vP2;
     float d = length(o);

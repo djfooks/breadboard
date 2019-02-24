@@ -16,6 +16,8 @@ var App = function ()
 
     this.initWebGL();
 
+    ColorPalette.createPaletteTextures();
+
     this.stage = new Stage(this.canvas, this.renderer, this.scene);
     this.stage.enable();
 

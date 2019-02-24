@@ -6,11 +6,15 @@ uniform mat4 projectionMatrix;
 
 attribute vec2 position;
 attribute vec2 diamond;
+attribute float colorIndex;
 
 varying vec2 vP;
+varying float vColorIndex;
 
 void main()
 {
+    vColorIndex = colorIndex;
+
     float size = 0.5 + feather * 0.5;
     vec2 min = vec2(diamond.x - size, diamond.y - size);
     vec2 max = vec2(diamond.x + size, diamond.y + size);

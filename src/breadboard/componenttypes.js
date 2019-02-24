@@ -89,6 +89,7 @@ Component.addComponentFunctions = function addComponentFunctions(componentType)
     componentType.prototype.reset = function reset() {};
     componentType.prototype.update = function update() {};
     componentType.prototype.toggle = function toggle() {};
+    componentType.prototype.toggleColor = function toggleColor(breadboard, p) {};
     componentType.prototype.isConnected = function isConnected(id0, id1) { return false; };
     componentType.prototype.getBusPosition = function getBusPosition() { return null; };
     componentType.prototype.addGeometry = function addGeometry(nodes, connections) {};

@@ -62,7 +62,7 @@ function Breadboard(stage, top, left, cols, rows)
 
     this.virtualBusRenderer = new BusRenderer(this.gameRenderer);
     this.virtualBusGeometryDirty = true;
-    ColorPalette.setColorRGB(ColorPalette.base.virtualBus,   this.virtualBusRenderer.color.value);
+    this.virtualBusRenderer.colorTexture.value = ColorPalette.base.textures.virtualBus;
     ColorPalette.setColorRGB(ColorPalette.base.virtualBusBg, this.virtualBusRenderer.bgColor.value);
 
     this.tray = new Tray(this);
@@ -191,14 +191,14 @@ Breadboard.prototype.toJson = function toJson()
     var wiresLength = wires.length;
     for (i = 0; i < wiresLength; i += 1)
     {
-        out.wires.push(wires[i].toJson());
+        out.wires.push(wires[i].toJson(false));
     }
 
     var buses = this.buses;
     var busesLength = buses.length;
     for (i = 0; i < busesLength; i += 1)
     {
-        out.buses.push(buses[i].toJson());
+        out.buses.push(buses[i].toJson(true));
     }
 
     var componentsList = this.componentsList;
@@ -236,6 +236,11 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             w = buses[i];
             breadboard.addWire(w[0], w[1], w[2], w[3], ComponentTypes.BUS, false);
+            if (w.length == 5)
+            {
+                var bus = breadboard.buses[breadboard.buses.length - 1];
+                bus.colorIndex = w[4];
+            }
         }
     }
 
@@ -1543,6 +1548,7 @@ Breadboard.prototype.onMouseDown = function onMouseDown(p, button)
         {
             return;
         }
+        component.toggleColor(this, component.getPosition());
     }
     if (!this.mouseOverGameStage)
     {

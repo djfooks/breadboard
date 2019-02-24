@@ -23,6 +23,8 @@ function Wire(x0, y0, x1, y1, id0, id1, type)
 
     this.texture0 = 0;
     this.texture1 = 0;
+
+    this.colorIndex = 0;
 }
 
 Wire.prototype.clone = function clone()
@@ -243,9 +245,16 @@ Wire.prototype.iterate = function iterate(fn)
     fn(x, y, i);
 };
 
-Wire.prototype.toJson = function toJson()
+Wire.prototype.toJson = function toJson(includeColor)
 {
-    return [this.x0, this.y0, this.x1, this.y1];
+    if (includeColor)
+    {
+        return [this.x0, this.y0, this.x1, this.y1, this.colorIndex];
+    }
+    else
+    {
+        return [this.x0, this.y0, this.x1, this.y1];
+    }
 };
 
 Wire.getColor = function getColor(count)
@@ -266,6 +275,22 @@ Wire.getColor = function getColor(count)
 
 Wire.prototype.toggle = function toggle()
 {
+};
+
+Wire.prototype.toggleColor = function toggleColor(breadboard)
+{
+    var newColorIndex = (this.colorIndex + 1) % ColorPalette.base.bus.length;
+    console.log("new " + newColorIndex);
+    function setColor(breadboard, p, index)
+    {
+        var connection = breadboard.getConnection(index);
+        var buses = connection.buses;
+        for (i = 0; i < buses.length; i += 1)
+        {
+            buses[i].colorIndex = newColorIndex;
+        }
+    }
+    Bus.iterate(breadboard, [this.x0, this.y0], setColor);
 };
 
 function BusKey()
@@ -365,21 +390,70 @@ function Bus(breadboard, p)
     }
 }
 
-Bus.prototype.iterate = function iterate(fn)
+Bus.iterate = function iterate(breadboard, p, fn)
 {
-    var x = this.x0;
-    var y = this.y0;
-    var x1 = this.x1;
-    var y1 = this.y1;
-    var dx = this.dx;
-    var dy = this.dy;
-    while (x !== x1 || y !== y1)
+    var edges = [p];
+    var visited = {};
+    var i;
+
+    while (edges.length)
     {
-        fn(x, y);
-        x += dx;
-        y += dy;
+        p = edges.pop();
+        var index = breadboard.getIndex(p[0], p[1]);
+        if (visited[index])
+        {
+            continue;
+        }
+        visited[index] = true;
+
+        fn(breadboard, p, index);
+
+        var connection = breadboard.getConnection(index);
+
+        var buses = connection.buses;
+        for (i = 0; i < buses.length; i += 1)
+        {
+            var bus = buses[i];
+            bus.iterate(function (x, y)
+            {
+                var index = breadboard.getIndex(x, y);
+                var connection = breadboard.getConnection(index);
+
+                var otherBuses = connection.buses;
+                var j;
+                if ((x == bus.x0 && y == bus.y0) ||
+                    (x == bus.x1 && y == bus.y1))
+                {
+                    if (otherBuses.length)
+                    {
+                        edges.push([x, y]);
+                    }
+                }
+                else
+                {
+                    for (j = 0; j < otherBuses.length; j += 1)
+                    {
+                        var otherBus = otherBuses[j];
+                        if (otherBus === bus)
+                        {
+                            continue;
+                        }
+                        if (otherBus.x0 === x &&
+                            otherBus.y0 === y)
+                        {
+                            edges.push([x, y]);
+                        }
+                        else if (otherBus.x1 === x &&
+                                 otherBus.y1 === y)
+                        {
+                            edges.push([x, y]);
+                        }
+                    }
+                }
+            });
+
+        }
     }
-    fn(x, y);
 };
 
 Bus.buildPaths = function buildPaths(breadboard)
@@ -419,8 +493,4 @@ Bus.prototype.isOn = function isOn(key)
         return false;
     }
     return channel.value > 0;
-};
-
-Bus.prototype.toggle = function toggle()
-{
 };
