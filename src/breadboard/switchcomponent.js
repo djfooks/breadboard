@@ -43,7 +43,7 @@ SwitchComponent.prototype.addGeometry = function addGeometry(componentRenderer, 
     componentRenderer.switches.index += 1;
 };
 
-SwitchComponent.prototype.render = function render(renderer)
+SwitchComponent.prototype.render = function render(breadboard, renderer)
 {
     renderer.textureData[this.connectedTextureIndex] = this.connected ? 255 : 0;
 };

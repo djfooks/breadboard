@@ -531,7 +531,7 @@ Breadboard.prototype.draw = function draw()
     }
     for (i = 0; i < this.componentsList.length; i += 1)
     {
-        this.componentsList[i].render(this.gameRenderer);
+        this.componentsList[i].render(this, this.gameRenderer);
     }
     this.gameRenderer.dataTexture.needsUpdate = true;
 

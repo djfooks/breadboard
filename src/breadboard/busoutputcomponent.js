@@ -128,7 +128,7 @@ BusOutputComponent.prototype.addGeometry = function addGeometry(componentRendere
     componentRenderer.addText(this.settingP, this.busKey, (breadboard.focusComponent === this) ? 255 : 0);
 };
 
-BusOutputComponent.prototype.render = function render(renderer)
+BusOutputComponent.prototype.render = function render(breadboard, renderer)
 {
     renderer.textureData[this.signalValueIndex] = this.signalValue ? 255 : 0;
 };

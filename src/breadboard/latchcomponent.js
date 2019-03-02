@@ -128,7 +128,7 @@ LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
     componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.signalP1, this.signalId1, isTray);
 };
 
-LatchComponent.prototype.render = function render(renderer)
+LatchComponent.prototype.render = function render(breadboard, renderer)
 {
     renderer.textureData[this.signalValueIndex] = this.signalValue ? 255 : 0;
 };

@@ -170,6 +170,7 @@ ComponentRenderer.prototype.addNode = function addNode(breadboard, nodeType, p, 
     var textureIndex = this.getWireTextureIndex(breadboard, id, p, isTray);
     this.addPositionAndTextureIndex(nodeType.p, index, p, textureIndex);
     nodeType.index += 1;
+    return textureIndex;
 };
 
 ComponentRenderer.prototype.getWireTextureIndex = function getWireTextureIndex(breadboard, id, p, isTray)

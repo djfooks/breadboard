@@ -96,5 +96,39 @@ Component.addComponentFunctions = function addComponentFunctions(componentType)
     componentType.prototype.prepareGeometry = function prepareGeometry(componentRenderer, breadboard, isTray) {};
     componentType.prototype.dynamicAddGeometry = function dynamicAddGeometry(nodes, connections) {};
     componentType.prototype.dynamicPrepareGeometry = function dynamicPrepareGeometry(componentRenderer, breadboard, isTray) {};
-    componentType.prototype.render = function render(renderer) {};
+    componentType.prototype.render = function render(breadboard, renderer) {};
+};
+
+Component.renderPinValue = function pinValue(breadboard, renderer, component, id, textureIndex)
+{
+    if (textureIndex < 2)
+    {
+        throw new Error("invalid textureIndex");
+    }
+    renderer.textureData[textureIndex] = Component.pinValue(breadboard, component, id) ? 255 : 0;
+};
+
+Component.pinValue = function pinValue(breadboard, component, id)
+{
+    var connection = breadboard.getConnection(id);
+    if (connection.wires.length > 0)
+    {
+        return connection.getValue();
+    }
+
+    // unconnected pins (with no wires) do not have pulse paths (pulse paths run down wires)
+    // so need to figure out connections by hand
+    // (no pulse path optimization is good because we don't need to render these connections when running >2 updates per frame)
+    var outputs = component.getOutputs(id);
+    var outputsLength = outputs.length;
+    var i;
+    for (i = 0; i < outputsLength; i += 1)
+    {
+        var id2 = outputs[i];
+        if (component.isConnected(id, id2) && breadboard.getConnection(id2).getValue())
+        {
+            return true;
+        }
+    }
+    return false;
 };

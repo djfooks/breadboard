@@ -6,6 +6,7 @@ function DebuggerComponent(breadboard)
 
     this.powerId = [];
     this.powerP = [-1, -1];
+    this.powerTextureIndex = -1;
 
     this.pinId = [];
     this.pinP = [];
@@ -99,23 +100,6 @@ DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboar
     return isValid;
 };
 
-DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
-{
-    componentRenderer.outputNodes.count += 9;
-    if (this.debugType === DebuggerComponent.debugType.WRITE)
-    {
-        componentRenderer.textRenderer.textObjects.count += (this.value + "").length;
-    }
-};
-
-DebuggerComponent.prototype.dynamicPrepareGeometry = function dynamicPrepareGeometry(componentRenderer)
-{
-    if (this.debugType === DebuggerComponent.debugType.READ)
-    {
-        componentRenderer.dynamicTextRenderer.textObjects.count += (this.value + "").length;
-    }
-};
-
 DebuggerComponent.textConfig = {
     width: 300,
     align: 'right',
@@ -171,18 +155,46 @@ DebuggerComponent.prototype.addText = function addText(componentRenderer, breadb
     }
 };
 
+DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
+{
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    {
+        componentRenderer.outputNodes.count += 9;
+        componentRenderer.textRenderer.textObjects.count += (this.value + "").length;
+    }
+    else
+    {
+        componentRenderer.inputNodes.count += 9;
+    }
+};
+
 DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var i;
-    for (i = 0; i < 8; i += 1)
-    {
-        this.pinTextureIndex[i] = componentRenderer.addOutputNode(breadboard, this.pinP[i], isTray);
-    }
-
     if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
-        componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.powerP, this.powerId, isTray);
+        for (i = 0; i < 8; i += 1)
+        {
+            this.pinTextureIndex[i] = componentRenderer.addOutputNode(breadboard, this.pinP[i], isTray);
+        }
+
+        this.powerTextureIndex = componentRenderer.addOutputNode(breadboard, this.powerP, isTray);
         this.addText(componentRenderer, breadboard);
+    }
+    else
+    {
+        for (i = 0; i < 8; i += 1)
+        {
+            this.pinTextureIndex[i] = componentRenderer.addNode(breadboard, componentRenderer.inputNodes, this.pinP[i], this.pinId[i], isTray);
+        }
+    }
+};
+
+DebuggerComponent.prototype.dynamicPrepareGeometry = function dynamicPrepareGeometry(componentRenderer)
+{
+    if (this.debugType === DebuggerComponent.debugType.READ)
+    {
+        componentRenderer.dynamicTextRenderer.textObjects.count += (this.value + "").length;
     }
 };
 
@@ -194,12 +206,16 @@ DebuggerComponent.prototype.dynamicAddGeometry = function dynamicAddGeometry(com
     }
 };
 
-DebuggerComponent.prototype.render = function render(renderer)
+DebuggerComponent.prototype.render = function render(breadboard, renderer)
 {
-    var i;
-    for (i = 0; i < 8; i += 1)
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
-        renderer.textureData[this.pinTextureIndex[i]] = ((this.value & (1 << (7 - i))) != 0) ? 255 : 0;
+        var i;
+        for (i = 0; i < 8; i += 1)
+        {
+            Component.renderPinValue(breadboard, renderer, this, this.pinId[i], this.pinTextureIndex[i]);
+        }
+        Component.renderPinValue(breadboard, renderer, this, this.powerId, this.powerTextureIndex);
     }
 };
 
@@ -302,16 +318,34 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
         breadboard.dirtySave = true;
         breadboard.geometryDirty = true;
     }
-    else
-    {
-        breadboard.debuggersDirty = true;
-    }
 
     var i;
     var j;
     for (i = 0; i < this.pulsePaths.length; i += 1)
     {
         var child = this.pulsePaths[i];
+        if (this.powerId == child.inputId)
+        {
+            for (j = 0; j < this.pinId.length; j += 1)
+            {
+                if (this.pinId[j] === child.sourceId)
+                {
+                    var connected = (this.value & (1 << (7 - j))) !== 0;
+                    if (connected && write)
+                    {
+                        var parent = child.parent;
+                        var parentStep = parent.idToStep[child.sourceId];
+                        child.createPulse(parent.values[parentStep]);
+                    }
+                    else
+                    {
+                        child.createPulse(0);
+                    }
+                }
+            }
+            // continue;
+        }
+
         for (j = 0; j < this.pinId.length; j += 1)
         {
             if (this.pinId[j] === child.inputId)
@@ -327,6 +361,7 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
                 {
                     child.createPulse(0);
                 }
+                // continue;
             }
         }
     }
@@ -346,6 +381,7 @@ DebuggerComponent.prototype.configure = function configure(breadboard)
     this.value = 0;
     this.updateValue(breadboard);
     breadboard.dirty = true;
+    breadboard.geometryDirty = true;
 };
 
 DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
