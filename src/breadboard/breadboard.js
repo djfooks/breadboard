@@ -167,10 +167,17 @@ Breadboard.state = {
     MOVE: 5,
 };
 
-Breadboard.state.START_STATE = Breadboard.state.ADD_WIRE;
+Breadboard.state.START_STATE = Breadboard.state.MOVE;
 
 Breadboard.prototype.setState = function setState(state, wireType)
 {
+    if (this.state === Breadboard.state.MOVE &&
+        state != Breadboard.state.MOVE)
+    {
+        this.selectedObjects.clear();
+        this.selectionGeometryDirty = true;
+    }
+
     this.state = state;
     this.wireType = wireType;
 };
