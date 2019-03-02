@@ -290,24 +290,29 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
     }
 };
 
+DebuggerComponent.prototype.configure = function configure(breadboard)
+{
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
+    {
+        this.debugType = DebuggerComponent.debugType.READ;
+        breadboard.removeFocus();
+    }
+    else
+    {
+        this.debugType = DebuggerComponent.debugType.WRITE;
+    }
+    this.value = 0;
+    this.updateValue(breadboard);
+    breadboard.dirty = true;
+};
+
 DebuggerComponent.prototype.toggle = function toggle(breadboard, p)
 {
     var rotationMatrix = RotationMatrix[this.rotation];
     var configure = AddTransformedVector(this.p0, rotationMatrix, [7, 0]);
     if (p[0] === configure[0] && p[1] === configure[1])
     {
-        if (this.debugType === DebuggerComponent.debugType.WRITE)
-        {
-            this.debugType = DebuggerComponent.debugType.READ;
-            breadboard.removeFocus();
-            this.value = 0;
-            this.updateValue(breadboard);
-        }
-        else
-        {
-            this.debugType = DebuggerComponent.debugType.WRITE;
-        }
-        breadboard.dirty = true;
+        this.configure(breadboard);
         return;
     }
 

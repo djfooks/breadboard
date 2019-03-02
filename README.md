@@ -7,11 +7,14 @@ https://djfooks.github.io/breadboard/
 
 Change log:
 
+[03-02-2019]
+- Configure button is now used to toggle debugger between read and write mode.
 - Read-only debuggers now don't cause an entire scene redraw everytime they change value.
 - Change placing bus color by right clicking on the bus button.
 - Bus colors can now be changed by selecting a bus and then clicking the configure button.
 - Added a configure button.
 - Added nicer sprites for buttons.
+
 - Save the camera position.
 - Switch all rendering from canvas2d to WebGL for much better performance.
 - Fix for buses sometimes not connecting in the middle of wires.
