@@ -869,6 +869,11 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
 
     wire = wire || new Wire(x0, y0, x1, y1, id0, id1, type);
 
+    if (type == ComponentTypes.BUS)
+    {
+        wire.colorIndex = this.tray.buses[0].colorIndex;
+    }
+
     if (virtual)
     {
         this.virtualWires.push(wire);

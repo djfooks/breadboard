@@ -131,11 +131,28 @@ Tray.prototype.hoverButton = function hoverButton(index)
 Tray.prototype.configure = function configure()
 {
     var selectedObjects = this.breadboard.selectedObjects.objects;
-    for (i = 0; i < selectedObjects.length; i += 1)
+    if (selectedObjects.length > 0)
     {
-        var selectedObject = selectedObjects[i].object;
+        var selectedObject = selectedObjects[0].object;
         selectedObject.configure(this.breadboard);
+        return;
     }
+
+    var state = this.state;
+    var wireState = state == Breadboard.state.ADD_WIRE ||
+                    state == Breadboard.state.PLACING_WIRE;
+    if (wireState && this.wireType == ComponentTypes.BUS)
+    {
+        var bus = this.buses[0];
+        // bus.configure(this.breadboard);
+        bus.colorIndex = (bus.colorIndex + 1) % ColorPalette.base.bus.length;
+        this.busRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
+    }
+};
+
+Tray.prototype.wireHasDotFn = function wireHasDotFn(id, x, y)
+{
+    return (x % 2 == 0);
 };
 
 Tray.prototype.postLoad = function postLoad()
@@ -161,14 +178,10 @@ Tray.prototype.postLoad = function postLoad()
     this.wireRenderer.createMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.createMeshes(this.scene, this.gameStage.feather);
 
-    function wireHasDotFn(id, x, y)
-    {
-        return (x % 2 == 0);
-    }
-    this.wireRenderer.updateGeometry(this.wires, this.breadboard, true, wireHasDotFn);
-    this.busRenderer.updateGeometry(this.buses, this.breadboard, true, wireHasDotFn);
-    this.selectionWireRenderer.updateGeometry(this.wires, this.breadboard, true, wireHasDotFn);
-    this.selectionBusRenderer.updateGeometry(this.buses, this.breadboard, true, wireHasDotFn);
+    this.wireRenderer.updateGeometry(this.wires, this.breadboard, true, this.wireHasDotFn);
+    this.busRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
+    this.selectionWireRenderer.updateGeometry(this.wires, this.breadboard, true, this.wireHasDotFn);
+    this.selectionBusRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
 
     this.componentBoxRenderer.updateGeometry(this.componentsList);
     this.componentRenderer.updateGeometry(this.componentsList, this, true);

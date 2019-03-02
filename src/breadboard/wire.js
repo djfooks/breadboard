@@ -279,6 +279,11 @@ Wire.prototype.toggle = function toggle()
 
 Wire.prototype.configure = function configure(breadboard)
 {
+    if (this.type != ComponentTypes.BUS)
+    {
+        return;
+    }
+
     var newColorIndex = (this.colorIndex + 1) % ColorPalette.base.bus.length;
     function setColor(breadboard, p, index)
     {
