@@ -125,6 +125,15 @@ DebuggerComponent.textConfig = {
     color: "#F00"
 };
 
+DebuggerComponent.textConfigRotate = {
+    width: 300,
+    align: 'right',
+    letterSpacing: 1,
+    scale: 1,
+    rotate: true,
+    color: "#F00"
+};
+
 DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
     var i;
@@ -136,9 +145,35 @@ DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer
 
     if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
+        if (this.value === 255)
+        {
+            console.log("yay");
+        }
         var rotationMatrix = RotationMatrix[this.rotation];
-        var textPos = AddTransformedVector(this.p0, rotationMatrix, [0.9, 0.0]);
-        componentRenderer.addText(textPos, this.value + "", (breadboard.focusComponent === this) ? 255 : 0, DebuggerComponent.textConfig);
+        var textConfig;
+        var offset;
+        if (this.rotation === 0)
+        {
+            textConfig = DebuggerComponent.textConfig;
+            offset = [0.9, 0.0];
+        }
+        else if (this.rotation === 1)
+        {
+            textConfig = DebuggerComponent.textConfigRotate;
+            offset = [0.9, 0.0];
+        }
+        else if (this.rotation === 2)
+        {
+            textConfig = DebuggerComponent.textConfig;
+            offset = [10.3, 0.0];
+        }
+        else if (this.rotation === 3)
+        {
+            textConfig = DebuggerComponent.textConfigRotate;
+            offset = [10.3, 0.0];
+        }
+        var textPos = AddTransformedVector(this.p0, rotationMatrix, offset);
+        componentRenderer.addText(textPos, this.value + "", (breadboard.focusComponent === this) ? 255 : 0, textConfig);
     }
 };
 

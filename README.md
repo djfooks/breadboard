@@ -8,6 +8,7 @@ https://djfooks.github.io/breadboard/
 Change log:
 
 [03-02-2019]
+- Fix debugger rotations.
 - Start game in move mode and remove selection when switching to a different mode.
 - Configure button is now used to toggle debugger between read and write mode.
 - Read-only debuggers now don't cause an entire scene redraw everytime they change value.

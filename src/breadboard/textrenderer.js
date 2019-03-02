@@ -53,8 +53,16 @@ TextRenderer.prototype.addText = function addText(p, text, red, config)
     for (i = 0; i < count; i += 1)
     {
         var i2 = i * 2;
-        positions[start + i2 + 0] = p[0] - 0.5 + newPositions[i2 + 0] * scale;
-        positions[start + i2 + 1] = p[1] + 0.23 + newPositions[i2 + 1] * scale;
+        if (config.rotate)
+        {
+            positions[start + i2 + 0] = p[0] + 0.23 + newPositions[i2 + 1] * scale;
+            positions[start + i2 + 1] = p[1] + 0.5 - newPositions[i2 + 0] * scale;
+        }
+        else
+        {
+            positions[start + i2 + 0] = p[0] - 0.5 + newPositions[i2 + 0] * scale;
+            positions[start + i2 + 1] = p[1] + 0.23 + newPositions[i2 + 1] * scale;
+        }
         uvs[start + i2 + 0] = newUVs[i2 + 0];
         uvs[start + i2 + 1] = newUVs[i2 + 1];
         colors[index + i] = red;
