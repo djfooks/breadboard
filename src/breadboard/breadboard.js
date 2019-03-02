@@ -730,6 +730,7 @@ Breadboard.prototype.removeSelectedObjects = function removeSelectedObjects()
     }
     this.selectedObjects.clear();
     this.selectionGeometryDirty = true;
+    this.geometryDirty = true;
 
     this.state = Breadboard.state.MOVE;
 
