@@ -18,7 +18,7 @@ function Tray(breadboard)
 
     this.selectHitbox = new Hitbox(-0.5, 0 - buttonHalfHeight, 2.5, 0 + buttonHalfHeight);
     this.selectHitbox.onMouseMove = this.hoverButton.bind(this, 0);
-    this.selectHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.MOVE);
+    this.selectHitbox.onMouseUp = this.setBreadboardState.bind(this, Breadboard.state.MOVE, 0);
     this.gameStage.addHitbox(this.selectHitbox);
 
     this.addWireHitbox = new Hitbox(-0.5, 2 - buttonHalfHeight, 2.5, 2 + buttonHalfHeight);
@@ -62,15 +62,28 @@ function Tray(breadboard)
     this.wireType = -1;
 }
 
-Tray.prototype.setBreadboardState = function setBreadboardState(newState, wireType)
+Tray.prototype.setBreadboardState = function setBreadboardState(newState, wireType, p, button)
 {
-    this.breadboard.setState(newState, wireType);
+    if (button === 0)
+    {
+        this.breadboard.setState(newState, wireType);
+    }
+    else
+    {
+        if (newState === Breadboard.state.ADD_WIRE || newState === Breadboard.state.PLACING_WIRE)
+        {
+            if (wireType === ComponentTypes.BUS)
+            {
+                this.nextBusColorIndex();
+            }
+        }
+    }
 };
 
 Tray.prototype.getSelectedButton = function getSelectedButton()
 {
     var state = this.breadboard.state;
-    if (state == Breadboard.state.ADD_WIRE || state == Breadboard.state.PLACING_WIRE)
+    if (state === Breadboard.state.ADD_WIRE || state === Breadboard.state.PLACING_WIRE)
     {
         return (this.breadboard.wireType == ComponentTypes.WIRE) ? 1 : 2;
     }
@@ -143,8 +156,13 @@ Tray.prototype.configure = function configure()
                     state == Breadboard.state.PLACING_WIRE;
     if (wireState && this.wireType == ComponentTypes.BUS)
     {
-        this.setBusColorIndex((this.getBusColorIndex() + 1) % ColorPalette.base.bus.length);
+        this.nextBusColorIndex();
     }
+};
+
+Tray.prototype.nextBusColorIndex = function nextBusColorIndex()
+{
+    this.setBusColorIndex((this.getBusColorIndex() + 1) % ColorPalette.base.bus.length);
 };
 
 Tray.prototype.getBusColorIndex = function getBusColorIndex()
