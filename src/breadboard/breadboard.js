@@ -861,18 +861,13 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
 {
     if (x0 == x1 && y0 == y1)
     {
-        return;
+        return null;
     }
 
     var id0 = this.getIndex(x0, y0);
     var id1 = this.getIndex(x1, y1);
 
     wire = wire || new Wire(x0, y0, x1, y1, id0, id1, type);
-
-    if (type == ComponentTypes.BUS)
-    {
-        wire.colorIndex = this.tray.buses[0].colorIndex;
-    }
 
     if (virtual)
     {
@@ -914,6 +909,7 @@ Breadboard.prototype.addWire = function addWire(x0, y0, x1, y1, type, virtual, w
 
         this.geometryDirty = true;
     }
+    return wire;
 };
 
 Breadboard.prototype.validPosition = function validPosition(p)
@@ -992,10 +988,11 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
         }
         this.shouldSwitch = false;
 
+        var wires = [];
         if (p[0] === wireStart[0] ||
             p[1] === wireStart[1])
         {
-            this.addWire(p[0], p[1], wireStart[0], wireStart[1], this.wireType, virtual);
+            wires.push(this.addWire(p[0], p[1], wireStart[0], wireStart[1], this.wireType, virtual));
         }
         else
         {
@@ -1004,15 +1001,20 @@ Breadboard.prototype.wirePlaceUpdate = function wirePlaceUpdate(p, virtual)
             if (Math.abs(x) < Math.abs(y))
             {
                 y = ((y > 0 && x > 0) || (y < 0 && x < 0)) ? x : -x;
-                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual);
-                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual);
+                wires.push(this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual));
+                wires.push(this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual));
             }
             else
             {
                 x = ((x > 0 && y > 0) || (x < 0 && y < 0)) ? y : -y;
-                this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual);
-                this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual);
+                wires.push(this.addWire(wireStart[0], wireStart[1], wireStart[0] + x, wireStart[1] + y, this.wireType, virtual));
+                wires.push(this.addWire(wireStart[0] + x, wireStart[1] + y, p[0], p[1], this.wireType, virtual));
             }
+        }
+
+        if (this.wireType == ComponentTypes.BUS)
+        {
+            Bus.updateColors(this, wires, virtual);
         }
     }
 };

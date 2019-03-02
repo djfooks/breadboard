@@ -143,11 +143,23 @@ Tray.prototype.configure = function configure()
                     state == Breadboard.state.PLACING_WIRE;
     if (wireState && this.wireType == ComponentTypes.BUS)
     {
-        var bus = this.buses[0];
-        // bus.configure(this.breadboard);
-        bus.colorIndex = (bus.colorIndex + 1) % ColorPalette.base.bus.length;
-        this.busRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
+        this.setBusColorIndex((this.getBusColorIndex() + 1) % ColorPalette.base.bus.length);
     }
+};
+
+Tray.prototype.getBusColorIndex = function getBusColorIndex()
+{
+    return this.buses[0].colorIndex;
+};
+
+Tray.prototype.setBusColorIndex = function setBusColorIndex(colorIndex)
+{
+    if (colorIndex >= ColorPalette.base.bus.length)
+    {
+        throw new Error("Bus color invalid");
+    }
+    this.buses[0].colorIndex = colorIndex;
+    this.busRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
 };
 
 Tray.prototype.wireHasDotFn = function wireHasDotFn(id, x, y)
