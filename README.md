@@ -7,6 +7,9 @@ https://djfooks.github.io/breadboard/
 
 Change log:
 
+- Bus colors can now be changed by selecting a bus and then clicking the configure button.
+- Added a configure button.
+- Added nicer sprites for buttons.
 - Save the camera position.
 - Switch all rendering from canvas2d to WebGL for much better performance.
 - Fix for buses sometimes not connecting in the middle of wires.
