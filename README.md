@@ -7,6 +7,7 @@ https://djfooks.github.io/breadboard/
 
 Change log:
 
+- Read-only debuggers now don't cause an entire scene redraw everytime they change value.
 - Change placing bus color by right clicking on the bus button.
 - Bus colors can now be changed by selecting a bus and then clicking the configure button.
 - Added a configure button.

@@ -5,6 +5,8 @@ function ComponentRenderer(renderer)
 
     this.textRenderer = new TextRenderer(renderer);
 
+    this.dynamicTextRenderer = new TextRenderer(renderer);
+
     this.switchGeometry = renderer.createQuadGeometry();
     this.outputNodeGeometry = renderer.createQuadGeometry();
     this.inputNodeGeometry = renderer.createQuadGeometry();
@@ -64,6 +66,7 @@ function ComponentRenderer(renderer)
 ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 {
     this.textRenderer.addMeshes(scene, feather);
+    this.dynamicTextRenderer.addMeshes(scene, feather);
 
     this.componentSwitchMaterial = new THREE.RawShaderMaterial({
         uniforms: {
@@ -240,6 +243,37 @@ ComponentRenderer.prototype.addTextureIndex = function addTextureIndex(data, ind
 ComponentRenderer.prototype.addText = function addText()
 {
     this.textRenderer.addText.apply(this.textRenderer, arguments);
+};
+
+ComponentRenderer.prototype.addDynamicText = function addDynamicText()
+{
+    this.dynamicTextRenderer.addText.apply(this.dynamicTextRenderer, arguments);
+};
+
+ComponentRenderer.prototype.updateDynamicGeometry = function updateDynamicGeometry(components, breadboard, isTray)
+{
+    this.dynamicTextRenderer.clearGeometry();
+
+    var numComponents = components.length;
+
+    var i;
+    var component;
+    for (i = 0; i < numComponents; i += 1)
+    {
+        component = components[i];
+        component.dynamicPrepareGeometry(this);
+    }
+
+    this.dynamicTextRenderer.allocateGeometry();
+
+    var index = 0;
+    for (i = 0; i < numComponents; i += 1)
+    {
+        component = components[i];
+        component.dynamicAddGeometry(this, breadboard, isTray);
+    }
+
+    this.dynamicTextRenderer.updateGeometry();
 };
 
 ComponentRenderer.prototype.updateGeometry = function updateGeometry(components, breadboard, isTray)

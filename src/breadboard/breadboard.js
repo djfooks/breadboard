@@ -137,6 +137,7 @@ Breadboard.prototype.clear = function clearFn()
     this.removeWireId = -1;
     this.dirty = false;
     this.geometryDirty = true;
+    this.dynamicGeometryDirty = true;
 
     this.shouldSwitch = false;
     this.state = Breadboard.state.START_STATE;
@@ -476,6 +477,12 @@ Breadboard.prototype.draw = function draw()
 
         this.gameRenderer.createValuesTexture();
         this.geometryDirty = false;
+    }
+
+    if (this.dynamicGeometryDirty)
+    {
+        this.componentRenderer.updateDynamicGeometry(this.componentsList, this, false);
+        this.dynamicGeometryDirty = false;
     }
 
     if (this.virtualWireGeometryDirty)

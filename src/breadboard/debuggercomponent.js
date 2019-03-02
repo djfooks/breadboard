@@ -102,9 +102,17 @@ DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboar
 DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.outputNodes.count += 9;
-    //if (this.debugType === DebuggerComponent.debugType.WRITE)
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
         componentRenderer.textRenderer.textObjects.count += (this.value + "").length;
+    }
+};
+
+DebuggerComponent.prototype.dynamicPrepareGeometry = function dynamicPrepareGeometry(componentRenderer)
+{
+    if (this.debugType === DebuggerComponent.debugType.READ)
+    {
+        componentRenderer.dynamicTextRenderer.textObjects.count += (this.value + "").length;
     }
 };
 
@@ -126,11 +134,21 @@ DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer
     }
     componentRenderer.addNode(breadboard, componentRenderer.outputNodes, this.powerP, this.powerId, isTray);
 
-    //if (this.debugType === DebuggerComponent.debugType.WRITE)
+    if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
         var rotationMatrix = RotationMatrix[this.rotation];
         var textPos = AddTransformedVector(this.p0, rotationMatrix, [0.9, 0.0]);
         componentRenderer.addText(textPos, this.value + "", (breadboard.focusComponent === this) ? 255 : 0, DebuggerComponent.textConfig);
+    }
+};
+
+DebuggerComponent.prototype.dynamicAddGeometry = function dynamicAddGeometry(componentRenderer, breadboard, isTray)
+{
+    if (this.debugType === DebuggerComponent.debugType.READ)
+    {
+        var rotationMatrix = RotationMatrix[this.rotation];
+        var textPos = AddTransformedVector(this.p0, rotationMatrix, [0.9, 0.0]);
+        componentRenderer.addDynamicText(textPos, this.value + "", (breadboard.focusComponent === this) ? 255 : 0, DebuggerComponent.textConfig);
     }
 };
 
@@ -158,7 +176,7 @@ DebuggerComponent.prototype.update = function update(breadboard)
         }
         if (this.previousValue != this.value)
         {
-            breadboard.geometryDirty = true;
+            breadboard.dynamicGeometryDirty = true;
         }
         this.previousValue = this.value;
     }
@@ -237,10 +255,14 @@ DebuggerComponent.prototype.updateValue = function updateValue(breadboard)
     this.previousValue = this.value;
 
     var write = (this.debugType === DebuggerComponent.debugType.WRITE);
-    breadboard.dirtySave = true;
-    //if (write)
+    if (write)
     {
+        breadboard.dirtySave = true;
         breadboard.geometryDirty = true;
+    }
+    else
+    {
+        breadboard.debuggersDirty = true;
     }
 
     var i;
