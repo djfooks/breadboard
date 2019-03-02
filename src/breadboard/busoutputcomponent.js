@@ -99,7 +99,7 @@ BusOutputComponent.prototype.prepareGeometry = function prepareGeometry(componen
 {
     componentRenderer.switches.count += 1;
     componentRenderer.busNodes.count += 1;
-    componentRenderer.textRenderer.textObjects.count += 1;
+    componentRenderer.textRenderer.prepareText(this.settingId, this.busKey);
 };
 
 BusOutputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
@@ -125,7 +125,7 @@ BusOutputComponent.prototype.addGeometry = function addGeometry(componentRendere
     componentRenderer.addPosition(componentRenderer.busNodes.p, busIndex, this.busP);
     componentRenderer.busNodes.index += 1;
 
-    componentRenderer.addText(this.settingP, this.busKey, (breadboard.focusComponent === this) ? 255 : 0);
+    componentRenderer.addText(this.settingId, (breadboard.focusComponent === this) ? 255 : 0);
 };
 
 BusOutputComponent.prototype.render = function render(breadboard, renderer)

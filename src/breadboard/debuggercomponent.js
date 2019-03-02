@@ -105,54 +105,51 @@ DebuggerComponent.textConfig = {
     align: 'right',
     letterSpacing: 1,
     scale: 1,
-    rotate: false,
     color: "#F00"
 };
 
-DebuggerComponent.textConfigRotate = {
-    width: 300,
-    align: 'right',
-    letterSpacing: 1,
-    scale: 1,
-    rotate: true,
-    color: "#F00"
-};
-
-DebuggerComponent.prototype.addText = function addText(componentRenderer, breadboard)
+DebuggerComponent.prototype.prepareText = function prepareText(componentRenderer)
 {
     var rotationMatrix = RotationMatrix[this.rotation];
     var textConfig;
     var offset;
+    var rotate = false;
     if (this.rotation === 0)
     {
-        textConfig = DebuggerComponent.textConfig;
+        DebuggerComponent.textConfig.align = 'right';
         offset = [0.9, 0.0];
     }
     else if (this.rotation === 1)
     {
-        textConfig = DebuggerComponent.textConfigRotate;
+        DebuggerComponent.textConfig.align = 'right';
+        rotate = true;
         offset = [0.9, 0.0];
     }
     else if (this.rotation === 2)
     {
-        textConfig = DebuggerComponent.textConfig;
-        offset = [10.3, 0.0];
+        DebuggerComponent.textConfig.align = 'left';
+        offset = [5.9, 0.0];
     }
     else if (this.rotation === 3)
     {
-        textConfig = DebuggerComponent.textConfigRotate;
-        offset = [10.3, 0.0];
+        DebuggerComponent.textConfig.align = 'left';
+        rotate = true;
+        offset = [5.9, 0.0];
     }
     var textPos = AddTransformedVector(this.p0, rotationMatrix, offset);
 
+    DebuggerComponent.textConfig.rotate = rotate;
+
+    var textRenderer;
     if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
-        componentRenderer.addText(textPos, this.value + "", (breadboard.focusComponent === this) ? 255 : 0, textConfig);
+        textRenderer = componentRenderer.textRenderer;
     }
     else
     {
-        componentRenderer.addDynamicText(textPos, this.value + "", (breadboard.focusComponent === this) ? 255 : 0, textConfig);
+        textRenderer = componentRenderer.dynamicTextRenderer;
     }
+    textRenderer.prepareText(this.powerId, textPos, this.value + "", DebuggerComponent.textConfig);
 };
 
 DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
@@ -160,7 +157,7 @@ DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(component
     if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
         componentRenderer.outputNodes.count += 9;
-        componentRenderer.textRenderer.textObjects.count += (this.value + "").length;
+        this.prepareText(componentRenderer);
     }
     else
     {
@@ -179,7 +176,7 @@ DebuggerComponent.prototype.addGeometry = function addGeometry(componentRenderer
         }
 
         this.powerTextureIndex = componentRenderer.addOutputNode(breadboard, this.powerP, isTray);
-        this.addText(componentRenderer, breadboard);
+        componentRenderer.addText(this.powerId, (breadboard.focusComponent === this) ? 255 : 0);
     }
     else
     {
@@ -194,7 +191,7 @@ DebuggerComponent.prototype.dynamicPrepareGeometry = function dynamicPrepareGeom
 {
     if (this.debugType === DebuggerComponent.debugType.READ)
     {
-        componentRenderer.dynamicTextRenderer.textObjects.count += (this.value + "").length;
+        this.prepareText(componentRenderer);
     }
 };
 
@@ -202,7 +199,7 @@ DebuggerComponent.prototype.dynamicAddGeometry = function dynamicAddGeometry(com
 {
     if (this.debugType === DebuggerComponent.debugType.READ)
     {
-        this.addText(componentRenderer, breadboard);
+        componentRenderer.addDynamicText(this.powerId, (breadboard.focusComponent === this) ? 255 : 0);
     }
 };
 
