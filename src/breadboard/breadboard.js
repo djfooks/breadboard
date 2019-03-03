@@ -1251,6 +1251,7 @@ Breadboard.prototype.mouseDownComponentsUpdate = function mouseDownComponentsUpd
                         selectedObj.grabbedPosition = mouseDownComponent.getPosition();
                         selectedObjects.connectionMapDirty = true;
                     }
+                    this.geometryDirty = true;
                 }
             }
             this.shouldSwitch = false;
