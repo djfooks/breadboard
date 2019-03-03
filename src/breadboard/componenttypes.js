@@ -73,13 +73,44 @@ Component.drawFgNode = function drawFgNode(ctx, fgColor, value0, p)
     ctx.fill();
 };
 
+Component.isValidPosition = function isValidPosition(breadboard, component, p0, rotation)
+{
+    var x;
+    var y;
+
+    var size = component.getSize();
+    size[0] -= 1;
+    size[1] -= 1;
+    var rotationMatrix = RotationMatrix[rotation];
+    var p1 = AddTransformedVector(p0, rotationMatrix, size);
+
+    var minX = Math.min(p0[0], p1[0]);
+    var minY = Math.min(p0[1], p1[1]);
+    var maxX = Math.max(p0[0], p1[0]);
+    var maxY = Math.max(p0[1], p1[1]);
+
+    var component;
+    var p;
+    var isValid;
+    for (x = minX; x <= maxX; x += 1)
+    {
+        for (y = minY; y <= maxY; y += 1)
+        {
+            p = [x, y];
+            component = breadboard.getComponent(p);
+            isValid = breadboard.validPosition(p) && (!component || component === this);
+            if (!isValid)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
 Component.addComponentFunctions = function addComponentFunctions(componentType)
 {
-    componentType.prototype.drawSelection = function drawSelection(ctx, color)
-    {
-        Component.drawContainerPath(ctx, color, this.p0, this.p1, Component.selectionBorder);
-        ctx.stroke();
-    };
+    componentType.prototype.getSize = function getSize() { return [1, 1] };
     componentType.prototype.getPosition = function getPosition()
     {
         return [this.p0[0], this.p0[1]];

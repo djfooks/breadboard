@@ -25,7 +25,7 @@ SelectedObject.areAllValid = function areAllValid(breadboard, selectedComponents
         }
 
         if (!breadboard.validPosition(q) ||
-            !component.isValidPosition(breadboard, q, component.rotation))
+            !Component.isValidPosition(breadboard, component, q, component.rotation))
         {
             return false;
         }

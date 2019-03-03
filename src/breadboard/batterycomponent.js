@@ -15,6 +15,8 @@ function BatteryComponent(breadboard)
 }
 Component.addComponentFunctions(BatteryComponent);
 
+BatteryComponent.prototype.getSize = function getSize() { return [1, 2] };
+
 BatteryComponent.prototype.type = ComponentTypes.BATTERY;
 
 BatteryComponent.prototype.createPulsePath = function createPulsePath()
@@ -50,21 +52,6 @@ BatteryComponent.prototype.toJson = function toJson()
         p0: this.p0,
         rotation: this.rotation
     };
-};
-
-BatteryComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
-{
-    var rotationMatrix = RotationMatrix[rotation];
-
-    var p1 = AddTransformedVector(p0, rotationMatrix, [0, 1]);
-
-    var p0Component = breadboard.getComponent(p0);
-    var p1Component = breadboard.getComponent(p1);
-
-    var isValid = true;
-    isValid = isValid && breadboard.validPosition(p0) && (!p0Component || p0Component === this);
-    isValid = isValid && breadboard.validPosition(p1) && (!p1Component || p1Component === this);
-    return isValid;
 };
 
 BatteryComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)

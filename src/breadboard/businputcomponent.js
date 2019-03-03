@@ -22,6 +22,8 @@ function BusInputComponent(breadboard)
 }
 Component.addComponentFunctions(BusInputComponent);
 
+BusInputComponent.prototype.getSize = function getSize() { return [1, 3] };
+
 BusInputComponent.prototype.type = ComponentTypes.BUS_INPUT;
 
 BusInputComponent.prototype.toJson = function toJson()
@@ -67,30 +69,12 @@ BusInputComponent.prototype.clone = function clone(breadboard)
     return cloneComponent;
 };
 
-BusInputComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
-{
-    var rotationMatrix = RotationMatrix[rotation];
-
-    var p1 = AddTransformedVector(p0, rotationMatrix, [0, 1]);
-    var p2 = AddTransformedVector(p0, rotationMatrix, [0, 2]);
-
-    var p0Component = breadboard.getComponent(p0);
-    var p1Component = breadboard.getComponent(p1);
-    var p2Component = breadboard.getComponent(p2);
-
-    var isValid = true;
-    isValid = isValid && breadboard.validPosition(p0) && (!p0Component || p0Component === this);
-    isValid = isValid && breadboard.validPosition(p1) && (!p1Component || p1Component === this);
-    isValid = isValid && breadboard.validPosition(p2) && (!p2Component || p2Component === this);
-    return isValid;
-};
-
 BusInputComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
 {
     componentRenderer.busNodes.count += 1;
     componentRenderer.inputNodes.count += 1;
     componentRenderer.textRenderer.textObjects.count += 1;
-    componentRenderer.textRenderer.prepareText(this.settingId, this.busKey);
+    componentRenderer.textRenderer.prepareText(this.settingId, this.settingP, this.busKey);
 };
 
 BusInputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)

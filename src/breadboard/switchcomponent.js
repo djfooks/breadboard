@@ -16,6 +16,8 @@ function SwitchComponent(breadboard)
 }
 Component.addComponentFunctions(SwitchComponent);
 
+SwitchComponent.prototype.getSize = function getSize() { return [1, 2] };
+
 SwitchComponent.prototype.type = ComponentTypes.SWITCH;
 
 SwitchComponent.prototype.prepareGeometry = function prepareGeometry(componentRenderer)
@@ -87,21 +89,6 @@ SwitchComponent.prototype.stateFromJson = function stateFromJson(json)
     {
         this.toggle();
     }
-};
-
-SwitchComponent.prototype.isValidPosition = function isValidPosition(breadboard, p0, rotation)
-{
-    var rotationMatrix = RotationMatrix[rotation];
-
-    var p1 = AddTransformedVector(p0, rotationMatrix, [0, 1]);
-
-    var p0Component = breadboard.getComponent(p0);
-    var p1Component = breadboard.getComponent(p1);
-
-    var isValid = true;
-    isValid = isValid && breadboard.validPosition(p0) && (!p0Component || p0Component === this);
-    isValid = isValid && breadboard.validPosition(p1) && (!p1Component || p1Component === this);
-    return isValid;
 };
 
 SwitchComponent.prototype.toggle = function toggle()

@@ -31,6 +31,8 @@ function DebuggerComponent(breadboard)
 }
 Component.addComponentFunctions(DebuggerComponent);
 
+DebuggerComponent.prototype.getSize = function getSize() { return [9, 2] };
+
 DebuggerComponent.debugType = {
     WRITE: 1,
     READ: 2
@@ -84,20 +86,6 @@ DebuggerComponent.prototype.clone = function clone(breadboard)
     cloneComponent.value = this.value;
     cloneComponent.move(breadboard, this.p0, this.rotation);
     return cloneComponent;
-};
-
-DebuggerComponent.prototype.isValidPosition = function isValidPosition(breadboard, p, rotation)
-{
-    var rotationMatrix = RotationMatrix[rotation];
-    var i;
-    var isValid = true;
-    for (i = 0; i < 8; i += 1)
-    {
-        var pin = AddTransformedVector(p, rotationMatrix, [i, 1]);
-        var component = breadboard.getComponent(pin);
-        isValid = isValid && breadboard.validPosition(pin) && (!component || component === this);
-    }
-    return isValid;
 };
 
 DebuggerComponent.textConfig = {
