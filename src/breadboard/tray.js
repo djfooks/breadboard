@@ -257,6 +257,10 @@ Tray.prototype.resetComponents = function resetComponents()
     this.gameStage.addHitbox(this.debugger.hitbox);
     this.debugger.move(this.breadboard, [-1, 23], 0);
 
+    this.eeprom = new EEPROMComponent(this.breadboard);
+    this.gameStage.addHitbox(this.eeprom.hitbox);
+    this.eeprom.move(this.breadboard, [5, 18], 0);
+
     this.busInput = new BusInputComponent(this.breadboard);
     this.gameStage.addHitbox(this.busInput.hitbox);
     this.busInput.move(this.breadboard, [2, 9], 0);
@@ -275,6 +279,7 @@ Tray.prototype.resetComponents = function resetComponents()
         this.relay,
         this.diode,
         this.debugger,
+        this.eeprom,
         this.busInput,
         this.busOutput,
         this.latch,
@@ -292,6 +297,7 @@ Tray.prototype.isFromTray = function isFromTray(component)
     fromTray = fromTray || (component === this.busInput);
     fromTray = fromTray || (component === this.busOutput);
     fromTray = fromTray || (component === this.latch);
+    fromTray = fromTray || (component === this.eeprom);
     return fromTray;
 };
 

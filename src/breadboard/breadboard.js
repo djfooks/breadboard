@@ -294,6 +294,10 @@ Breadboard.createFromJson = function createFromJson(stage, top, left, json)
         {
             component = new LatchComponent(breadboard);
         }
+        else if (componentJson.type === ComponentTypes.EEPROM)
+        {
+            component = new EEPROMComponent(breadboard);
+        }
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p0 || componentJson.p, componentJson.rotation | 0);
         breadboard.addComponent(component);
