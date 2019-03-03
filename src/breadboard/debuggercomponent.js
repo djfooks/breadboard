@@ -144,12 +144,13 @@ DebuggerComponent.prototype.prepareGeometry = function prepareGeometry(component
 {
     if (this.debugType === DebuggerComponent.debugType.WRITE)
     {
+        // 8-pins + power
         componentRenderer.outputNodes.count += 9;
         this.prepareText(componentRenderer);
     }
     else
     {
-        componentRenderer.inputNodes.count += 9;
+        componentRenderer.inputNodes.count += 8;
     }
 };
 

@@ -333,6 +333,13 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
         component.addGeometry(this, breadboard, isTray);
     }
 
+    if (this.switches.count       != this.switches.index)       { throw new Error("switches.count invalid"); }
+    if (this.outputNodes.count    != this.outputNodes.index)    { throw new Error("outputNodes.count invalid"); }
+    if (this.inputNodes.count     != this.inputNodes.index)     { throw new Error("inputNodes.count invalid"); }
+    if (this.busNodes.count       != this.busNodes.index)       { throw new Error("busNodes.count invalid"); }
+    if (this.batterySymbols.count != this.batterySymbols.index) { throw new Error("batterySymbols.count invalid"); }
+    if (this.diodeSymbols.count   != this.diodeSymbols.index)   { throw new Error("diodeSymbols.count invalid"); }
+
     this.textRenderer.updateGeometry();
 
     var switchGeometry = this.switchGeometry;
