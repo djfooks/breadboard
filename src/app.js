@@ -21,6 +21,8 @@ var App = function ()
     this.fps = 30;
     this.intervalId = setInterval(this.update.bind(this), 1000 / this.fps);
 
+    this.vueApp = new VueApp(this.breadboard);
+
     var top = 10;
     var left = 10;
     var json;
@@ -36,13 +38,13 @@ var App = function ()
     }
     if (json)
     {
-        this.breadboard = Breadboard.createFromJson(this.stage, top, left, json);
+        this.breadboard = Breadboard.createFromJson(this.vueApp, this.stage, top, left, json);
     }
     else
     {
         var rows = 1001;
         var cols = 1001;
-        this.breadboard = new Breadboard(this.stage, top, left, cols, rows);
+        this.breadboard = new Breadboard(this.vueApp, this.stage, top, left, cols, rows);
         this.breadboard.addWire(0, 0, cols - 1, 0, false);
     }
 

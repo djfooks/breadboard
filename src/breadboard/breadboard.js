@@ -1,5 +1,6 @@
-function Breadboard(stage, top, left, cols, rows)
+function Breadboard(vueapp, stage, top, left, cols, rows)
 {
+    this.vueapp = vueapp;
     this.stage = stage;
 
     this.debugDrawList = [];
@@ -217,9 +218,9 @@ Breadboard.prototype.toJson = function toJson()
     return out;
 };
 
-Breadboard.createFromJson = function createFromJson(stage, top, left, json)
+Breadboard.createFromJson = function createFromJson(vueapp, stage, top, left, json)
 {
-    var breadboard = new Breadboard(stage, top, left, 1001, 1001);
+    var breadboard = new Breadboard(vueapp, stage, top, left, 1001, 1001);
 
     if (json.viewZoom)
     {
@@ -552,6 +553,16 @@ Breadboard.prototype.draw = function draw()
     stage.renderer.render(this.canvasScene, this.canvasCamera);
 
     this.selectedObjects.drawHover();
+};
+
+Breadboard.prototype.getSelectedComponent = function getSelectedComponent()
+{
+    var selectionComponents = this.selectedObjects.componentObjects;
+    if (selectionComponents.length === 1)
+    {
+        return selectionComponents[0];
+    }
+    return null;
 };
 
 Breadboard.prototype.updateSelectionGeometry = function updateSelectionGeometry()

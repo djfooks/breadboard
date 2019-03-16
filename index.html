@@ -47,6 +47,22 @@
         <script type="text/javascript" src="src/breadboard/tray.js"></script>
         <script type="text/javascript" src="src/breadboard/wire.js"></script>
         <script type="text/javascript" src="src/breadboard/wirerenderer.js"></script>
+
+        <!-- Modal JS -->
+        <link rel="stylesheet" href="src/styles.css"></link>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+        <!-- Include the Codemirror library -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/codemirror.min.js"></script>
+        <!-- Codemirror JS Vue -->
+        <script src="https://cdn.jsdelivr.net/npm/vue-codemirror@4.0.0/dist/vue-codemirror.js"></script>
+        <!-- Codemirror Libs -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/mode/javascript/javascript.min.js"></script>
+        <!-- Include stylesheet -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/codemirror.min.css" rel="stylesheet">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.10.2/jshint.min.js"></script>
+
     </head>
     <body>
 
@@ -63,7 +79,84 @@
         <canvas id="canvas" width="800" height="550" tabindex="1"></canvas>
 
         <p id="debugText"></p>
+
+        <div id="vueapp">
+            <modal v-if="showModal.value" @close=close>
+                <h3 slot="header">EEPROM</h3>
+                <template v-slot:body>
+                    <tabs></tabs>
+                </template>
+            </modal>
+        </div>
     </body>
 
+<template id="tab-edit">
+    <div>
+        <chipoutput v-on:change=outputChanged
+                    :outputs=outputs></chipoutput>
+        <br>
+        <div id="" style="overflow-y:scroll; height:20em;">
+            <chipline v-for="(item, index) in outputs"
+                      :address=index
+                      :key=index
+                      :output=item
+                      v-on:change=outputChanged></chipline>
+        </div>
+    </div>
+</template>
+
+<template id="tab-javascript">
+    <div>
+        <codemirror v-model="code.value" :options="cmOption"></codemirror>
+        <button type="button" v-on:click=clickCheck>Check</button>
+        <button type="button" v-on:click=clickGenerate>{{generateButton}}</button>
+        <br>
+        <textarea class="generateText" readonly v-model="generateText" rows="5"></textarea>
+    </div>
+</template>
+
+<template id="tabs">
+    <div>
+        <button
+            v-for="tab in tabs"
+            v-bind:key="tab"
+            v-bind:class="['tab-button', { active: currentTab === tab }]"
+            v-on:click="currentTab = tab"
+            >{{ tab }}</button>
+
+        <component v-bind:is="currentTabComponent"
+                   class="tab"></component>
+    </div>
+</template>
+
+<template id="modal-template">
+    <transition name="modal">
+        <div class="modal-mask">
+            <div class="modal-wrapper">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <slot name="header">
+                        </slot>
+                    </div>
+
+                    <div class="modal-body">
+                        <slot name="body">
+                        </slot>
+                    </div>
+
+                    <div class="modal-footer">
+                        <slot name="footer">
+                            <button class="modal-default-button" @click="$emit('close')">
+                                Close
+                            </button>
+                        </slot>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
+</template>
+
+    <script type="text/javascript" src="src/vueapp.js"></script>
     <script type="text/javascript" src="src/app.js"></script>
 </html>

@@ -26,7 +26,7 @@ function EEPROMComponent(breadboard)
         this.valueTextureIndex.push(-1);
     }
 
-    this.previousAddress = 0;
+    this.previousValue = 0;
     this.address = 0;
     this.value = 0;
 
@@ -144,10 +144,9 @@ EEPROMComponent.prototype.update = function update(breadboard)
         }
     }
 
-    if (this.previousAddress != this.address)
+    var value = this.valueLookup[this.address];
+    if (this.previousValue != value)
     {
-        var value = this.valueLookup[this.address];
-
         var j;
         for (i = 0; i < this.pulsePaths.length; i += 1)
         {
@@ -193,7 +192,7 @@ EEPROMComponent.prototype.update = function update(breadboard)
                 }
             }
         }
-        this.previousAddress = this.address;
+        this.previousValue = value;
     }
 };
 
@@ -212,6 +211,7 @@ EEPROMComponent.prototype.getConnections = function getConnections(breadboard)
 
 EEPROMComponent.prototype.configure = function configure(breadboard)
 {
+    breadboard.vueapp.showConfigureModal(breadboard);
 };
 
 EEPROMComponent.prototype.getOutputs = function getOutputs(id)
