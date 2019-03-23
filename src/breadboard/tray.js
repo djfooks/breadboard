@@ -210,7 +210,7 @@ Tray.prototype.postLoad = function postLoad()
 
     this.wireRenderer.updateGeometry(this.scene, this.wires, this.breadboard, true, this.wireHasDotFn);
     this.busRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
-    this.selectionWireRenderer.updateGeometry(this.wires, this.breadboard, true, this.wireHasDotFn);
+    this.selectionWireRenderer.updateGeometry(this.scene, this.wires, this.breadboard, true, this.wireHasDotFn);
     this.selectionBusRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
 
     this.componentBoxRenderer.updateGeometry(this.componentsList);

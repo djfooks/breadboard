@@ -69,10 +69,11 @@ WireRenderer.prototype.createMeshes = function createMeshes(scene, feather)
         this.wireCirclesFgMaterial.transparent = true;
     }
 
-    this.addMesh(scene);
+    this.addMeshSet();
+    this.setVisible(scene, true);
 };
 
-WireRenderer.prototype.addMesh = function addMesh(scene)
+WireRenderer.prototype.addMeshSet = function addMeshSet()
 {
     var renderer = this.renderer;
 
@@ -80,45 +81,43 @@ WireRenderer.prototype.addMesh = function addMesh(scene)
     var circleMesh = new THREE.Mesh(circleGeometry, this.wireCirclesBgMaterial);
     this.circleGeometry.push(circleGeometry);
     this.circleBgMesh.push(circleMesh);
-    scene.add(circleMesh);
 
     var wireGeometry = renderer.createQuadGeometry();
     var wireMesh = new THREE.Mesh(wireGeometry, this.wireMaterial);
     this.wireGeometry.push(wireGeometry);
     this.wireMesh.push(wireMesh);
-    scene.add(wireMesh);
 
     if (this.wireCirclesFgMaterial)
     {
         var circleFgMesh = new THREE.Mesh(circleGeometry, this.wireCirclesFgMaterial);
         this.circleFgMesh.push(circleFgMesh);
-        scene.add(circleFgMesh);
     }
 };
 
 WireRenderer.prototype.setVisible = function setVisible(scene, visible)
 {
-    var i;
-    for (i = 0; i < this.wireMesh.length; i += 1)
+    function doMeshSet(list, order)
     {
-        if (visible)
+        var i;
+        for (i = 0; i < list.length; i += 1)
         {
-            scene.add(this.circleBgMesh[i]);
-            scene.add(this.wireMesh[i]);
-            if (this.wireCirclesFgMaterial)
+            if (visible)
             {
-                scene.add(this.circleFgMesh[i]);
+                scene.add(list[i]);
+                list[i].renderOrder = order;
+            }
+            else
+            {
+                scene.remove(list[i]);
             }
         }
-        else
-        {
-            scene.remove(this.circleBgMesh[i]);
-            scene.remove(this.wireMesh[i]);
-            if (this.wireCirclesFgMaterial)
-            {
-                scene.remove(this.circleFgMesh[i]);
-            }
-        }
+    }
+
+    doMeshSet(this.circleBgMesh, 0);
+    doMeshSet(this.wireMesh, 1);
+    if (this.wireCirclesFgMaterial)
+    {
+        doMeshSet(this.circleFgMesh, 2);
     }
 };
 
@@ -129,22 +128,29 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(scene, wires, br
     var numWires = wires.length;
 
     var numGeometry = Math.ceil(numWires / WireRenderer.maxWiresPerGeometry);
-    while (this.wireGeometry.length < numGeometry)
-    {
-        this.addMesh(scene);
-    }
 
-    while (this.circleBgMesh.length > numGeometry)
+    if (this.wireGeometry.length != numGeometry)
     {
-        scene.remove(this.circleBgMesh.pop());
-        scene.remove(this.wireMesh.pop());
-        if (this.wireCirclesFgMaterial)
+        this.setVisible(scene, false);
+
+        while (this.wireMesh.length < numGeometry)
         {
-            scene.remove(this.circleFgMesh.pop());
+            this.addMeshSet();
         }
 
-        this.wireGeometry.pop();
-        this.circleGeometry.pop();
+        while (this.wireMesh.length > numGeometry)
+        {
+            this.circleBgMesh.pop();
+            this.wireMesh.pop();
+            if (this.wireCirclesFgMaterial)
+            {
+                this.circleFgMesh.pop();
+            }
+            this.wireGeometry.pop();
+            this.circleGeometry.pop();
+        }
+
+        this.setVisible(scene, true);
     }
 
     var wireValueIndex = 2;

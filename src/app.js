@@ -1,3 +1,4 @@
+
 var App = function ()
 {
     window.onerror = this.onError.bind(this);
@@ -167,6 +168,7 @@ App.prototype.initWebGL = function initWebGL()
 {
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
     this.renderer.autoClear = false;
+    this.renderer.sortObjects = true;
     this.scene = new THREE.Scene();
 };
 
