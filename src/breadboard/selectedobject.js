@@ -128,7 +128,7 @@ SelectedObjectSet.prototype.draw = function draw()
 
     if (this.draggingGeometryDirty)
     {
-        this.wireRenderer.updateGeometry(this.wireObjects, breadboard, true, wireHasDotFn);
+        this.wireRenderer.updateGeometry(this.scene, this.wireObjects, breadboard, true, wireHasDotFn);
         this.busRenderer.updateGeometry(this.busObjects, breadboard, true, wireHasDotFn);
         this.componentBoxRenderer.updateGeometry(this.componentObjects);
         this.componentRenderer.updateGeometry(this.componentObjects, breadboard, true);

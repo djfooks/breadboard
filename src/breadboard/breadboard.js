@@ -480,7 +480,7 @@ Breadboard.prototype.draw = function draw()
     if (this.geometryDirty)
     {
         this.gameRenderer.textureSize = 0;
-        this.wireRenderer.updateGeometry(this.wires, this, false, this.wireHasDot);
+        this.wireRenderer.updateGeometry(this.scene, this.wires, this, false, this.wireHasDot);
         this.busRenderer.updateGeometry(this.buses, this, false, this.wireHasDot);
         this.componentBoxRenderer.updateGeometry(this.componentsList);
 
@@ -498,7 +498,7 @@ Breadboard.prototype.draw = function draw()
 
     if (this.virtualWireGeometryDirty)
     {
-        this.virtualWireRenderer.updateGeometry(this.virtualWires, this, true, this.virtualWireHasDot);
+        this.virtualWireRenderer.updateGeometry(this.scene, this.virtualWires, this, true, this.virtualWireHasDot);
         this.virtualWireGeometryDirty = false;
     }
 
@@ -583,7 +583,7 @@ Breadboard.prototype.updateSelectionGeometry = function updateSelectionGeometry(
         selectionLines.updateGeometry();
 
         this.selectionComponentBoxRenderer.updateGeometry([]);
-        this.selectionWireRenderer.updateGeometry([], this, true, this.wireHasDot);
+        this.selectionWireRenderer.updateGeometry(this.scene, [], this, true, this.wireHasDot);
         this.selectionBusRenderer.updateGeometry([], this, true, this.wireHasDot);
         return;
     }
@@ -660,7 +660,7 @@ Breadboard.prototype.updateSelectionGeometry = function updateSelectionGeometry(
 
     selectionLines.updateGeometry();
     this.selectionComponentBoxRenderer.updateGeometry(selectionComponents);
-    this.selectionWireRenderer.updateGeometry(selectionWires, this, true, this.wireHasDot);
+    this.selectionWireRenderer.updateGeometry(this.scene, selectionWires, this, true, this.wireHasDot);
     this.selectionBusRenderer.updateGeometry(selectionBuses, this, true, this.wireHasDot);
 };
 

@@ -208,7 +208,7 @@ Tray.prototype.postLoad = function postLoad()
     this.wireRenderer.createMeshes(this.scene, this.gameStage.feather);
     this.busRenderer.createMeshes(this.scene, this.gameStage.feather);
 
-    this.wireRenderer.updateGeometry(this.wires, this.breadboard, true, this.wireHasDotFn);
+    this.wireRenderer.updateGeometry(this.scene, this.wires, this.breadboard, true, this.wireHasDotFn);
     this.busRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
     this.selectionWireRenderer.updateGeometry(this.wires, this.breadboard, true, this.wireHasDotFn);
     this.selectionBusRenderer.updateGeometry(this.buses, this.breadboard, true, this.wireHasDotFn);
@@ -308,8 +308,8 @@ Tray.prototype.draw = function draw()
     if (this.breadboard.state != this.state ||
         this.breadboard.wireType != this.wireType)
     {
-        this.selectionWireRenderer.removeMeshes(this.scene);
-        this.selectionBusRenderer.removeMeshes(this.scene);
+        this.selectionWireRenderer.setVisible(this.scene, false);
+        this.selectionBusRenderer.setVisible(this.scene, false);
         // this.scene.remove(this.selectionCursorMesh);
 
         var state = this.state = this.breadboard.state;
@@ -318,11 +318,11 @@ Tray.prototype.draw = function draw()
                         state == Breadboard.state.PLACING_WIRE;
         if (wireState && wireType == ComponentTypes.WIRE)
         {
-            this.selectionWireRenderer.addMeshes(this.scene);
+            this.selectionWireRenderer.setVisible(this.scene, true);
         }
         else if (wireState && wireType == ComponentTypes.BUS)
         {
-            this.selectionBusRenderer.addMeshes(this.scene);
+            this.selectionBusRenderer.setVisible(this.scene, true);
         }
         else if (state == Breadboard.state.MOVE)
         {

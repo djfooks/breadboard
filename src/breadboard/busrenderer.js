@@ -52,16 +52,18 @@ BusRenderer.prototype.createMeshes = function createMeshes(scene, feather)
     scene.add(this.diamondMesh);
 };
 
-BusRenderer.prototype.addMeshes = function addMeshes(scene)
+BusRenderer.prototype.setVisible = function setVisible(scene, visible)
 {
-    scene.add(this.busMesh);
-    scene.add(this.diamondMesh);
-};
-
-BusRenderer.prototype.removeMeshes = function removeMeshes(scene)
-{
-    scene.remove(this.busMesh);
-    scene.remove(this.diamondMesh);
+    if (visible)
+    {
+        scene.add(this.busMesh);
+        scene.add(this.diamondMesh);
+    }
+    else
+    {
+        scene.remove(this.busMesh);
+        scene.remove(this.diamondMesh);
+    }
 };
 
 BusRenderer.prototype.updateGeometry = function updateGeometry(buses, breadboard, isTray, hasDotFn)
