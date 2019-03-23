@@ -46,7 +46,7 @@ function EEPROMComponent(breadboard)
 }
 Component.addComponentFunctions(EEPROMComponent);
 
-EEPROMComponent.prototype.getSize = function getSize() { return [2, 10] };
+EEPROMComponent.prototype.getSize = function getSize() { return [10, 2] };
 
 EEPROMComponent.prototype.type = ComponentTypes.EEPROM;
 
@@ -65,7 +65,12 @@ EEPROMComponent.prototype.toJson = function toJson()
 EEPROMComponent.prototype.stateFromJson = function stateFromJson(json)
 {
     this.data = json.data;
-    //this.valueLookup = json.valueLookup;
+    this.valueLookup = new Uint8Array(256);
+    var i;
+    for (i = 0; i < 256; i += 1)
+    {
+        this.valueLookup[i] = json.valueLookup[i];
+    }
     this.jsCodeSource = json.jsCodeSource;
 };
 

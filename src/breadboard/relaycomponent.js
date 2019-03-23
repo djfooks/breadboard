@@ -104,9 +104,11 @@ RelayComponent.prototype.update = function update(breadboard)
     this.signalValue = signalValue;
 
     var i;
-    for (i = 0; i < this.pulsePaths.length; i += 1)
+    var pulsePaths = this.pulsePaths;
+    var pulsePathsLength = pulsePaths.length;
+    for (i = 0; i < pulsePathsLength; i += 1)
     {
-        var child = this.pulsePaths[i];
+        var child = pulsePaths[i];
         var parent = child.parent;
         var parentInputId = child.sourceId;
 

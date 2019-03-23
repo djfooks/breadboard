@@ -394,7 +394,6 @@ Breadboard.prototype.update = function update()
             this.dirty = false;
         }
     }
-    this.draw();
 };
 
 Breadboard.prototype.updateComponents = function updateComponents()
