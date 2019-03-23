@@ -6,10 +6,10 @@ uniform mat4 projectionMatrix;
 uniform float radius;
 
 attribute vec2 position;
-attribute vec3 circle;
+attribute vec4 circle;
 
 varying vec2 vP;
-varying vec3 vCircle;
+varying vec4 vCircle;
 void main()
 {
     float r = radius + feather * 2.0;

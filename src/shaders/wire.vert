@@ -4,13 +4,13 @@ precision highp int;
 uniform mat4 projectionMatrix;
 
 attribute vec2 position;
-attribute vec3 p1;
-attribute vec3 p2;
+attribute vec4 p1;
+attribute vec4 p2;
 
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
-varying float vUV;
+varying vec2 vUV;
 void main()
 {
     vP1 = p1.xy;
@@ -25,7 +25,7 @@ void main()
     p += mix(-m, m, position.y);
 
     float uv = (dot(vP1 - p, n) + 0.5) / d;
-    vUV = mix(p1.z, p2.z, uv);
+    vUV = mix(p1.zw, p2.zw, uv);
 
     vP = p;
     vec4 mvPosition = vec4(p, 0.0, 1.0);

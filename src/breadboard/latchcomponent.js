@@ -90,14 +90,14 @@ LatchComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
     var textureIndex0 = componentRenderer.getWireTextureIndex(breadboard, this.outId0, p0, isTray);
     var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.outId1, p1, isTray);
 
-    var index = componentRenderer.switches.index * 12;
+    var index = componentRenderer.switches.index * 16;
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, baseP, textureIndexBase);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, p0, textureIndex0);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, p1, textureIndex1);
 
     this.signalValueIndex = componentRenderer.getNextTextureIndex(breadboard, isTray);
 
-    var signalIndex = componentRenderer.switches.index * 4;
+    var signalIndex = componentRenderer.switches.index * 8;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);
 
     componentRenderer.switches.index += 1;

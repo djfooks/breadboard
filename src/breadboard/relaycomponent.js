@@ -85,12 +85,12 @@ RelayComponent.prototype.addGeometry = function addGeometry(componentRenderer, b
     var textureIndex1 = componentRenderer.getWireTextureIndex(breadboard, this.outId1, p1, isTray);
     var textureIndexSignal = componentRenderer.getWireTextureIndex(breadboard, this.signalId, signalP, isTray);
 
-    var index = componentRenderer.switches.index * 12;
+    var index = componentRenderer.switches.index * 16;
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.base, index, baseP, textureIndexBase);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p0, index, p0, textureIndex0);
     componentRenderer.addPositionAndTextureIndex(componentRenderer.switches.p1, index, p1, textureIndex1);
 
-    var signalIndex = componentRenderer.switches.index * 4;
+    var signalIndex = componentRenderer.switches.index * 8;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, textureIndexSignal);
 
     componentRenderer.switches.index += 1;

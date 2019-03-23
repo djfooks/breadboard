@@ -2,14 +2,14 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
-uniform float textureSize;
+uniform vec2 textureDimensions;
 uniform vec3 wireEdgeColor;
 uniform float isSelection;
 
 varying vec2 vP;
 varying vec2 vP1;
 varying vec2 vP2;
-varying float vUV;
+varying vec2 vUV;
 
 uniform sampler2D texture;
 
@@ -36,7 +36,7 @@ void main(void) {
 
     v = (d - innerWire) / feather;
 
-    float wireValue = texture2D(texture, vec2(vUV / textureSize, 0.5)).x;
+    float wireValue = texture2D(texture, vUV / textureDimensions).x;
 
     vec3 wireColor = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.53, 0.53), wireValue);
 

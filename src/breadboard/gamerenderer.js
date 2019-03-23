@@ -1,7 +1,8 @@
 
 function GameRenderer()
 {
-    this.textureSize = {value : 0};
+    this.textureSize = 0;
+    this.textureDimensions = { value: new THREE.Vector2(0, 0) };
     this.texture = {value : null};
     this.textureData = new Uint8Array(0);
     this.dataTexture = null;
@@ -49,19 +50,40 @@ GameRenderer.prototype.createQuadGeometry = function createQuadGeometry()
     return result;
 };
 
+GameRenderer.maxTextureSize = 2048;
+
+GameRenderer.getValueTextureIndexX = function getValueTextureIndexX(v)
+{
+    return v % GameRenderer.maxTextureSize;
+};
+
+GameRenderer.getValueTextureIndexY = function getValueTextureIndexY(v)
+{
+    return Math.floor(v / GameRenderer.maxTextureSize);
+};
+
 GameRenderer.prototype.createValuesTexture = function createValuesTexture()
 {
-    var textureSize = this.textureSize.value;
-    var textureData = this.textureData = new Uint8Array(textureSize);
+    var textureSize = this.textureSize;
+    var textureWidth = Math.min(textureSize, GameRenderer.maxTextureSize);
+    var textureHeight = GameRenderer.getValueTextureIndexY(textureSize) + 1;
+    var textureData = this.textureData = new Uint8Array(textureWidth * textureHeight);
     for (i = 0; i < textureSize; i += 1)
     {
         textureData[i] = 0;
     }
     textureData[1] = 255;
-    var dataTexture = this.dataTexture = new THREE.DataTexture(textureData, textureSize, 1, THREE.LuminanceFormat, THREE.UnsignedByteType);
+    var dataTexture = this.dataTexture = new THREE.DataTexture(
+        textureData,
+        textureWidth,
+        textureHeight,
+        THREE.LuminanceFormat,
+        THREE.UnsignedByteType);
+
     dataTexture.magFilter = THREE.NearestFilter;
     dataTexture.needsUpdate = true;
 
     this.texture.value = dataTexture;
-    this.textureSize.value = textureSize;
+    this.textureDimensions.value.x = textureWidth;
+    this.textureDimensions.value.y = textureHeight;
 };

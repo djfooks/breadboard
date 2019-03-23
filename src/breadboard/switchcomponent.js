@@ -27,7 +27,7 @@ SwitchComponent.prototype.prepareGeometry = function prepareGeometry(componentRe
 
 SwitchComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
-    var index = componentRenderer.switches.index * 12;
+    var index = componentRenderer.switches.index * 16;
 
     var p0 = this.p0;
     var p1 = this.p1;
@@ -39,7 +39,7 @@ SwitchComponent.prototype.addGeometry = function addGeometry(componentRenderer, 
 
     this.connectedTextureIndex = componentRenderer.getNextTextureIndex(breadboard, isTray);
 
-    var signalIndex = componentRenderer.switches.index * 4;
+    var signalIndex = componentRenderer.switches.index * 8;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.connectedTextureIndex);
 
     componentRenderer.switches.index += 1;

@@ -2,7 +2,7 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
-uniform float textureSize;
+uniform vec2 textureDimensions;
 uniform float radius;
 uniform vec3 wireEdgeColor;
 uniform float isSelection;
@@ -10,14 +10,14 @@ uniform float isSelection;
 uniform float fg;
 
 varying vec2 vP;
-varying vec3 vCircle;
+varying vec4 vCircle;
 
 uniform sampler2D texture;
 
 #define SQRT2 1.4142135
 
 void main(void) {
-    float uv = vCircle.z + 0.5; // don't sample on the edge of the texture!
+    vec2 uv = vCircle.zw + vec2(0.5, 0.5); // don't sample on the edge of the texture!
 
     // gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
     vec2 offset1 = vP - vCircle.xy;
@@ -27,7 +27,7 @@ void main(void) {
 
     float alpha = 1.0 - ((d - r) / feather);
 
-    float wireValue = texture2D(texture, vec2(uv / textureSize, 0.5)).x;
+    float wireValue = texture2D(texture, uv / textureDimensions).x;
     vec3 color = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.53, 0.53), wireValue);
     color = mix(wireEdgeColor, color, fg);
 

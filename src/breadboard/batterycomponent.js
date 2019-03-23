@@ -62,7 +62,7 @@ BatteryComponent.prototype.prepareGeometry = function prepareGeometry(componentR
 
 BatteryComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard)
 {
-    var index = componentRenderer.outputNodes.index * 12;
+    var index = componentRenderer.outputNodes.index * 16;
     componentRenderer.addPositionAndTextureIndex(componentRenderer.outputNodes.p, index, this.p1, 1);
     componentRenderer.outputNodes.index += 1;
 

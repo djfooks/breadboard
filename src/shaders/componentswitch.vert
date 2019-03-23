@@ -2,17 +2,17 @@ precision highp float;
 precision highp int;
 
 uniform float feather;
-uniform float textureSize;
+uniform vec2 textureDimensions;
 uniform mat4 projectionMatrix;
 uniform float radius;
 
 uniform sampler2D texture;
 
 attribute vec2 position;
-attribute vec3 base;
-attribute vec3 p0;
-attribute vec3 p1;
-attribute float signal;
+attribute vec4 base;
+attribute vec4 p0;
+attribute vec4 p1;
+attribute vec2 signal;
 
 varying vec2 vP;
 varying vec3 vBase;
@@ -35,10 +35,10 @@ void main()
 
     vec2 p = vec2(mix(min.x, max.x, position.x), mix(min.y, max.y, position.y));
 
-    float valueBase = texture2D(texture, vec2((base.z + 0.5) / textureSize, 0.5)).x;
-    float valueP0 = texture2D(texture, vec2((p0.z + 0.5) / textureSize, 0.5)).x;
-    float valueP1 = texture2D(texture, vec2((p1.z + 0.5) / textureSize, 0.5)).x;
-    vConnected = texture2D(texture, vec2((signal + 0.5) / textureSize, 0.5)).x;
+    float valueBase = texture2D(texture, (base.zw + vec2(0.5, 0.5)) / textureDimensions).x;
+    float valueP0 = texture2D(texture, (p0.zw + vec2(0.5, 0.5)) / textureDimensions).x;
+    float valueP1 = texture2D(texture, (p1.zw + vec2(0.5, 0.5)) / textureDimensions).x;
+    vConnected = texture2D(texture, (signal + vec2(0.5, 0.5)) / textureDimensions).x;
 
     vP = p;
     vBase.xy = base.xy;

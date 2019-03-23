@@ -479,7 +479,7 @@ Breadboard.prototype.draw = function draw()
     this.gridRenderer.updateGeometry(camera);
     if (this.geometryDirty)
     {
-        this.gameRenderer.textureSize.value = 0;
+        this.gameRenderer.textureSize = 0;
         this.wireRenderer.updateGeometry(this.wires, this, false, this.wireHasDot);
         this.busRenderer.updateGeometry(this.buses, this, false, this.wireHasDot);
         this.componentBoxRenderer.updateGeometry(this.componentsList);

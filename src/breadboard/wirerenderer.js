@@ -28,7 +28,7 @@ WireRenderer.prototype.createMeshes = function createMeshes(scene, feather)
             radius: { value: 0.19 },
             fg: { value: 0.0 },
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize,
+            textureDimensions: this.renderer.textureDimensions,
             wireEdgeColor: this.wireEdgeColor,
             isSelection: this.isSelection
         },
@@ -42,7 +42,7 @@ WireRenderer.prototype.createMeshes = function createMeshes(scene, feather)
         uniforms: {
             feather: feather,
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize,
+            textureDimensions: this.renderer.textureDimensions,
             wireEdgeColor: this.wireEdgeColor,
             isSelection: this.isSelection
         },
@@ -65,7 +65,7 @@ WireRenderer.prototype.createMeshes = function createMeshes(scene, feather)
                 radius: { value: 0.14 },
                 fg: { value: 1.0 },
                 texture: this.renderer.texture,
-                textureSize: this.renderer.textureSize
+                textureDimensions: this.renderer.textureDimensions
             },
             vertexShader: wireCirclesVertexShader,
             fragmentShader: wireCirclesFragmentShader,
@@ -102,8 +102,8 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
 {
     var numWires = wires.length;
 
-    var p1s = new Int16Array(numWires * 12);
-    var p2s = new Int16Array(numWires * 12);
+    var p1s = new Int16Array(numWires * 16);
+    var p2s = new Int16Array(numWires * 16);
 
     var circlesMap = {};
     var numCircles = 0;
@@ -134,7 +134,7 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
 
     for (i = 0; i < numWires; i += 1)
     {
-        index = i * 12;
+        index = i * 16;
         wire = wires[i];
 
         var wireLength = Math.max(Math.abs(wire.x0 - wire.x1),
@@ -149,36 +149,55 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
             texture1 = 0;
         }
 
+        var texture0X = GameRenderer.getValueTextureIndexX(texture0);
+        var texture0Y = GameRenderer.getValueTextureIndexY(texture0);
+
+        var texture1X = GameRenderer.getValueTextureIndexX(texture1);
+        var texture1Y = GameRenderer.getValueTextureIndexY(texture1);
+
+        if (texture0Y != texture1Y)
+        {
+            // TODO fix the wrapping wire
+        }
+
         p1s[index + 0]  = wire.x0;
         p1s[index + 1]  = wire.y0;
-        p1s[index + 2]  = texture0;
-        p1s[index + 3]  = wire.x0;
-        p1s[index + 4]  = wire.y0;
-        p1s[index + 5]  = texture0;
-        p1s[index + 6]  = wire.x0;
-        p1s[index + 7]  = wire.y0;
-        p1s[index + 8]  = texture0;
-        p1s[index + 9]  = wire.x0;
-        p1s[index + 10] = wire.y0;
-        p1s[index + 11] = texture0;
+        p1s[index + 2]  = texture0X;
+        p1s[index + 3]  = texture0Y;
+        p1s[index + 4]  = wire.x0;
+        p1s[index + 5]  = wire.y0;
+        p1s[index + 6]  = texture0X;
+        p1s[index + 7]  = texture0Y;
+        p1s[index + 8]  = wire.x0;
+        p1s[index + 9]  = wire.y0;
+        p1s[index + 10] = texture0X;
+        p1s[index + 11] = texture0Y;
+        p1s[index + 12] = wire.x0;
+        p1s[index + 13] = wire.y0;
+        p1s[index + 14] = texture0X;
+        p1s[index + 15] = texture0Y;
 
         p2s[index + 0]  = wire.x1;
         p2s[index + 1]  = wire.y1;
-        p2s[index + 2]  = texture1;
-        p2s[index + 3]  = wire.x1;
-        p2s[index + 4]  = wire.y1;
-        p2s[index + 5]  = texture1;
-        p2s[index + 6]  = wire.x1;
-        p2s[index + 7]  = wire.y1;
-        p2s[index + 8]  = texture1;
-        p2s[index + 9]  = wire.x1;
-        p2s[index + 10] = wire.y1;
-        p2s[index + 11] = texture1;
+        p2s[index + 2]  = texture1X;
+        p2s[index + 3]  = texture1Y;
+        p2s[index + 4]  = wire.x1;
+        p2s[index + 5]  = wire.y1;
+        p2s[index + 6]  = texture1X;
+        p2s[index + 7]  = texture1Y;
+        p2s[index + 8]  = wire.x1;
+        p2s[index + 9]  = wire.y1;
+        p2s[index + 10] = texture1X;
+        p2s[index + 11] = texture1Y;
+        p2s[index + 12] = wire.x1;
+        p2s[index + 13] = wire.y1;
+        p2s[index + 14] = texture1X;
+        p2s[index + 15] = texture1Y;
 
         wireValueIndex += 1;
     }
 
-    var circles = new Int16Array(numCircles * 12);
+    var circles = new Int16Array(numCircles * 16);
     var id;
     for (id in circlesMap)
     {
@@ -191,33 +210,39 @@ WireRenderer.prototype.updateGeometry = function updateGeometry(wires, breadboar
         {
             texture = 0;
         }
+        var textureX = GameRenderer.getValueTextureIndexX(texture);
+        var textureY = GameRenderer.getValueTextureIndexY(texture);
 
         circles[circlesIndex + 0]  = p[0];
         circles[circlesIndex + 1]  = p[1];
-        circles[circlesIndex + 2]  = texture;
-        circles[circlesIndex + 3]  = p[0];
-        circles[circlesIndex + 4]  = p[1];
-        circles[circlesIndex + 5]  = texture;
-        circles[circlesIndex + 6]  = p[0];
-        circles[circlesIndex + 7]  = p[1];
-        circles[circlesIndex + 8]  = texture;
-        circles[circlesIndex + 9]  = p[0];
-        circles[circlesIndex + 10] = p[1];
-        circles[circlesIndex + 11] = texture;
-        circlesIndex += 12;
+        circles[circlesIndex + 2]  = textureX;
+        circles[circlesIndex + 3]  = textureY;
+        circles[circlesIndex + 4]  = p[0];
+        circles[circlesIndex + 5]  = p[1];
+        circles[circlesIndex + 6]  = textureX;
+        circles[circlesIndex + 7]  = textureY;
+        circles[circlesIndex + 8]  = p[0];
+        circles[circlesIndex + 9]  = p[1];
+        circles[circlesIndex + 10] = textureX;
+        circles[circlesIndex + 11] = textureY;
+        circles[circlesIndex + 12] = p[0];
+        circles[circlesIndex + 13] = p[1];
+        circles[circlesIndex + 14] = textureX;
+        circles[circlesIndex + 15] = textureY;
+        circlesIndex += 16;
     }
 
     if (!isTray)
     {
-        this.renderer.textureSize.value += wireValueIndex;
+        this.renderer.textureSize += wireValueIndex;
     }
 
     var wireGeometry = this.wireGeometry;
-    wireGeometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 3));
-    wireGeometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 3));
+    wireGeometry.addAttribute('p1', new THREE.BufferAttribute(p1s, 4));
+    wireGeometry.addAttribute('p2', new THREE.BufferAttribute(p2s, 4));
     wireGeometry.setDrawRange(0, 6 * numWires);
 
     var circleGeometry = this.circleGeometry;
-    circleGeometry.addAttribute('circle', new THREE.BufferAttribute(circles, 3));
+    circleGeometry.addAttribute('circle', new THREE.BufferAttribute(circles, 4));
     circleGeometry.setDrawRange(0, 6 * numCircles);
 };

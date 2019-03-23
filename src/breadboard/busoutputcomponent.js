@@ -85,7 +85,7 @@ BusOutputComponent.prototype.prepareGeometry = function prepareGeometry(componen
 
 BusOutputComponent.prototype.addGeometry = function addGeometry(componentRenderer, breadboard, isTray)
 {
-    var index = componentRenderer.switches.index * 12;
+    var index = componentRenderer.switches.index * 16;
 
     var inP = this.inP;
     var outP = this.outP;
@@ -97,7 +97,7 @@ BusOutputComponent.prototype.addGeometry = function addGeometry(componentRendere
 
     this.signalValueIndex = componentRenderer.getNextTextureIndex(breadboard, isTray);
 
-    var signalIndex = componentRenderer.switches.index * 4;
+    var signalIndex = componentRenderer.switches.index * 8;
     componentRenderer.addTextureIndex(componentRenderer.switches.signal, signalIndex, this.signalValueIndex);
 
     componentRenderer.switches.index += 1;

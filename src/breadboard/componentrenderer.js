@@ -73,7 +73,7 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             radius: this.outerRadius,
             feather: feather,
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize,
+            textureDimensions: this.renderer.textureDimensions,
             bgColor: this.outputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/componentswitch.vert"),
@@ -87,7 +87,7 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             radius: this.outerRadius,
             feather: feather,
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize,
+            textureDimensions: this.renderer.textureDimensions,
             bgColor: this.outputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
@@ -101,7 +101,7 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
             radius: this.outerRadius,
             feather: feather,
             texture: this.renderer.texture,
-            textureSize: this.renderer.textureSize,
+            textureDimensions: this.renderer.textureDimensions,
             bgColor: this.inputBgColor
         },
         vertexShader: ShaderManager.get("src/shaders/componentnode.vert"),
@@ -156,7 +156,7 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 
 ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p, isTray)
 {
-    var index = this.outputNodes.index * 12;
+    var index = this.outputNodes.index * 16;
     // TODO test if there is a wire index here we could reuse before increasing size of texture
     var textureIndex = this.getNextTextureIndex(breadboard, isTray);
     this.addPositionAndTextureIndex(this.outputNodes.p, index, p, textureIndex);
@@ -166,7 +166,7 @@ ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p
 
 ComponentRenderer.prototype.addNode = function addNode(breadboard, nodeType, p, id, isTray)
 {
-    var index = nodeType.index * 12;
+    var index = nodeType.index * 16;
     var textureIndex = this.getWireTextureIndex(breadboard, id, p, isTray);
     this.addPositionAndTextureIndex(nodeType.p, index, p, textureIndex);
     nodeType.index += 1;
@@ -198,9 +198,8 @@ ComponentRenderer.prototype.getNextTextureIndex = function getNextTextureIndex(b
     }
     else
     {
-        var textureSize = breadboard.gameRenderer.textureSize;
-        var result = textureSize.value;
-        textureSize.value += 1;
+        var result = breadboard.gameRenderer.textureSize;
+        breadboard.gameRenderer.textureSize += 1;
         return result;
     }
 }
@@ -219,26 +218,38 @@ ComponentRenderer.prototype.addPosition = function addPosition(data, index, p)
 
 ComponentRenderer.prototype.addPositionAndTextureIndex = function addPositionAndTextureIndex(data, index, p, textureIndex)
 {
+    var textureX = GameRenderer.getValueTextureIndexX(textureIndex);
+    var textureY = GameRenderer.getValueTextureIndexY(textureIndex);
     data[index + 0]  = p[0];
     data[index + 1]  = p[1];
-    data[index + 2]  = textureIndex;
-    data[index + 3]  = p[0];
-    data[index + 4]  = p[1];
-    data[index + 5]  = textureIndex;
-    data[index + 6]  = p[0];
-    data[index + 7]  = p[1];
-    data[index + 8]  = textureIndex;
-    data[index + 9]  = p[0];
-    data[index + 10] = p[1];
-    data[index + 11] = textureIndex;
+    data[index + 2]  = textureX;
+    data[index + 3]  = textureY;
+    data[index + 4]  = p[0];
+    data[index + 5]  = p[1];
+    data[index + 6]  = textureX;
+    data[index + 7]  = textureY;
+    data[index + 8]  = p[0];
+    data[index + 9]  = p[1];
+    data[index + 10] = textureX;
+    data[index + 11] = textureY;
+    data[index + 12] = p[0];
+    data[index + 13] = p[1];
+    data[index + 14] = textureX;
+    data[index + 15] = textureY;
 };
 
 ComponentRenderer.prototype.addTextureIndex = function addTextureIndex(data, index, textureIndex)
 {
-    data[index + 0] = textureIndex;
-    data[index + 1] = textureIndex;
-    data[index + 2] = textureIndex;
-    data[index + 3] = textureIndex;
+    var textureX = GameRenderer.getValueTextureIndexX(textureIndex);
+    var textureY = GameRenderer.getValueTextureIndexY(textureIndex);
+    data[index + 0] = textureX;
+    data[index + 1] = textureY;
+    data[index + 2] = textureX;
+    data[index + 3] = textureY;
+    data[index + 4] = textureX;
+    data[index + 5] = textureY;
+    data[index + 6] = textureX;
+    data[index + 7] = textureY;
 };
 
 ComponentRenderer.prototype.addText = function addText()
@@ -311,13 +322,13 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
 
     this.textRenderer.allocateGeometry();
 
-    this.switches.base = new Int16Array(this.switches.count * 12);
-    this.switches.p0 = new Int16Array(this.switches.count * 12);
-    this.switches.p1 = new Int16Array(this.switches.count * 12);
-    this.switches.signal = new Int16Array(this.switches.count * 4);
+    this.switches.base = new Int16Array(this.switches.count * 16);
+    this.switches.p0 = new Int16Array(this.switches.count * 16);
+    this.switches.p1 = new Int16Array(this.switches.count * 16);
+    this.switches.signal = new Int16Array(this.switches.count * 8);
 
-    this.outputNodes.p = new Int16Array(this.outputNodes.count * 12);
-    this.inputNodes.p = new Int16Array(this.inputNodes.count * 12);
+    this.outputNodes.p = new Int16Array(this.outputNodes.count * 16);
+    this.inputNodes.p = new Int16Array(this.inputNodes.count * 16);
     this.busNodes.p = new Int16Array(this.busNodes.count * 8);
 
     this.batterySymbols.p0 = new Int16Array(this.batterySymbols.count * 8);
@@ -343,18 +354,18 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     this.textRenderer.updateGeometry();
 
     var switchGeometry = this.switchGeometry;
-    switchGeometry.addAttribute('base', new THREE.BufferAttribute(this.switches.base, 3));
-    switchGeometry.addAttribute('p0', new THREE.BufferAttribute(this.switches.p0, 3));
-    switchGeometry.addAttribute('p1', new THREE.BufferAttribute(this.switches.p1, 3));
-    switchGeometry.addAttribute('signal', new THREE.BufferAttribute(this.switches.signal, 1));
+    switchGeometry.addAttribute('base', new THREE.BufferAttribute(this.switches.base, 4));
+    switchGeometry.addAttribute('p0', new THREE.BufferAttribute(this.switches.p0, 4));
+    switchGeometry.addAttribute('p1', new THREE.BufferAttribute(this.switches.p1, 4));
+    switchGeometry.addAttribute('signal', new THREE.BufferAttribute(this.switches.signal, 2));
     switchGeometry.setDrawRange(0, 6 * this.switches.count);
 
     var outputNodeGeometry = this.outputNodeGeometry;
-    outputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.outputNodes.p, 3));
+    outputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.outputNodes.p, 4));
     outputNodeGeometry.setDrawRange(0, 6 * this.outputNodes.count);
 
     var inputNodeGeometry = this.inputNodeGeometry;
-    inputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.inputNodes.p, 3));
+    inputNodeGeometry.addAttribute('circle', new THREE.BufferAttribute(this.inputNodes.p, 4));
     inputNodeGeometry.setDrawRange(0, 6 * this.inputNodes.count);
 
     var busNodeGeometry = this.busNodeGeometry;
