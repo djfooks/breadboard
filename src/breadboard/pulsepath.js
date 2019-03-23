@@ -230,11 +230,16 @@ PulsePath.prototype.updatePulsesType = function updatePulsesType(breadboard, pul
         {
             var id = edges[j];
 
+            var connection = breadboard.getConnection(id);
+            var component = connection.component;
+            if (component)
+            {
+                breadboard.setComponentDirty(id);
+            }
+
             var children = this.idToChild[id];
             if (children)
             {
-                var connection = breadboard.getConnection(id);
-                var component = connection.component;
                 for (k = 0; k < children.length; k += 1)
                 {
                     var child = children[k];

@@ -100,7 +100,7 @@ BusInputComponent.prototype.update = function update(breadboard)
     if (this.bus && signalValue !== this.signalValue)
     {
         this.signalValue = signalValue;
-        this.bus.addValue(this.busKey, signalValue ? 1 : -1);
+        this.bus.addValue(breadboard, this.busKey, signalValue ? 1 : -1);
     }
 };
 

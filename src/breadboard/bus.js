@@ -2,6 +2,7 @@
 function BusKey()
 {
     this.value = 0;
+    this.observers = [];
 }
 
 function Bus(breadboard, p)
@@ -38,8 +39,9 @@ function Bus(breadboard, p)
                         var channel = this.keys[component.busKey];
                         if (!channel)
                         {
-                            this.keys[component.busKey] = new BusKey();
+                            channel = this.keys[component.busKey] = new BusKey();
                         }
+                        channel.observers.push(index);
                     }
                 }
             }
@@ -98,11 +100,6 @@ function Bus(breadboard, p)
 
 Bus.updateColors = function updateColors(breadboard, buses, virtual)
 {
-    if (!virtual)
-    {
-        console.log("wregf");
-    }
-
     var newColor = breadboard.tray.getBusColorIndex();
     var bestCount = 0;
 
@@ -252,17 +249,28 @@ Bus.buildPaths = function buildPaths(breadboard)
     }
 };
 
-Bus.prototype.addValue = function addValue(key, value)
+Bus.prototype.addValue = function addValue(breadboard, key, delta)
 {
     var channel = this.keys[key];
     if (!channel)
     {
         return;
     }
-    channel.value += value;
-    if (channel.value < 0)
+    channel.value += delta;
+    var newValue = channel.value;
+    if (newValue < 0)
     {
         throw new Error("Negative channel value!");
+    }
+
+    if ((newValue == 0) || (newValue == 1 && delta == 1))
+    {
+        var observers = channel.observers;
+        var i;
+        for (i = 0; i < observers.length; i += 1)
+        {
+            breadboard.setComponentDirty(observers[i]);
+        }
     }
 };
 

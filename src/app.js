@@ -148,8 +148,11 @@ App.prototype.update = function update()
         this.nextTick = 3;
     }
 
-    this.breadboard.update();
-    this.breadboard.update();
+    var i;
+    for (i = 0; i < 30; i += 1)
+    {
+        this.breadboard.update();
+    }
     this.breadboard.draw();
     this.save();
 };
