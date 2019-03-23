@@ -40,6 +40,19 @@ function GameRenderer()
     this.indices = new THREE.BufferAttribute(indicesArray, 1);
 }
 
+GameRenderer.renderOrder = {
+    componentBox: 0,
+    nodes: 1,
+
+    selectionWireCircleBg: 3,
+    selectionWire: 4,
+    selectionWireCircleFg: 5,
+
+    wireCircleBg: 6,
+    wire: 7,
+    wireCircleFg: 8,
+};
+
 GameRenderer.prototype.createQuadGeometry = function createQuadGeometry()
 {
     var result = new THREE.BufferGeometry();

@@ -25,7 +25,9 @@ ComponentBoxRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.rectangleMaterial.transparent = true;
 
     var geometry = this.geometry;
-    scene.add(new THREE.Mesh(geometry, this.rectangleMaterial));
+    var mesh = new THREE.Mesh(geometry, this.rectangleMaterial);
+    mesh.renderOrder = GameRenderer.renderOrder.componentBox;
+    scene.add(mesh);
 };
 
 ComponentBoxRenderer.prototype.updateGeometry = function updateGeometry(components)

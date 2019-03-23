@@ -113,11 +113,14 @@ WireRenderer.prototype.setVisible = function setVisible(scene, visible)
         }
     }
 
-    doMeshSet(this.circleBgMesh, 0);
-    doMeshSet(this.wireMesh, 1);
+    var isSelection = this.isSelection.value == 1.0;
+    var renderOrder = GameRenderer.renderOrder;
+
+    doMeshSet(this.circleBgMesh, (isSelection ? renderOrder.selectionWireCircleBg : renderOrder.wireCircleBg));
+    doMeshSet(this.wireMesh, (isSelection ? renderOrder.selectionWire : renderOrder.wire));
     if (this.wireCirclesFgMaterial)
     {
-        doMeshSet(this.circleFgMesh, 2);
+        doMeshSet(this.circleFgMesh, (isSelection ? renderOrder.selectionWireCircleFg : renderOrder.wireCircleFg));
     }
 };
 
