@@ -6,7 +6,8 @@ var VueApp = function (app)
     this.breadboard = null;
     this.activeModal = { value: "" };
     this.filename = { value: "" };
-    this.files = [];
+    this.loadedFilename = { value: "" };
+    this.filesList = [];
 
     var outputs = this.outputs = new Array(256);
     var i;
@@ -338,32 +339,38 @@ self.onmessage=function(e){
         data: {
             activeModal: this.activeModal,
             filename: this.filename,
-            files: this.files
+            loadedFilename: this.loadedFilename,
+            filesList: this.filesList
         },
         computed: {
             canDelete: function ()
             {
-                return self.getFilename() !== self.app.filename;
-            }
+                return this.loadedFilename.value !== this.filename.value;
+            },
         },
         methods: {
             load: function ()
             {
+                this.loadedFilename.value = this.filename.value;
                 self.app.loadBreadboard(self.getFilename());
             },
             saveAs: function ()
             {
+                this.loadedFilename.value = this.filename.value;
                 self.app.filename = self.getFilename();
-                this.files.push(this.filename.value);
+                self.app.breadboard.dirtySave = true;
+                self.app.save();
+                this.filesList.push(this.filename.value);
             },
             deleteFile: function ()
             {
                 window.localStorage.removeItem(self.getFilename());
                 var deleteIndex = this.files.indexOf(this.filename.value);
-                if (deleteIndex === -1)
+                if (deleteIndex !== -1)
                 {
-                    this.files.splice(deleteIndex, 1);
+                    this.filesList.splice(deleteIndex, 1);
                 }
+                this.filename.value = this.filesList[0];
             },
             close: function()
             {
@@ -413,10 +420,9 @@ VueApp.prototype.showConfigureModal = function showConfigureModal(breadboard)
 VueApp.prototype.showModal = function showModal(type)
 {
     var i;
-    this.activeModal.value = type;
     if (type === "load" || type === "saveAs")
     {
-        this.files.length = 0;
+        this.filesList.splice(0);
         var storage = window.localStorage;
         var l = storage.length;
         for (i = 0; i < l; i += 1)
@@ -426,13 +432,19 @@ VueApp.prototype.showModal = function showModal(type)
             {
                 var filename = key.substr(("breadboard_").length);
                 filename = filename ? filename : "breadboard";
-                this.files.push(filename);
+                this.filesList.push(filename);
                 if (key === this.app.filename)
                 {
                     this.filename.value = filename;
+                    this.loadedFilename.value = filename;
                 }
             }
         }
+        if (type === "saveAs")
+        {
+            this.filename.value = "";
+        }
     }
+    this.activeModal.value = type;
 };
 

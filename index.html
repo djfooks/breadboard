@@ -97,7 +97,7 @@
                 <template v-slot:body>
                     <v-select :options="files" v-model='filename.value'></v-select>
                     <button type="button" v-on:click=load>Load</button>
-                    <button type="button" v-on:click=deleteFile :disabled='canDelete'>Delete</button>
+                    <button type="button" v-on:click=deleteFile :disabled='!canDelete'>Delete</button>
                 </template>
             </modal>
             <modal v-if="activeModal.value === 'saveAs'" @close=close>
@@ -105,11 +105,11 @@
                 <template v-slot:body>
                     <input type="text" v-model='filename.value' list="filesOptions">
                         <datalist id="filesOptions">
-                            <option v-for="filename in files">{{filename}}</option>
+                            <option v-for="filename in filesList" :value='filename'></option>
                         </datalist>
                     </input>
                     <button type="button" v-on:click=saveAs>Save As</button>
-                    <button type="button" v-on:click=deleteFile :disabled='canDelete'>Delete</button>
+                    <button type="button" v-on:click=deleteFile :disabled='!canDelete'>Delete</button>
                 </template>
             </modal>
         </div>
