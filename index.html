@@ -95,7 +95,7 @@
             <modal v-if="activeModal.value === 'load'" @close=close>
                 <h3 slot="header">Load</h3>
                 <template v-slot:body>
-                    <v-select :options="files" v-model='filename.value'></v-select>
+                    <v-select :options="filesList" v-model='filename.value'></v-select>
                     <button type="button" v-on:click=load>Load</button>
                     <button type="button" v-on:click=deleteFile :disabled='!canDelete'>Delete</button>
                 </template>

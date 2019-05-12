@@ -365,7 +365,7 @@ self.onmessage=function(e){
             deleteFile: function ()
             {
                 window.localStorage.removeItem(self.getFilename());
-                var deleteIndex = this.files.indexOf(this.filename.value);
+                var deleteIndex = this.filesList.indexOf(this.filename.value);
                 if (deleteIndex !== -1)
                 {
                     this.filesList.splice(deleteIndex, 1);

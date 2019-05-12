@@ -16,7 +16,7 @@ void main()
 
     vec2 p = mix(min, max, position);
 
-    vP = vec2(position.x, position.y);
+    vP = vec2(position.x, 1.0 - position.y);
     vec4 mvPosition = vec4(p, 0.0, 1.0);
     gl_Position = projectionMatrix * mvPosition;
 }
