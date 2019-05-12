@@ -182,7 +182,17 @@ Stage.prototype.keyUp = function keyUp(e)
 Stage.prototype.wheel = function wheel(y)
 {
     this.onWheel(y);
-}
+};
+
+Stage.prototype.mouseWheelHandler = function mouseWheelHandler(e)
+{
+    // cross-browser wheel delta
+    e = window.event || e; // old IE support
+    var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+
+    this.wheel(delta);
+    return false;
+};
 
 Stage.prototype.enable = function enable()
 {
@@ -190,26 +200,47 @@ Stage.prototype.enable = function enable()
     c.oncontextmenu = function (e) {
         e.preventDefault();
     };
-    c.addEventListener("mousedown", this.mouseDown.bind(this));
-    c.addEventListener("mouseup", this.mouseUp.bind(this));
-    c.addEventListener("mousemove", this.mouseMove.bind(this));
-    c.addEventListener("keydown", this.keyDown.bind(this));
-    c.addEventListener("keyup", this.keyUp.bind(this));
 
-    var wheel = this.wheel.bind(this);
-    function MouseWheelHandler(e)
+    this.events = {
+        "mousedown": [this.mouseDown.bind(this)],
+        "mouseup": [this.mouseUp.bind(this)],
+        "mousemove": [this.mouseMove.bind(this)],
+        "keydown": [this.keyDown.bind(this)],
+        "keyup": [this.keyUp.bind(this)],
+        // IE9, Chrome, Safari, Opera
+        "mousewheel": [this.mouseWheelHandler.bind(this), false],
+        // Firefox
+        "DOMMouseScroll": [this.mouseWheelHandler.bind(this), false],
+    };
+
+    for (var p in this.events)
     {
-        // cross-browser wheel delta
-        var e = window.event || e; // old IE support
-        var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-
-        wheel(delta);
-        return false;
+        if (this.events.hasOwnProperty(p))
+        {
+            var args = this.events[p];
+            if (args.length === 1)
+            {
+                c.addEventListener(p, args[0]);
+            }
+            else
+            {
+                c.addEventListener(p, args[0], args[1]);
+            }
+        }
     }
-    // IE9, Chrome, Safari, Opera
-    c.addEventListener("mousewheel", MouseWheelHandler, false);
-    // Firefox
-    c.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
+};
+
+Stage.prototype.disable = function disable()
+{
+    var c = this.canvas;
+    for (var p in this.events)
+    {
+        if (this.events.hasOwnProperty(p))
+        {
+            var args = this.events[p];
+            c.removeEventListener(p, args[0]);
+        }
+    }
 };
 
 Stage.prototype.getCanvasPosition = function getCanvasPosition(e, p)
@@ -229,10 +260,8 @@ Stage.getDocumentPositionFromEvent = function getDocumentPositionFromEvent(e, p)
         posy = e.pageY;
     }
     else if (e.clientX || e.clientY)    {
-        posx = e.clientX + document.body.scrollLeft
-            + document.documentElement.scrollLeft;
-        posy = e.clientY + document.body.scrollTop
-            + document.documentElement.scrollTop;
+        posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     }
     // posx and posy contain the mouse position relative to the document
     p[0] = posx;

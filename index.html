@@ -5,6 +5,7 @@
         <meta charset="utf-8">
 
         <link rel="stylesheet" href="src/styles.css"></link>
+        <link rel="stylesheet" href="https://unpkg.com/vue-select/dist/vue-select.css"></link>
 
         <!--<script type="text/javascript" src="src/three.min.js"></script>-->
         <script type="text/javascript" src="https://threejs.org/build/three.js"></script>
@@ -63,6 +64,8 @@
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.10.2/jshint.min.js"></script>
 
+        <script src="https://unpkg.com/vue-select@latest"></script>
+
     </head>
     <body>
 
@@ -73,6 +76,8 @@
             <button class="dropbtn" id="fileDropButton">Game</button>
             <div class="dropdown-content" id="fileDrop">
               <a href="#" id="clearBoardButton">Clear board</a>
+              <a href="#" id="loadButton">Load...</a>
+              <a href="#" id="saveAsButton">Save As</a>
             </div>
           </div>
         </div>
@@ -81,10 +86,30 @@
         <p id="debugText"></p>
 
         <div id="vueapp">
-            <modal v-if="showModal.value" @close=close>
+            <modal v-if="activeModal.value === 'EEPROM'" @close=close>
                 <h3 slot="header">EEPROM</h3>
                 <template v-slot:body>
                     <tabs></tabs>
+                </template>
+            </modal>
+            <modal v-if="activeModal.value === 'load'" @close=close>
+                <h3 slot="header">Load</h3>
+                <template v-slot:body>
+                    <v-select :options="files" v-model='filename.value'></v-select>
+                    <button type="button" v-on:click=load>Load</button>
+                    <button type="button" v-on:click=deleteFile :disabled='canDelete'>Delete</button>
+                </template>
+            </modal>
+            <modal v-if="activeModal.value === 'saveAs'" @close=close>
+                <h3 slot="header">Save As</h3>
+                <template v-slot:body>
+                    <input type="text" v-model='filename.value' list="filesOptions">
+                        <datalist id="filesOptions">
+                            <option v-for="filename in files">{{filename}}</option>
+                        </datalist>
+                    </input>
+                    <button type="button" v-on:click=saveAs>Save As</button>
+                    <button type="button" v-on:click=deleteFile :disabled='canDelete'>Delete</button>
                 </template>
             </modal>
         </div>

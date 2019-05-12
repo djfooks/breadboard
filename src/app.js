@@ -16,38 +16,12 @@ var App = function ()
 
     ColorPalette.createPaletteTextures();
 
-    this.stage = new Stage(this.canvas, this.renderer, this.scene);
-    this.stage.enable();
-
     this.fps = 30;
     this.intervalId = setInterval(this.update.bind(this), 1000 / this.fps);
 
-    this.vueApp = new VueApp(this.breadboard);
+    this.vueApp = new VueApp(this);
 
-    var top = 10;
-    var left = 10;
-    var json;
-    var jsonStr = window.localStorage.getItem("breadboard");
-    if (jsonStr)
-    {
-        try
-        {
-            json = JSON.parse(jsonStr);
-        }
-        catch (e)
-        {}
-    }
-    if (json)
-    {
-        this.breadboard = Breadboard.createFromJson(this.vueApp, this.stage, top, left, json);
-    }
-    else
-    {
-        var rows = 1001;
-        var cols = 1001;
-        this.breadboard = new Breadboard(this.vueApp, this.stage, top, left, cols, rows);
-        this.breadboard.addWire(0, 0, cols - 1, 0, false);
-    }
+    this.loadBreadboard();
 
     this.nextTick = 0;
     this.gameTick = 0;
@@ -73,11 +47,20 @@ var App = function ()
         that.breadboard.clear();
         that.breadboard.addWire(0, 0, that.breadboard.cols - 1, 0, false);
     };
+    document.getElementById("loadButton").onclick = function ()
+    {
+        document.getElementById("fileDrop").classList.remove("show");
+        that.save();
+        that.vueApp.showModal("load");
+    };
+    document.getElementById("saveAsButton").onclick = function ()
+    {
+        document.getElementById("fileDrop").classList.remove("show");
+        that.vueApp.showModal("saveAs");
+    };
 
     // disable mouse scroll on middle click
     document.body.onmousedown = function(e) { if (e.button === 1) return false; };
-
-    this.loading = true;
 
     TextureManager.init(this.renderer);
 
@@ -124,11 +107,62 @@ var App = function ()
     JsonManager.request("sourcecodepro-medium.json");
 };
 
+App.prototype.loadBreadboard = function loadBreadboard(filename)
+{
+    if (!filename)
+    {
+        filename = window.localStorage.getItem("lastLoaded") || "breadboard";
+    }
+    this.filename = filename;
+    window.localStorage.setItem("lastLoaded", filename);
+
+    if (this.breadboard)
+    {
+        this.breadboard.destroy();
+        this.stage.disable();
+    }
+
+    this.scene = new THREE.Scene();
+    this.stage = new Stage(this.canvas, this.renderer, this.scene);
+    this.stage.enable();
+
+    var top = 10;
+    var left = 10;
+    var json;
+    var jsonStr = window.localStorage.getItem(this.filename);
+    if (jsonStr)
+    {
+        try
+        {
+            json = JSON.parse(jsonStr);
+        }
+        catch (e)
+        {}
+    }
+    if (json)
+    {
+        this.breadboard = Breadboard.createFromJson(this.vueApp, this.stage, top, left, json);
+    }
+    else
+    {
+        var rows = 1001;
+        var cols = 1001;
+        this.breadboard = new Breadboard(this.vueApp, this.stage, top, left, cols, rows);
+        this.breadboard.addWire(0, 0, cols - 1, 0, false);
+    }
+    this.loading = true;
+};
+
+App.prototype.isLoading = function isLoading()
+{
+    return TextureManager.loading() ||
+        ShaderManager.loading() ||
+        JsonManager.loading();
+};
+
 App.prototype.update = function update()
 {
-    if (TextureManager.loading() ||
-        ShaderManager.loading() ||
-        JsonManager.loading())
+    if (this.isLoading())
     {
         return;
     }
@@ -149,7 +183,7 @@ App.prototype.update = function update()
     }
 
     var i;
-    for (i = 0; i < 30; i += 1)
+    for (i = 0; i < 1; i += 1)
     {
         this.breadboard.update();
     }
@@ -164,7 +198,6 @@ App.prototype.updateGame = function updateGame()
 
 App.prototype.postLoad = function postLoad()
 {
-    this.addCircles();
 };
 
 App.prototype.initWebGL = function initWebGL()
@@ -172,7 +205,6 @@ App.prototype.initWebGL = function initWebGL()
     this.renderer = new THREE.WebGLRenderer({canvas: this.canvas});
     this.renderer.autoClear = false;
     this.renderer.sortObjects = true;
-    this.scene = new THREE.Scene();
 };
 
 App.prototype.debugInfo = function debugInfo(str)
@@ -193,7 +225,7 @@ App.prototype.save = function save()
         var json = this.breadboard.toJson();
         this.breadboard.dirtySave = false;
         var jsonStr = JSON.stringify(json);
-        window.localStorage.setItem("breadboard", jsonStr);
+        window.localStorage.setItem(this.filename, jsonStr);
     }
 };
 

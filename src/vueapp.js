@@ -1,7 +1,13 @@
-var VueApp = function ()
+var VueApp = function (app)
 {
+    Vue.component('v-select', VueSelect.VueSelect);
+
+    this.app = app;
     this.breadboard = null;
-    this.showModal = { value: false };
+    this.activeModal = { value: "" };
+    this.filename = { value: "" };
+    this.files = [];
+
     var outputs = this.outputs = new Array(256);
     var i;
     for (i = 0; i < 256; i += 1)
@@ -323,22 +329,42 @@ self.onmessage=function(e){
     });
 
     Vue.component('modal', {
-        template: '#modal-template',
-        methods: {
-            close: function()
-            {
-                console.log("sddf");
-            }
-        }
+        template: '#modal-template'
     })
 
     var self = this;
     this.vueapp = new Vue({
         el: '#vueapp',
         data: {
-            showModal: this.showModal
+            activeModal: this.activeModal,
+            filename: this.filename,
+            files: this.files
+        },
+        computed: {
+            canDelete: function ()
+            {
+                return self.getFilename() !== self.app.filename;
+            }
         },
         methods: {
+            load: function ()
+            {
+                self.app.loadBreadboard(self.getFilename());
+            },
+            saveAs: function ()
+            {
+                self.app.filename = self.getFilename();
+                this.files.push(this.filename.value);
+            },
+            deleteFile: function ()
+            {
+                window.localStorage.removeItem(self.getFilename());
+                var deleteIndex = this.files.indexOf(this.filename.value);
+                if (deleteIndex === -1)
+                {
+                    this.files.splice(deleteIndex, 1);
+                }
+            },
             close: function()
             {
                 self.closeModal();
@@ -347,20 +373,28 @@ self.onmessage=function(e){
     });
 };
 
+VueApp.prototype.getFilename = function getFilename()
+{
+    var f = this.filename.value;
+    return f === "breadboard" ? "breadboard" : "breadboard_" + f;
+};
+
 VueApp.prototype.closeModal = function closeModal()
 {
-    var breadboard = this.breadboard;
-    var component = breadboard.getSelectedComponent();
-
-    var outputs = this.outputs;
-    var i;
-    for (i = 0; i < 256; i += 1)
+    if (this.activeModal.value == "EEPROM")
     {
-        component.valueLookup[i] = outputs[i];
-    }
+        var breadboard = this.breadboard;
+        var component = breadboard.getSelectedComponent();
 
-    this.showModal.value = false;
-    this.breadboard = null;
+        var outputs = this.outputs;
+        var i;
+        for (i = 0; i < 256; i += 1)
+        {
+            component.valueLookup[i] = outputs[i];
+        }
+        this.breadboard = null;
+    }
+    this.activeModal.value = "";
 };
 
 VueApp.prototype.showConfigureModal = function showConfigureModal(breadboard)
@@ -373,5 +407,32 @@ VueApp.prototype.showConfigureModal = function showConfigureModal(breadboard)
         Vue.set(this.outputs, i, component.valueLookup[i]);
     }
 
-    this.showModal.value = true;
+    this.activeModal.value = "EEPROM";
 };
+
+VueApp.prototype.showModal = function showModal(type)
+{
+    var i;
+    this.activeModal.value = type;
+    if (type === "load" || type === "saveAs")
+    {
+        this.files.length = 0;
+        var storage = window.localStorage;
+        var l = storage.length;
+        for (i = 0; i < l; i += 1)
+        {
+            var key = storage.key(i);
+            if (key.startsWith("breadboard"))
+            {
+                var filename = key.substr(("breadboard_").length);
+                filename = filename ? filename : "breadboard";
+                this.files.push(filename);
+                if (key === this.app.filename)
+                {
+                    this.filename.value = filename;
+                }
+            }
+        }
+    }
+};
+

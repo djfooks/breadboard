@@ -80,6 +80,32 @@ function Breadboard(vueapp, stage, top, left, cols, rows)
     this.frame = 0;
 }
 
+Breadboard.prototype.destroy = function destroy()
+{
+    this.stage.removeHitbox(this.tray.gameStage.gameStageHitbox);
+    this.stage.removeHitbox(this.gameStage.gameStageHitbox);
+
+    this.stage.onMouseDown = null;
+    this.stage.onMouseUp = null;
+    this.stage.onMouseMove = null;
+    this.stage.onWheel = null;
+    this.stage.onKeyDown = null;
+    this.stage.onKeyUp = null;
+
+    this.gameStage.onMouseDown = null;
+    this.gameStage.onMouseUp = null;
+    this.gameStage.onMouseMove = null;
+
+    this.tray.gameStage.onMouseDown = null;
+    this.tray.gameStage.onMouseUp = null;
+    this.tray.gameStage.onMouseMove = null;
+
+    this.clear();
+
+    this.gameStage.feather = null;
+    this.gameStage = null;
+};
+
 Breadboard.prototype.postLoad = function postLoad()
 {
     var scene = this.scene;
