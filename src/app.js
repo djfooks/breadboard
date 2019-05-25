@@ -64,8 +64,8 @@ var App = function ()
     TextureManager.init(this.renderer);
 
     TextureManager.request("sourcecodepro-medium.png", { mipmaps: true });
-    TextureManager.request("tinker.png", { mipmaps: true });
-    TextureManager.request("arrow-cursor.png", { mipmaps: true });
+    TextureManager.request("assets/tinker.png", { mipmaps: true });
+    TextureManager.request("assets/arrow-cursor.png", { mipmaps: true });
 
     ShaderManager.request("src/shaders/batterysymbol.frag");
     ShaderManager.request("src/shaders/batterysymbol.vert");

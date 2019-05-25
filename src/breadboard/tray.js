@@ -217,12 +217,12 @@ Tray.prototype.postLoad = function postLoad()
     this.componentRenderer.updateGeometry(this.componentsList, this, true);
 
     var buttonSpriteSize = 0.8;
-    this.selectSpriteRenderer.texture.value = TextureManager.get("arrow-cursor.png");
+    this.selectSpriteRenderer.texture.value = TextureManager.get("assets/arrow-cursor.png");
     this.selectSpriteRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.selectSpriteRenderer.updateGeometry([[1, 0]]);
     this.selectSpriteRenderer.size.value = buttonSpriteSize;
 
-    this.configureSpriteRenderer.texture.value = TextureManager.get("tinker.png");
+    this.configureSpriteRenderer.texture.value = TextureManager.get("assets/tinker.png");
     this.configureSpriteRenderer.addMeshes(this.scene, this.gameStage.feather);
     this.configureSpriteRenderer.updateGeometry([[1, 6]]);
     this.configureSpriteRenderer.size.value = buttonSpriteSize;
