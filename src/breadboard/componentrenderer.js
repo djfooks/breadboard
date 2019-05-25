@@ -14,6 +14,7 @@ function ComponentRenderer(renderer)
 
     this.batterySymbolGeometry = renderer.createQuadGeometry();
     this.diodeSymbolGeometry = renderer.createQuadGeometry();
+    this.freezerSymbolGeometry = renderer.createQuadGeometry();
 
     this.innerRadius = { value: 0.26 };
     this.outerRadius = { value: 0.31 };
@@ -56,6 +57,13 @@ function ComponentRenderer(renderer)
     };
 
     this.diodeSymbols = {
+        count: 0,
+        index: 0,
+        p0: null,
+        p1: null
+    };
+
+    this.freezerSymbols = {
         count: 0,
         index: 0,
         p0: null,
@@ -152,6 +160,19 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
     this.diodeSymbolMaterial.transparent = true;
 
     scene.add(new THREE.Mesh(this.diodeSymbolGeometry, this.diodeSymbolMaterial));
+
+    this.freezerSymbolMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            feather: feather,
+            bgColor: this.outputBgColor
+        },
+        vertexShader: ShaderManager.get("src/shaders/freezersymbol.vert"),
+        fragmentShader: ShaderManager.get("src/shaders/freezersymbol.frag"),
+        side: THREE.DoubleSide
+    });
+    this.freezerSymbolMaterial.transparent = true;
+
+    scene.add(new THREE.Mesh(this.freezerSymbolGeometry, this.freezerSymbolMaterial));
 };
 
 ComponentRenderer.prototype.addOutputNode = function addOutputNode(breadboard, p, isTray)
@@ -310,6 +331,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     this.diodeSymbols.count = 0;
     this.diodeSymbols.index = 0;
 
+    this.freezerSymbols.count = 0;
+    this.freezerSymbols.index = 0;
+
     var numComponents = components.length;
 
     var i;
@@ -337,6 +361,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     this.diodeSymbols.p0 = new Int16Array(this.diodeSymbols.count * 8);
     this.diodeSymbols.p1 = new Int16Array(this.diodeSymbols.count * 8);
 
+    this.freezerSymbols.p0 = new Int16Array(this.freezerSymbols.count * 8);
+    this.freezerSymbols.p1 = new Int16Array(this.freezerSymbols.count * 8);
+
     var index = 0;
     for (i = 0; i < numComponents; i += 1)
     {
@@ -350,6 +377,7 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     if (this.busNodes.count       != this.busNodes.index)       { throw new Error("busNodes.count invalid"); }
     if (this.batterySymbols.count != this.batterySymbols.index) { throw new Error("batterySymbols.count invalid"); }
     if (this.diodeSymbols.count   != this.diodeSymbols.index)   { throw new Error("diodeSymbols.count invalid"); }
+    if (this.freezerSymbols.count != this.freezerSymbols.index) { throw new Error("freezerSymbols.count invalid"); }
 
     this.textRenderer.updateGeometry();
 
@@ -381,4 +409,9 @@ ComponentRenderer.prototype.updateGeometry = function updateGeometry(components,
     diodeSymbolGeometry.addAttribute('p0', new THREE.BufferAttribute(this.diodeSymbols.p0, 2));
     diodeSymbolGeometry.addAttribute('p1', new THREE.BufferAttribute(this.diodeSymbols.p1, 2));
     diodeSymbolGeometry.setDrawRange(0, 6 * this.diodeSymbols.count);
+
+    var freezerSymbolGeometry = this.freezerSymbolGeometry;
+    freezerSymbolGeometry.addAttribute('p0', new THREE.BufferAttribute(this.freezerSymbols.p0, 2));
+    freezerSymbolGeometry.addAttribute('p1', new THREE.BufferAttribute(this.freezerSymbols.p1, 2));
+    freezerSymbolGeometry.setDrawRange(0, 6 * this.freezerSymbols.count);
 };

@@ -10,6 +10,7 @@ var ComponentTypes = {
     LATCH: 8,
     WIRE: 9,
     BUS: 10,
+    FREEZER: 11,
 };
 
 var Component = {};

@@ -86,6 +86,8 @@ var App = function ()
     ShaderManager.request("src/shaders/componentswitch.vert");
     ShaderManager.request("src/shaders/diodesymbol.frag");
     ShaderManager.request("src/shaders/diodesymbol.vert");
+    ShaderManager.request("src/shaders/freezersymbol.frag");
+    ShaderManager.request("src/shaders/freezersymbol.vert");
     ShaderManager.request("src/shaders/grid.frag");
     ShaderManager.request("src/shaders/grid.vert");
     ShaderManager.request("src/shaders/line.frag");

@@ -326,6 +326,10 @@ Breadboard.createFromJson = function createFromJson(vueapp, stage, top, left, js
         {
             component = new EEPROMComponent(breadboard);
         }
+        else if (componentJson.type === ComponentTypes.FREEZER)
+        {
+            component = new FreezerComponent(breadboard);
+        }
         component.stateFromJson(componentJson);
         component.move(breadboard, componentJson.p0 || componentJson.p, componentJson.rotation | 0);
         breadboard.addComponent(component);

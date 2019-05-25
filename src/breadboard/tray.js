@@ -273,6 +273,10 @@ Tray.prototype.resetComponents = function resetComponents()
     this.gameStage.addHitbox(this.latch.hitbox);
     this.latch.move(this.breadboard, [2, 18], 0);
 
+    this.freezer = new FreezerComponent(this.breadboard);
+    this.gameStage.addHitbox(this.freezer.hitbox);
+    this.freezer.move(this.breadboard, [4, 9], 0);
+
     this.componentsList = [
         this.battery,
         this.switch,
@@ -283,22 +287,22 @@ Tray.prototype.resetComponents = function resetComponents()
         this.busInput,
         this.busOutput,
         this.latch,
+        this.freezer,
     ];
 };
 
 Tray.prototype.isFromTray = function isFromTray(component)
 {
     var fromTray = false;
-    fromTray = fromTray || (component === this.battery);
-    fromTray = fromTray || (component === this.switch);
-    fromTray = fromTray || (component === this.relay);
-    fromTray = fromTray || (component === this.diode);
-    fromTray = fromTray || (component === this.debugger);
-    fromTray = fromTray || (component === this.busInput);
-    fromTray = fromTray || (component === this.busOutput);
-    fromTray = fromTray || (component === this.latch);
-    fromTray = fromTray || (component === this.eeprom);
-    return fromTray;
+    var i;
+    for (i = 0; i < this.componentsList.length; i += 1)
+    {
+        if (component === this.componentsList[i])
+        {
+            return true;
+        }
+    }
+    return false;
 };
 
 Tray.prototype.draw = function draw()
