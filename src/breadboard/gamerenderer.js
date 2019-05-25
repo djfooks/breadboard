@@ -78,7 +78,7 @@ GameRenderer.getValueTextureIndexY = function getValueTextureIndexY(v)
 GameRenderer.prototype.createValuesTexture = function createValuesTexture()
 {
     var textureSize = this.textureSize;
-    var textureWidth = Math.min(textureSize, GameRenderer.maxTextureSize);
+    var textureWidth = Math.max(2, Math.min(textureSize, GameRenderer.maxTextureSize));
     var textureHeight = GameRenderer.getValueTextureIndexY(textureSize) + 1;
     var textureData = this.textureData = new Uint8Array(textureWidth * textureHeight);
     for (i = 0; i < textureSize; i += 1)
