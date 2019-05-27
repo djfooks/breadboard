@@ -49,6 +49,7 @@ function Breadboard(vueapp, stage, top, left, cols, rows)
     this.busRenderer = new BusRenderer(this.gameRenderer);
     this.componentBoxRenderer = new ComponentBoxRenderer(this.gameRenderer, false);
     this.componentRenderer = new ComponentRenderer(this.gameRenderer);
+    this.crystalRenderer = new CrystalRenderer();
     this.lineRenderer = new LineRenderer(this.gameRenderer, ColorPalette.base.gameBorder, "src/shaders/line.vert", "src/shaders/line.frag");
 
     this.selectionLines = new LineRenderer(this.gameRenderer, ColorPalette.base.selectionBox, "src/shaders/selectionline.vert", "src/shaders/selectionline.frag");
@@ -116,6 +117,7 @@ Breadboard.prototype.postLoad = function postLoad()
     this.selectionComponentBoxRenderer.addMeshes(scene, feather);
     this.componentBoxRenderer.addMeshes(scene, feather);
     this.componentRenderer.addMeshes(scene, feather);
+    this.crystalRenderer.addMeshes(scene, feather);
 
     this.selectionWireRenderer.createMeshes(scene, feather);
     this.selectionBusRenderer.createMeshes(scene, feather);
@@ -543,6 +545,7 @@ Breadboard.prototype.draw = function draw()
     var camera = this.gameStage.camera;
 
     this.gameRenderer.update();
+    this.crystalRenderer.update();
 
     if (this.state != this.prevDrawState)
     {

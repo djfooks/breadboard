@@ -84,6 +84,8 @@ var App = function ()
     ShaderManager.request("src/shaders/componentnode.vert");
     ShaderManager.request("src/shaders/componentswitch.frag");
     ShaderManager.request("src/shaders/componentswitch.vert");
+    ShaderManager.request("src/shaders/crystal.frag");
+    ShaderManager.request("src/shaders/crystal.vert");
     ShaderManager.request("src/shaders/diodesymbol.frag");
     ShaderManager.request("src/shaders/diodesymbol.vert");
     ShaderManager.request("src/shaders/freezersymbol.frag");
@@ -104,6 +106,7 @@ var App = function ()
     ShaderManager.request("src/shaders/wire.vert");
     ShaderManager.request("src/shaders/wirecirclesshader.frag");
     ShaderManager.request("src/shaders/wirecirclesshader.vert");
+
 
     JsonManager.request("sourcecodepro-medium.json");
 };

@@ -66,6 +66,8 @@ GameStage.prototype.updateCamera = function updateCamera()
     camera.right  = view[0] + size * aspect;
     camera.top    = view[1] - size;
     camera.bottom = view[1] + size;
+    camera.near = 100;
+    camera.far = 0;
 
     camera.updateProjectionMatrix();
     this.invProjectionMatrix.getInverse(camera.projectionMatrix);
