@@ -163,6 +163,7 @@ ComponentRenderer.prototype.addMeshes = function addMeshes(scene, feather)
 
     this.freezerSymbolMaterial = new THREE.RawShaderMaterial({
         uniforms: {
+            time: this.renderer.time,
             feather: feather,
             bgColor: this.outputBgColor
         },

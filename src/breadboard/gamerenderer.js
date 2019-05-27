@@ -4,6 +4,8 @@ function GameRenderer()
     this.textureSize = 0;
     this.textureDimensions = { value: new THREE.Vector2(0, 0) };
     this.texture = {value : null};
+    this.time = { value: 0.0 };
+    this.lastUpdate = new Date().getTime() / 1000;
     this.textureData = new Uint8Array(0);
     this.dataTexture = null;
 
@@ -99,4 +101,15 @@ GameRenderer.prototype.createValuesTexture = function createValuesTexture()
     this.texture.value = dataTexture;
     this.textureDimensions.value.x = textureWidth;
     this.textureDimensions.value.y = textureHeight;
+};
+
+GameRenderer.prototype.update = function update()
+{
+    var now = new Date().getTime() / 1000;
+    this.time.value += (now - this.lastUpdate);
+    if (this.time.value > 10000.0)
+    {
+        this.time.value -= 10000.0;
+    }
+    this.lastUpdate = now;
 };

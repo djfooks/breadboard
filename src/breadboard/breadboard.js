@@ -542,6 +542,8 @@ Breadboard.prototype.draw = function draw()
     var canvas = stage.canvas;
     var camera = this.gameStage.camera;
 
+    this.gameRenderer.update();
+
     if (this.state != this.prevDrawState)
     {
         if (this.state === Breadboard.state.DRAG || this.prevDrawState === Breadboard.state.DRAG)
